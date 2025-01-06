@@ -34,7 +34,7 @@ public class ChatbotService
             // Create the request payload
             var requestPayload = new
             {
-                model = "gpt-3.5-turbo-instruct",
+                model = "gpt-3.5-turbo",
                 prompt = prompt,
                 temperature = 0.7,
                 max_tokens = 500,
@@ -47,7 +47,7 @@ public class ChatbotService
             string payloadJson = JsonSerializer.Serialize(requestPayload);
 
             // Set the authorization header with the OpenAI API key
-            string apiKey = Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            string apiKey = "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";
             if (string.IsNullOrEmpty(apiKey))
             {
                 throw new InvalidOperationException("API key is not set. Please configure the OPENAI_API_KEY environment variable.");

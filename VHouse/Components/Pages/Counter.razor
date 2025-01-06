@@ -1,9 +1,17 @@
 ﻿@page "/counter"
-@using System.Linq
+@using System.Text.Json
+@rendermode InteractiveServer
 @inject HttpClient HttpClient
 @inject ChatbotService ChatbotService
 
 <PageTitle>Gestión de Pedidos Inteligentes</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @currentCount</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
 
 <h1>Gestión de Tickets</h1>
 
@@ -12,11 +20,74 @@
 <br />
 <button class="btn btn-success" @onclick="ProcessOrder">Procesar Pedido</button>
 
+
+
 @if (errorMessage != null)
 {
     <p class="text-danger">@errorMessage</p>
 }
 
+@code {
+    private string userInput = string.Empty;
+    private string? errorMessage = null;
+    private int currentCount = 0;  // Modelo de producto
+    private class Product
+    {
+        public int ProductId { get; set; }
+        public string ProductName { get; set; }
+        public decimal Price { get; set; }
+    }
+    // Lista de productos
+    private List<Product> products = new()
+    {
+        new Product { ProductName = "🧀 Mozzarella 1kg", Price = 205, ProductId = 101 },
+        new Product { ProductName = "🧀 Mozzarella 500g", Price = 118, ProductId = 102 },
+        new Product { ProductName = "🧀 Oaxaca 1kg", Price = 205, ProductId = 103 },
+        new Product { ProductName = "🧀 Oaxaca 500g", Price = 118, ProductId = 104 },
+        // Más productos...
+    };
+    // Lista de ticket generado
+    private List<Product> ticket = new();
+    private void IncrementCount()
+    {
+        currentCount++;
+    } 
+    private async Task ProcessOrder()
+    {
+        errorMessage = null;
+        try
+        {
+            if (string.IsNullOrWhiteSpace(userInput))
+            {
+                errorMessage = "El pedido está vacío. Por favor ingresa un pedido válido.";
+                return;
+            }
+
+            string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
+
+            var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
+
+            if (extractedProductIds == null || !extractedProductIds.Any())
+            {
+                errorMessage = "No se encontraron productos en el pedido.";
+                return;
+            }
+
+            var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
+            ticket.AddRange(selectedProducts);
+
+            // Rate-limiting: Wait before processing another request
+            await Task.Delay(200); // 200ms delay
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocurrió un error al procesar el pedido: {ex.Message}";
+        }
+    }
+
+
+}
+@* 
 <h3>Lista de Precios</h3>
 
 <table>
@@ -76,15 +147,7 @@ else
     private string userInput = string.Empty;
     private string? errorMessage = null;
 
-    // Lista de productos
-    private List<Product> products = new()
-    {
-        new Product { ProductName = "🧀 Mozzarella 1kg", Price = 205 },
-        new Product { ProductName = "🧀 Mozzarella 500g", Price = 118 },
-        new Product { ProductName = "🧀 Oaxaca 1kg", Price = 205 },
-        new Product { ProductName = "🧀 Oaxaca 500g", Price = 118 },
-        // Más productos...
-    };
+   
 
     // Lista de tickets generados
     private List<Product> tickets = new();
@@ -95,15 +158,17 @@ else
         errorMessage = null;
         try
         {
-            // Llama a la API de IA
-            // Call the ChatbotService to consult the chatbot
-            string chatbotResponse = await ChatbotService.ConsultChatbotAsync(concatenatedCardsDescription);
-            var selectedProducts = await response.Content.ReadFromJsonAsync<List<string>>();
+            // Convert products to catalog JSON format
+            string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
 
-            if (selectedProducts != null)
-            {
-                tickets.AddRange(products.Where(p => selectedProducts.Contains(p.ProductName)));
-            }
+            // Call the ChatbotService to extract product IDs
+            var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
+
+            // Find products matching the extracted IDs
+            var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
+
+            // Add selected products to the ticket
+            tickets.AddRange(selectedProducts);
         }
         catch (Exception ex)
         {
@@ -129,7 +194,9 @@ else
     // Modelo de producto
     private class Product
     {
+        public int ProductId { get; set; }
         public string ProductName { get; set; }
         public decimal Price { get; set; }
     }
 }
+ *@
