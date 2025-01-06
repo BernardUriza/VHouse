@@ -1,0 +1,135 @@
+﻿@page "/counter"
+@using System.Linq
+@inject HttpClient HttpClient
+@inject ChatbotService ChatbotService
+
+<PageTitle>Gestión de Pedidos Inteligentes</PageTitle>
+
+<h1>Gestión de Tickets</h1>
+
+<h3>Procesar Pedido</h3>
+<textarea @bind="userInput" placeholder="Pega aquí la descripción del pedido" rows="4" cols="50"></textarea>
+<br />
+<button class="btn btn-success" @onclick="ProcessOrder">Procesar Pedido</button>
+
+@if (errorMessage != null)
+{
+    <p class="text-danger">@errorMessage</p>
+}
+
+<h3>Lista de Precios</h3>
+
+<table>
+    <thead>
+        <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var product in products)
+        {
+            <tr>
+                <td>@product.ProductName</td>
+                <td>
+                    <input type="number" step="0.01" value="@product.Price"
+                           @oninput="(e) => UpdatePrice(product, e.Value.ToString())" />
+                </td>
+                <td>
+                    <button @onclick="() => AddToTicket(product)">Generar Ticket</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<h3>Tickets Generados</h3>
+
+@if (tickets.Any())
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Producto</th>
+                <th>Precio</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var ticket in tickets)
+            {
+                <tr>
+                    <td>@ticket.ProductName</td>
+                    <td>@ticket.Price.ToString("C")</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+    <h4>Total: @tickets.Sum(t => t.Price).ToString("C")</h4>
+}
+else
+{
+    <p>No hay tickets generados.</p>
+}
+
+@code {
+    private string userInput = string.Empty;
+    private string? errorMessage = null;
+
+    // Lista de productos
+    private List<Product> products = new()
+    {
+        new Product { ProductName = "🧀 Mozzarella 1kg", Price = 205 },
+        new Product { ProductName = "🧀 Mozzarella 500g", Price = 118 },
+        new Product { ProductName = "🧀 Oaxaca 1kg", Price = 205 },
+        new Product { ProductName = "🧀 Oaxaca 500g", Price = 118 },
+        // Más productos...
+    };
+
+    // Lista de tickets generados
+    private List<Product> tickets = new();
+
+    // Método para procesar el texto del pedido
+    private async Task ProcessOrder()
+    {
+        errorMessage = null;
+        try
+        {
+            // Llama a la API de IA
+            // Call the ChatbotService to consult the chatbot
+            string chatbotResponse = await ChatbotService.ConsultChatbotAsync(concatenatedCardsDescription);
+            var selectedProducts = await response.Content.ReadFromJsonAsync<List<string>>();
+
+            if (selectedProducts != null)
+            {
+                tickets.AddRange(products.Where(p => selectedProducts.Contains(p.ProductName)));
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Ocurrió un error al procesar el pedido: {ex.Message}";
+        }
+    }
+
+    // Método para agregar productos al ticket
+    private void AddToTicket(Product product)
+    {
+        tickets.Add(product);
+    }
+
+    // Método para actualizar el precio de un producto
+    private void UpdatePrice(Product product, string newValue)
+    {
+        if (decimal.TryParse(newValue, out var newPrice))
+        {
+            product.Price = newPrice;
+        }
+    }
+
+    // Modelo de producto
+    private class Product
+    {
+        public string ProductName { get; set; }
+        public decimal Price { get; set; }
+    }
+}
