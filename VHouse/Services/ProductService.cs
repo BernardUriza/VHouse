@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using VHouse;
 
 public class ProductService
 {
@@ -59,11 +60,4 @@ public class ProductService
             await SaveProductsAsync(products);
         }
     }
-}
-
-public class Product
-{
-    public int ProductId { get; set; }
-    public string ProductName { get; set; }
-    public decimal Price { get; set; }
 }

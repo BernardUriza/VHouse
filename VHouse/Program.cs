@@ -8,6 +8,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ChatbotService>(); 
 builder.Services.AddSingleton<ProductService>();
+builder.Services.AddHttpContextAccessor(); 
 
 var app = builder.Build();
 

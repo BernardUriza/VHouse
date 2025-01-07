@@ -1,0 +1,111 @@
+﻿@using System.Text
+@inject IHttpContextAccessor HttpContextAccessor
+
+<div class="col-lg-4 col-md-12">
+    <h3 class="text-primary">Ticket Generado</h3>
+
+    @if (ticket.Any())
+    {
+        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Producto</th>
+                        <th>Precio</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var ticket in ticket)
+                    {
+                        <tr>
+                            <td>@ticket.ProductName</td>
+                            <td>@ticket.Price.ToString("C")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(ticket)">Eliminar</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="mt-3">
+            <h5>Subtotal: @ticket.Sum(t => t.Price).ToString("C")</h5>
+            <h5>Descuento: @discount.ToString("C")</h5>
+            <h5>Envío: @shippingCost.ToString("C")</h5>
+            <h4 class="text-success">Total: @TotalPrice.ToString("C")</h4>
+        </div>
+
+        <div class="mt-3">
+            <button class="btn btn-secondary me-2" @onclick="ClearTicket">Limpiar Pedido</button>
+            <button class="btn btn-warning me-2" @onclick="ApplyDiscount">Aplicar Descuento</button>
+            <button class="btn btn-info" @onclick="SetShippingCost">Actualizar Envío</button>
+        </div>
+
+        <div class="mt-3">
+            <textarea class="form-control mb-2" rows="4" readonly>@GenerateWhatsAppMessage()</textarea>
+            <button class="btn btn-success" @onclick="CopyToClipboard">Copiar Ticket para WhatsApp</button>
+        </div>
+    }
+    else
+    {
+        <p>No hay ticket generado.</p>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Product> ticket { get; set; } = new();
+
+    private decimal discount = 0;
+    private decimal shippingCost = 50; // Default shipping cost
+
+    private decimal TotalPrice => ticket.Sum(t => t.Price) - discount + shippingCost;
+
+    private void ClearTicket()
+    {
+        ticket.Clear();
+    }
+
+    private void RemoveFromTicket(Product product)
+    {
+        ticket.Remove(product);
+    }
+
+    private void ApplyDiscount()
+    {
+        // Placeholder for discount logic, e.g., fixed amount or percentage
+        discount = 20; // Example: a fixed discount of 20 pesos
+    }
+
+    private void SetShippingCost()
+    {
+        // Placeholder for user-defined shipping cost
+        shippingCost = 75; // Example: user manually updates shipping cost to 75
+    }
+
+    private string GenerateWhatsAppMessage()
+    {
+        var message = new StringBuilder();
+        message.AppendLine("📦 *Pedido Generado:*");
+        foreach (var ticket in ticket)
+        {
+            message.AppendLine($"- {ticket.ProductName}: {ticket.Price.ToString("C")}");
+        }
+        message.AppendLine($"🟢 *Subtotal:* {ticket.Sum(t => t.Price).ToString("C")}");
+        message.AppendLine($"🔴 *Descuento:* {discount.ToString("C")}");
+        message.AppendLine($"📦 *Envío:* {shippingCost.ToString("C")}");
+        message.AppendLine($"✅ *Total:* {TotalPrice.ToString("C")}");
+        message.AppendLine();
+        message.AppendLine("¡Gracias por tu compra! 🛒");
+        return message.ToString();
+    }
+
+    private void CopyToClipboard()
+    {
+        // Copy the WhatsApp message to the clipboard (requires JavaScript interop)
+        var message = GenerateWhatsAppMessage();
+        var jsRuntime = (IJSRuntime)HttpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IJSRuntime));
+        jsRuntime?.InvokeVoidAsync("navigator.clipboard.writeText", message.ToString());
+    }
+}

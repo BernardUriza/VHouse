@@ -1,6 +1,7 @@
 ﻿@page "/counter"
-@using System.Text.Json
 @rendermode InteractiveServer
+@using System.Text.Json
+@using VHouse.Components.Pages.Controls
 @inject HttpClient HttpClient
 @inject ChatbotService ChatbotService
 @inject ProductService ProductService
@@ -68,38 +69,7 @@
                 <p>No hay productos disponibles.</p>
             }
         </div>
-
-        <!-- Ticket Section -->
-        <div class="col-lg-4 col-md-12">
-            <h3 class="text-primary">Tickets Generados</h3>
-            @if (tickets.Any())
-            {
-                <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-                    <table class="table table-sm">
-                        <thead>
-                            <tr>
-                                <th>Producto</th>
-                                <th>Precio</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var ticket in tickets)
-                            {
-                                <tr>
-                                    <td>@ticket.ProductName</td>
-                                    <td>@ticket.Price.ToString("C")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <h4 class="text-success mt-2">Total: @tickets.Sum(t => t.Price).ToString("C")</h4>
-            }
-            else
-            {
-                <p>No hay tickets generados.</p>
-            }
-        </div>
+        <TicketSection ticket="ticket"></TicketSection>
     </div>
 </section>
 
@@ -111,7 +81,7 @@
 
     // List of products loaded from the service
     private List<Product> products = new();
-    private List<Product> tickets = new();
+    private List<Product> ticket = new();
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,7 +124,7 @@
 
             // Add selected products to tickets
             var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
-            tickets.AddRange(selectedProducts);
+            ticket.AddRange(selectedProducts);
         }
         catch (Exception ex)
         {
@@ -164,7 +134,7 @@
 
     private void AddToTicket(Product product)
     {
-        tickets.Add(product);
+        ticket.Add(product);
     }
 
     private void UpdatePrice(Product product, string newValue)
