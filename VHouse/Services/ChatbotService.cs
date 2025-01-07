@@ -34,7 +34,7 @@ public class ChatbotService
             // Create the request payload
             var requestPayload = new
             {
-                model = "gpt-3.5-turbo",
+                model = "gpt-3.5-turbo-instruct",
                 prompt = prompt,
                 temperature = 0.7,
                 max_tokens = 500,
