@@ -24,24 +24,25 @@ public class ChatbotService
             // Define the OpenAI API URL
             string apiUrl = "https://api.openai.com/v1/completions";
 
-            // Construct the dynamic prompt
             string prompt = $@"
-                You are a highly accurate system that extracts product IDs from customer requests.
-                The customer speaks Spanish, so the input will be in Spanish. However, your output must always be in the form of a valid JSON array of product IDs.
+            You are a highly accurate system that extracts product IDs from customer requests.
+            The customer speaks Spanish, so the input will be in Spanish. However, your output must always be in the form of a valid JSON array of product IDs.
 
-                Rules:
-                1. If no products are found matching the customer input, include the placeholder ID [-1].
-                2. Always output a valid JSON array, even if no product matches the customer request.
-                3. Do not include any extra text or explanations in the response.
+            Rules:
+            1. Your output must ONLY be a valid JSON array, with no additional text, formatting, or explanations.
+            2. If no products are found matching the customer input, return the placeholder ID [-1].
+            3. Always ensure the JSON array is valid and well-formed.
 
-                Product Catalog (JSON):
-                {catalogJson}
+            Product Catalog (JSON):
+            {catalogJson}
 
-                Customer Input (in Spanish):
-                {customerInput}
+            Customer Input (in Spanish):
+            {customerInput}
 
-                Output only the JSON array of product IDs. Example output: [101, 104]
-                ";
+            Output:
+            Only return a JSON array of product IDs. Example output: [101, 104]
+            ";
+
 
             // Create the request payload
             var requestPayload = new

@@ -4,6 +4,15 @@
 <div class="col-lg-4 col-md-12">
     <h3 class="text-primary">Ticket Generado</h3>
 
+    <div class="mb-3">
+        <label for="priceType" class="form-label">Selecciona el tipo de precio:</label>
+        <select id="priceType" class="form-select" @bind="selectedPriceType" @onchange="UpdateTicketPrices">
+            <option value="public">Precio Público</option>
+            <option value="retail">Precio Punto de Venta</option>
+            <option value="cost">Precio de Costo</option>
+        </select>
+    </div>
+
     @if (ticket.Any())
     {
         <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
@@ -16,13 +25,13 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var ticket in ticket)
+                    @foreach (var product in ticket)
                     {
                         <tr>
-                            <td>@ticket.ProductName</td>
-                            <td>@ticket.Price.ToString("C")</td>
+                            <td>@product.ProductName</td>
+                            <td>@GetPriceForType(product).ToString("C")</td>
                             <td>
-                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(ticket)">Eliminar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(product)">Eliminar</button>
                             </td>
                         </tr>
                     }
@@ -30,7 +39,7 @@
             </table>
         </div>
         <div class="mt-3">
-            <h5>Subtotal: @ticket.Sum(t => t.Price).ToString("C")</h5>
+            <h5>Subtotal: @ticket.Sum(t => GetPriceForType(t)).ToString("C")</h5>
             <h5>Descuento: @discount.ToString("C")</h5>
             <h5>Envío: @shippingCost.ToString("C")</h5>
             <h4 class="text-success">Total: @TotalPrice.ToString("C")</h4>
@@ -57,10 +66,11 @@
     [Parameter]
     public List<Product> ticket { get; set; } = new();
 
+    private string selectedPriceType = "public"; // Default to "Precio Público"
     private decimal discount = 0;
     private decimal shippingCost = 50; // Default shipping cost
 
-    private decimal TotalPrice => ticket.Sum(t => t.Price) - discount + shippingCost;
+    private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t)) - discount + shippingCost;
 
     private void ClearTicket()
     {
@@ -84,15 +94,32 @@
         shippingCost = 75; // Example: user manually updates shipping cost to 75
     }
 
+    private void UpdateTicketPrices()
+    {
+        // Trigger UI refresh when the price type changes
+        StateHasChanged();
+    }
+
+    private decimal GetPriceForType(Product product)
+    {
+        return selectedPriceType switch
+        {
+            "retail" => product.PriceRetail,
+            "cost" => product.PriceCost,
+            _ => product.PricePublic
+        };
+    }
+
     private string GenerateWhatsAppMessage()
     {
         var message = new StringBuilder();
         message.AppendLine("📦 *Pedido Generado:*");
-        foreach (var ticket in ticket)
+        foreach (var product in ticket)
         {
-            message.AppendLine($"- {ticket.ProductName}: {ticket.Price.ToString("C")}");
+            var price = GetPriceForType(product).ToString("C");
+            message.AppendLine($"- {product.ProductName}: {price}");
         }
-        message.AppendLine($"🟢 *Subtotal:* {ticket.Sum(t => t.Price).ToString("C")}");
+        message.AppendLine($"🟢 *Subtotal:* {ticket.Sum(t => GetPriceForType(t)).ToString("C")}");
         message.AppendLine($"🔴 *Descuento:* {discount.ToString("C")}");
         message.AppendLine($"📦 *Envío:* {shippingCost.ToString("C")}");
         message.AppendLine($"✅ *Total:* {TotalPrice.ToString("C")}");

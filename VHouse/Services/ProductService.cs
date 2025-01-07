@@ -45,9 +45,14 @@ public class ProductService
         if (product != null)
         {
             product.ProductName = updatedProduct.ProductName;
-            product.Price = updatedProduct.Price;
+            product.PricePublic = updatedProduct.PricePublic; // Actualiza Precio Público
+            product.PriceRetail = updatedProduct.PriceRetail; // Actualiza Precio Punto de Venta
+            product.PriceCost = updatedProduct.PriceCost;     // Actualiza Precio de Costo
+
+            // Guarda los cambios en la lista de productos
             await SaveProductsAsync(products);
         }
+
     }
 
     public async Task DeleteProductAsync(int productId)
