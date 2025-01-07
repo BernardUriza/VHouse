@@ -27,21 +27,22 @@ public class ChatbotService
             // Construct the dynamic prompt
             string prompt = $@"
                 You are a highly accurate system that extracts product IDs from customer requests.
-                Your task is to output only a valid JSON array of product IDs from the given input.
-                Do not include any extra text or explanations.
+                The customer speaks Spanish, so the input will be in Spanish. However, your output must always be in the form of a valid JSON array of product IDs.
 
                 Rules:
                 1. If no products are found matching the customer input, include the placeholder ID [-1].
                 2. Always output a valid JSON array, even if no product matches the customer request.
+                3. Do not include any extra text or explanations in the response.
 
                 Product Catalog (JSON):
                 {catalogJson}
 
-                Customer Input:
+                Customer Input (in Spanish):
                 {customerInput}
 
                 Output only the JSON array of product IDs. Example output: [101, 104]
                 ";
+
             // Create the request payload
             var requestPayload = new
             {

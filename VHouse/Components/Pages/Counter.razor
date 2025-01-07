@@ -110,11 +110,11 @@
                 errorMessage = "El pedido está vacío. Por favor ingresa un pedido válido.";
                 return;
             }
-            userInput = string.Empty;
 
             // Convert products to JSON for processing
             string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
             var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
+            userInput = string.Empty;
 
             if (extractedProductIds == null || !extractedProductIds.Any())
             {
