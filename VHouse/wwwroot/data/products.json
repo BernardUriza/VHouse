@@ -1,7 +1,137 @@
 [
   {
     "ProductId": 1,
-    "ProductName": "ttryrfhtg",
-    "Price": 0.07
+    "ProductName": "🧀 Mozzarella 1kg",
+    "Price": 205.0
+  },
+  {
+    "ProductId": 2,
+    "ProductName": "🧀 Mozzarella 500g",
+    "Price": 118.0
+  },
+  {
+    "ProductId": 3,
+    "ProductName": "🧀 Oaxaca 1kg",
+    "Price": 205.0
+  },
+  {
+    "ProductId": 4,
+    "ProductName": "🧀 Oaxaca 500g",
+    "Price": 118.0
+  },
+  {
+    "ProductId": 5,
+    "ProductName": "🥓 Jamón 270gr",
+    "Price": 58.0
+  },
+  {
+    "ProductId": 6,
+    "ProductName": "🌭 Parrillera 500gr",
+    "Price": 75.0
+  },
+  {
+    "ProductId": 7,
+    "ProductName": "🌭 Viena 470gr",
+    "Price": 75.0
+  },
+  {
+    "ProductId": 8,
+    "ProductName": "🍕 Peperoni 250gr",
+    "Price": 48.0
+  },
+  {
+    "ProductId": 9,
+    "ProductName": "🥓 Tocino 200gr",
+    "Price": 48.0
+  },
+  {
+    "ProductId": 10,
+    "ProductName": "🌶️ Chorizo Rojo 500gr (S/F)",
+    "Price": 92.0
+  },
+  {
+    "ProductId": 11,
+    "ProductName": "🌶️ Chorizo Verde 400gr (S/F)",
+    "Price": 92.0
+  },
+  {
+    "ProductId": 12,
+    "ProductName": "🎄 Seitan Navideño",
+    "Price": 228.0
+  },
+  {
+    "ProductId": 13,
+    "ProductName": "🍦 Leche Condensada Veggie Express",
+    "Price": 90.85
+  },
+  {
+    "ProductId": 14,
+    "ProductName": "🍯 Cajeta sin azúcar",
+    "Price": 90.25
+  },
+  {
+    "ProductId": 15,
+    "ProductName": "🥛 Crema",
+    "Price": 51.75
+  },
+  {
+    "ProductId": 16,
+    "ProductName": "🧀 Queso Crema",
+    "Price": 69.0
+  },
+  {
+    "ProductId": 17,
+    "ProductName": "🧀 Panela",
+    "Price": 63.25
+  },
+  {
+    "ProductId": 18,
+    "ProductName": "🧀 Parmesano",
+    "Price": 58.65
+  },
+  {
+    "ProductId": 19,
+    "ProductName": "🧀 Ranchero",
+    "Price": 51.75
+  },
+  {
+    "ProductId": 20,
+    "ProductName": "🌶️ Dip Jalapeño",
+    "Price": 50.14
+  },
+  {
+    "ProductId": 21,
+    "ProductName": "🧂 Aderezo Queso Azul",
+    "Price": 74.75
+  },
+  {
+    "ProductId": 22,
+    "ProductName": "🍖 Chicharrón Seitan",
+    "Price": 90.27
+  },
+  {
+    "ProductId": 23,
+    "ProductName": "🌮 Molida Quinoa",
+    "Price": 69.0
+  },
+  {
+    "ProductId": 24,
+    "ProductName": "🌮 Suadero Quinoa",
+    "Price": 69.0
+  },
+  {
+    "ProductId": 25,
+    "ProductName": "🥓 Tocino Veggie Express 200gr",
+    "Price": 56.35
+  },
+  {
+    "ProductId": 26,
+    "ProductName": "🍕 Pepperoni Veggie Express 200gr",
+    "Price": 57.5
+  },
+  {
+    "ProductId": 27,
+    "ProductName": "🍲 Consomé Vegano",
+    "Price": 81.65
   }
 ]

@@ -3,115 +3,117 @@
 @rendermode InteractiveServer
 @inject HttpClient HttpClient
 @inject ChatbotService ChatbotService
+@inject ProductService ProductService
 
 <PageTitle>Gestión de Pedidos Inteligentes</PageTitle>
 
-<h1>Gestión de Tickets</h1>
+<h1 class="text-primary">Gestión de Tickets</h1>
 
-<h3>Procesar Pedido</h3>
-<textarea @bind="userInput" placeholder="Pega aquí la descripción del pedido" rows="4" cols="50"></textarea>
-<br />
-<button class="btn btn-success" @onclick="ProcessOrder">Procesar Pedido</button>
+<section class="mb-4">
+    <h3>Procesar Pedido</h3>
+    <textarea class="form-control mb-3" @bind="userInput" placeholder="Pega aquí la descripción del pedido" rows="4"></textarea>
+    <button class="btn btn-success" @onclick="ProcessOrder">Procesar Pedido</button>
+    @if (errorMessage != null)
+    {
+        <div class="alert alert-danger mt-3">@errorMessage</div>
+    }
+</section>
 
-@if (errorMessage != null)
-{
-    <p class="text-danger">@errorMessage</p>
-}
-
-<h3>Lista de Precios</h3>
-<table>
-    <thead>
-        <tr>
-            <th>Producto</th>
-            <th>Precio</th>
-            <th>Acción</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var product in products)
-        {
-            <tr>
-                <td>@product.ProductName</td>
-                <td>
-                    <input type="number" step="0.01" value="@product.Price"
-                           @oninput="(e) => UpdatePrice(product, e.Value.ToString())" />
-                </td>
-                <td>
-                    <button class="btn btn-primary" @onclick="() => AddToTicket(product)">Agregar al Ticket</button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<h3>Tickets Generados</h3>
-
-@if (tickets.Any())
-{
-    <table>
-        <thead>
-            <tr>
-                <th>Producto</th>
-                <th>Precio</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var ticket in tickets)
-            {
+<section class="mb-4">
+    <h3>Lista de Precios</h3>
+    @if (isLoading)
+    {
+        <p>Cargando productos...</p>
+    }
+    else if (products != null && products.Any())
+    {
+        <table class="table table-bordered table-hover">
+            <thead class="thead-dark">
                 <tr>
-                    <td>@ticket.ProductName</td>
-                    <td>@ticket.Price.ToString("C")</td>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                    <th>Acción</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-    <h4>Total: @tickets.Sum(t => t.Price).ToString("C")</h4>
-}
-else
-{
-    <p>No hay tickets generados.</p>
-}
+            </thead>
+            <tbody>
+                @foreach (var product in products)
+                {
+                    <tr>
+                        <td>@product.ProductName</td>
+                        <td>
+                            <input type="number" step="0.01" value="@product.Price"
+                            class="form-control"
+                            @oninput="(e) => UpdatePrice(product, e.Value.ToString())" />
+                        </td>
+                        <td>
+                            <button class="btn btn-primary" @onclick="() => AddToTicket(product)">Agregar al Ticket</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <p>No hay productos disponibles.</p>
+    }
+</section>
+
+<section>
+    <h3>Tickets Generados</h3>
+    @if (tickets.Any())
+    {
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Precio</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var ticket in tickets)
+                {
+                    <tr>
+                        <td>@ticket.ProductName</td>
+                        <td>@ticket.Price.ToString("C")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <h4 class="text-success">Total: @tickets.Sum(t => t.Price).ToString("C")</h4>
+    }
+    else
+    {
+        <p>No hay tickets generados.</p>
+    }
+</section>
 
 @code {
     private string userInput = string.Empty;
     private string? errorMessage = null;
+    private bool isLoading = true;
 
-    // Lista de productos
-    private List<Product> products = new()
-{
-    new Product { ProductId = 1, ProductName = "🧀 Mozzarella 1kg", Price = 205 },
-    new Product { ProductId = 2, ProductName = "🧀 Mozzarella 500g", Price = 118 },
-    new Product { ProductId = 3, ProductName = "🧀 Oaxaca 1kg", Price = 205 },
-    new Product { ProductId = 4, ProductName = "🧀 Oaxaca 500g", Price = 118 },
-    new Product { ProductId = 5, ProductName = "🥓 Jamón 270gr", Price = 58 },
-    new Product { ProductId = 6, ProductName = "🌭 Parrillera 500gr", Price = 75 },
-    new Product { ProductId = 7, ProductName = "🌭 Viena 470gr", Price = 75 },
-    new Product { ProductId = 8, ProductName = "🍕 Peperoni 250gr", Price = 48 },
-    new Product { ProductId = 9, ProductName = "🥓 Tocino 200gr", Price = 48 },
-    new Product { ProductId = 10, ProductName = "🌶️ Chorizo Rojo 500gr (S/F)", Price = 92 },
-    new Product { ProductId = 11, ProductName = "🌶️ Chorizo Verde 400gr (S/F)", Price = 92 },
-    new Product { ProductId = 12, ProductName = "🎄 Seitan Navideño", Price = 228 },
-    new Product { ProductId = 13, ProductName = "🍦 Leche Condensada Veggie Express", Price = 90.85M },
-    new Product { ProductId = 14, ProductName = "🍯 Cajeta sin azúcar", Price = 90.25M },
-    new Product { ProductId = 15, ProductName = "🥛 Crema", Price = 51.75M },
-    new Product { ProductId = 16, ProductName = "🧀 Queso Crema", Price = 69.00M },
-    new Product { ProductId = 17, ProductName = "🧀 Panela", Price = 63.25M },
-    new Product { ProductId = 18, ProductName = "🧀 Parmesano", Price = 58.65M },
-    new Product { ProductId = 19, ProductName = "🧀 Ranchero", Price = 51.75M },
-    new Product { ProductId = 20, ProductName = "🌶️ Dip Jalapeño", Price = 50.14M },
-    new Product { ProductId = 21, ProductName = "🧂 Aderezo Queso Azul", Price = 74.75M },
-    new Product { ProductId = 22, ProductName = "🍖 Chicharrón Seitan", Price = 90.27M },
-    new Product { ProductId = 23, ProductName = "🌮 Molida Quinoa", Price = 69.00M },
-    new Product { ProductId = 24, ProductName = "🌮 Suadero Quinoa", Price = 69.00M },
-    new Product { ProductId = 25, ProductName = "🥓 Tocino Veggie Express 200gr", Price = 56.35M },
-    new Product { ProductId = 26, ProductName = "🍕 Pepperoni Veggie Express 200gr", Price = 57.50M },
-    new Product { ProductId = 27, ProductName = "🍲 Consomé Vegano", Price = 81.65M },
-    // Más productos...
-};
-
-
-    // Lista de tickets generados
+    // List of products loaded from the service
+    private List<Product> products = new();
     private List<Product> tickets = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Fetch products from the service
+            products = await ProductService.GetProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar los productos: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
     private async Task ProcessOrder()
     {
         errorMessage = null;
@@ -122,11 +124,10 @@ else
                 errorMessage = "El pedido está vacío. Por favor ingresa un pedido válido.";
                 return;
             }
+            userInput = string.Empty;
 
-            // Convertir la lista de productos a JSON
+            // Convert products to JSON for processing
             string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
-
-            // Obtener los IDs de los productos desde el servicio
             var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
 
             if (extractedProductIds == null || !extractedProductIds.Any())
@@ -135,10 +136,8 @@ else
                 return;
             }
 
-            // Buscar productos coincidentes
+            // Add selected products to tickets
             var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
-
-            // Agregar los productos seleccionados al ticket
             tickets.AddRange(selectedProducts);
         }
         catch (Exception ex)
@@ -158,12 +157,5 @@ else
         {
             product.Price = newPrice;
         }
-    }
-
-    private class Product
-    {
-        public int ProductId { get; set; }
-        public string ProductName { get; set; }
-        public decimal Price { get; set; }
     }
 }
