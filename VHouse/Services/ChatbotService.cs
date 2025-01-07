@@ -25,12 +25,23 @@ public class ChatbotService
             string apiUrl = "https://api.openai.com/v1/completions";
 
             // Construct the dynamic prompt
-            string prompt = $"You are a system that extracts product IDs from customer requests. " +
-                            $"Given a product catalog and a customer input, return a JSON array of the product IDs mentioned in the customer's input.\n\n" +
-                            $"Product Catalog:\n{catalogJson}\n\n" +
-                            $"Customer Input:\n{customerInput}\n\n" +
-                            $"Output:\n";
+            string prompt = $@"
+                You are a highly accurate system that extracts product IDs from customer requests.
+                Your task is to output only a valid JSON array of product IDs from the given input.
+                Do not include any extra text or explanations.
 
+                Rules:
+                1. If no products are found matching the customer input, include the placeholder ID [-1].
+                2. Always output a valid JSON array, even if no product matches the customer request.
+
+                Product Catalog (JSON):
+                {catalogJson}
+
+                Customer Input:
+                {customerInput}
+
+                Output only the JSON array of product IDs. Example output: [101, 104]
+                ";
             // Create the request payload
             var requestPayload = new
             {

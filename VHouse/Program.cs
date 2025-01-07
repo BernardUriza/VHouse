@@ -6,7 +6,9 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<ChatbotService>();
+builder.Services.AddScoped<ChatbotService>(); 
+builder.Services.AddSingleton<ProductService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
