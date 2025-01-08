@@ -2,136 +2,190 @@
   {
     "ProductId": 1,
     "ProductName": "🧀 Mozzarella 1kg",
-    "Price": 205.0
+    "PricePublic": 205.0,
+    "PriceRetail": 195.0,
+    "PriceCost": 187.0
   },
   {
     "ProductId": 2,
     "ProductName": "🧀 Mozzarella 500g",
-    "Price": 118.0
+    "PricePublic": 118.0,
+    "PriceRetail": 115.0,
+    "PriceCost": 107.74
   },
   {
     "ProductId": 3,
     "ProductName": "🧀 Oaxaca 1kg",
-    "Price": 205.0
+    "PricePublic": 205.0,
+    "PriceRetail": 195.0,
+    "PriceCost": 187.0
   },
   {
     "ProductId": 4,
     "ProductName": "🧀 Oaxaca 500g",
-    "Price": 118.0
+    "PricePublic": 118.0,
+    "PriceRetail": 115.0,
+    "PriceCost": 107.74
   },
   {
     "ProductId": 5,
     "ProductName": "🥓 Jamón 270gr",
-    "Price": 58.0
+    "PricePublic": 58.0,
+    "PriceRetail": 55.0,
+    "PriceCost": 50.0
   },
   {
     "ProductId": 6,
     "ProductName": "🌭 Parrillera 500gr",
-    "Price": 75.0
+    "PricePublic": 75.0,
+    "PriceRetail": 70.0,
+    "PriceCost": 65.0
   },
   {
     "ProductId": 7,
     "ProductName": "🌭 Viena 470gr",
-    "Price": 75.0
+    "PricePublic": 75.0,
+    "PriceRetail": 70.0,
+    "PriceCost": 65.0
   },
   {
     "ProductId": 8,
     "ProductName": "🍕 Peperoni 250gr",
-    "Price": 48.0
+    "PricePublic": 48.0,
+    "PriceRetail": 45.0,
+    "PriceCost": 42.0
   },
   {
     "ProductId": 9,
     "ProductName": "🥓 Tocino 200gr",
-    "Price": 48.0
+    "PricePublic": 48.0,
+    "PriceRetail": 45.0,
+    "PriceCost": 42.0
   },
   {
     "ProductId": 10,
     "ProductName": "🌶️ Chorizo Rojo 500gr (S/F)",
-    "Price": 92.0
+    "PricePublic": 92.0,
+    "PriceRetail": 88.0,
+    "PriceCost": 55.0
   },
   {
     "ProductId": 11,
     "ProductName": "🌶️ Chorizo Verde 400gr (S/F)",
-    "Price": 92.0
+    "PricePublic": 92.0,
+    "PriceRetail": 88.0,
+    "PriceCost": 55.0
   },
   {
     "ProductId": 12,
     "ProductName": "🎄 Seitan Navideño",
-    "Price": 228.0
+    "PricePublic": 228.0,
+    "PriceRetail": 220.0,
+    "PriceCost": 208.17
   },
   {
     "ProductId": 13,
     "ProductName": "🍦 Leche Condensada Veggie Express",
-    "Price": 90.85
+    "PricePublic": 90.85,
+    "PriceRetail": 88.0,
+    "PriceCost": 82.17
   },
   {
     "ProductId": 14,
     "ProductName": "🍯 Cajeta sin azúcar",
-    "Price": 90.25
+    "PricePublic": 90.25,
+    "PriceRetail": 88.0,
+    "PriceCost": 79.0
   },
   {
     "ProductId": 15,
     "ProductName": "🥛 Crema",
-    "Price": 51.75
+    "PricePublic": 51.75,
+    "PriceRetail": 50.0,
+    "PriceCost": 45.0
   },
   {
     "ProductId": 16,
     "ProductName": "🧀 Queso Crema",
-    "Price": 69.0
+    "PricePublic": 69.0,
+    "PriceRetail": 65.0,
+    "PriceCost": 60.0
   },
   {
     "ProductId": 17,
     "ProductName": "🧀 Panela",
-    "Price": 63.25
+    "PricePublic": 63.25,
+    "PriceRetail": 60.0,
+    "PriceCost": 55.0
   },
   {
     "ProductId": 18,
     "ProductName": "🧀 Parmesano",
-    "Price": 58.65
+    "PricePublic": 58.65,
+    "PriceRetail": 55.0,
+    "PriceCost": 51.0
   },
   {
     "ProductId": 19,
     "ProductName": "🧀 Ranchero",
-    "Price": 51.75
+    "PricePublic": 51.75,
+    "PriceRetail": 50.0,
+    "PriceCost": 45.0
   },
   {
     "ProductId": 20,
     "ProductName": "🌶️ Dip Jalapeño",
-    "Price": 50.14
+    "PricePublic": 50.14,
+    "PriceRetail": 48.0,
+    "PriceCost": 43.6
   },
   {
     "ProductId": 21,
     "ProductName": "🧂 Aderezo Queso Azul",
-    "Price": 74.75
+    "PricePublic": 74.75,
+    "PriceRetail": 70.0,
+    "PriceCost": 65.0
   },
   {
     "ProductId": 22,
     "ProductName": "🍖 Chicharrón Seitan",
-    "Price": 90.27
+    "PricePublic": 90.27,
+    "PriceRetail": 88.0,
+    "PriceCost": 90.27
   },
   {
     "ProductId": 23,
     "ProductName": "🌮 Molida Quinoa",
-    "Price": 69.0
+    "PricePublic": 69.0,
+    "PriceRetail": 65.0,
+    "PriceCost": 60.0
   },
   {
     "ProductId": 24,
     "ProductName": "🌮 Suadero Quinoa",
-    "Price": 69.0
+    "PricePublic": 69.0,
+    "PriceRetail": 65.0,
+    "PriceCost": 60.0
   },
   {
     "ProductId": 25,
     "ProductName": "🥓 Tocino Veggie Express 200gr",
-    "Price": 56.35
+    "PricePublic": 56.35,
+    "PriceRetail": 54.0,
+    "PriceCost": 56.35
   },
   {
     "ProductId": 26,
     "ProductName": "🍕 Pepperoni Veggie Express 200gr",
-    "Price": 57.5
+    "PricePublic": 57.5,
+    "PriceRetail": 55.0,
+    "PriceCost": 57.5
   },
   {
     "ProductId": 27,
     "ProductName": "🍲 Consomé Vegano",
-    "Price": 81.65
+    "PricePublic": 81.65,
+    "PriceRetail": 78.0,
+    "PriceCost": 71.0
   }
 ]
