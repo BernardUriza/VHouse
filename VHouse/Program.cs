@@ -1,6 +1,9 @@
-using VHouse.Components;
+﻿using VHouse.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+
+builder.WebHost.UseWebRoot("wwwroot");
+builder.WebHost.UseStaticWebAssets();
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
@@ -20,9 +23,16 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
 
 app.UseStaticFiles();
+
+var httpsPort = Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT");
+if (!string.IsNullOrEmpty(httpsPort))
+{
+    app.UseHttpsRedirection();
+}
+app.Logger.LogInformation("🚀 VHouse se está ejecutando en {Environment}...", app.Environment.EnvironmentName);
+
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
