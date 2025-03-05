@@ -111,7 +111,7 @@ main {
 
 .top-row {
     height: 70px;
-    background-color: rgba(0,0,0,0.4);
+    background-color: hsl(43.85deg 38.24% 73.33%);
 }
 
 .navbar-brand {
@@ -142,15 +142,11 @@ main {
 
 .nav-item {
     font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+    border-bottom: 1px solid;
 }
 
-    .nav-item:first-of-type {
-        padding-top: 1rem;
-    }
-
-    .nav-item:last-of-type {
-        padding-bottom: 1rem;
+    .nav-item a {
+        color: #272727;
     }
 
     .nav-item ::deep .nav-link {
@@ -181,6 +177,7 @@ main {
 
 .navbar-toggler:checked ~ .nav-scrollable {
     display: block;
+    background-color: hsl(23.16deg 71.25% 68.63%);
 }
 
 @media (min-width: 641px) {
@@ -191,6 +188,7 @@ main {
     .nav-scrollable {
         /* Never collapse the sidebar for wide screens */
         display: block;
+        background-color: hsl(23.16deg 71.25% 68.63%);
         /* Allow sidebar to scroll for tall menus */
         height: calc(100vh - 3.5rem);
         overflow-y: auto;
