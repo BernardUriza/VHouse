@@ -1,6 +1,8 @@
-﻿using VHouse.Components;
+﻿using Microsoft.EntityFrameworkCore;
+using VHouse.Components;
 
 var builder = WebApplication.CreateBuilder(args);
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.WebHost.UseWebRoot("wwwroot");
 builder.WebHost.UseStaticWebAssets();
@@ -11,7 +13,9 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ChatbotService>(); 
 builder.Services.AddSingleton<ProductService>();
-builder.Services.AddHttpContextAccessor(); 
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 var app = builder.Build();
 
