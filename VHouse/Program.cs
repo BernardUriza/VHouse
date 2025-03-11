@@ -16,11 +16,22 @@ builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddSingleton<ProductService>();
 builder.Services.AddHttpContextAccessor();
 
+string dbPath = builder.Environment.IsDevelopment()
+    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "sqlite_data", "mydatabase.db")
+    : "/data/mydatabase.db";
+
+// Asegurar que la carpeta existe en local
+if (builder.Environment.IsDevelopment())
+{
+    string directory = Path.GetDirectoryName(dbPath);
+    if (!Directory.Exists(directory))
+    {
+        Directory.CreateDirectory(directory);
+    }
+}
+
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection"),
-        sqlServerOptions => sqlServerOptions.EnableRetryOnFailure()
-    ));
+    options.UseSqlite($"Data Source={dbPath}")); // ✅ Usa SQLite correctamente
 
 var app = builder.Build();
 
