@@ -22,7 +22,18 @@
     <!-- Delivery Date Selection -->
     <div class="mb-3">
         <label for="deliveryDate" class="form-label">Fecha de entrega:</label>
-        <input id="deliveryDate" type="date" class="form-control" @bind="deliveryDate" />
+        <div class="mb-3">
+            <label for="deliveryDate" class="form-label fw-bold text-primary">
+                📅 Fecha de entrega:
+            </label>
+            <input id="deliveryDate"
+                   type="date"
+                   class="form-control border-primary shadow-sm"
+                   @bind="deliveryDate"
+                   @bind:format="ddMMyyyyFormat"
+                   lang="es-MX" />
+        </div>
+
     </div>
 
     @if (ticket.Any())
@@ -89,8 +100,10 @@
         <p>No hay ticket generado.</p>
     }
 </div>
-
 @code {
+    private DateTime? deliveryDate = DateTime.Today; // Default to today
+    private readonly string ddMMyyyyFormat = "dd/MM/yyyy"; // Mexican Date Format
+
     [Parameter] public List<Product> ticket { get; set; } = new();
 
     private string selectedPriceType = "public";
