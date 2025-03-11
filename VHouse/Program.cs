@@ -1,26 +1,27 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using System.Text.Json;
+using VHouse;
 using VHouse.Components;
 
-var builder = WebApplication.CreateBuilder(args);// Obtener la conexión desde la variable de entorno en Fly.io
+var builder = WebApplication.CreateBuilder(args);
+
 var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
     ?? builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.WebHost.UseWebRoot("wwwroot");
 builder.WebHost.UseStaticWebAssets();
 
-// Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<ChatbotService>(); 
-builder.Services.AddSingleton<ProductService>();
+builder.Services.AddScoped<ChatbotService>();
+builder.Services.AddScoped<ProductService>();
 builder.Services.AddHttpContextAccessor();
 
 string dbPath = builder.Environment.IsDevelopment()
     ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "sqlite_data", "mydatabase.db")
     : "/data/mydatabase.db";
 
-// Asegurar que la carpeta existe en local
 if (builder.Environment.IsDevelopment())
 {
     string directory = Path.GetDirectoryName(dbPath);
@@ -31,18 +32,51 @@ if (builder.Environment.IsDevelopment())
 }
 
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}")); // ✅ Usa SQLite correctamente
+    options.UseSqlite($"Data Source={dbPath}")); 
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<ApplicationDbContext>();
+
+    //context.Database.Migrate(); 
+
+    if (!context.Products.Any()) 
+    {
+        var env = services.GetRequiredService<IWebHostEnvironment>();
+        string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
+
+        if (File.Exists(jsonPath))
+        {
+            var jsonData = File.ReadAllText(jsonPath);
+            var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
+
+            if (products != null && products.Count > 0)
+            {
+                context.Products.AddRange(products);
+                context.SaveChanges();
+                app.Logger.LogInformation("✅ Productos cargados desde JSON.");
+            }
+        }
+        else
+        {
+            app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
+        }
+    }
+    else
+    {
+        app.Logger.LogInformation("✅ La base de datos ya tiene productos.");
+    }
+}
+
+// Configuración del pipeline de la aplicación
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-
 
 app.UseStaticFiles();
 
@@ -51,17 +85,12 @@ if (!string.IsNullOrEmpty(httpsPort))
 {
     app.UseHttpsRedirection();
 }
+
 app.Logger.LogInformation("🚀 VHouse se está ejecutando en {Environment}...", app.Environment.EnvironmentName);
 
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
-    db.Database.Migrate();
-}
 
 app.Run();

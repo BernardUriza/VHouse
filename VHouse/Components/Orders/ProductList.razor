@@ -1,0 +1,63 @@
+﻿@inject ProductService ProductService
+
+<h3 class="text-primary">Lista de Precios</h3>
+
+@if (isLoading)
+{
+    <p>Cargando productos...</p>
+}
+else if (products != null && products.Any())
+{
+    <div class="table-responsive">
+        <table class="table table-sm table-hover">
+            <thead class="thead-dark">
+                <tr>
+                    <th>Producto</th>
+                    <th>Acción</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var product in products)
+                {
+                    <tr>
+                        <td>@product.ProductName</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm"
+                                    @onclick="() => AddToTicket(product)">
+                                Agregar
+                            </button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p>No hay productos disponibles.</p>
+}
+
+@code {
+    private bool isLoading = true;
+    private List<Product> products = new();
+
+    [Parameter] public EventCallback<Product> OnProductAdded { get; set; }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            products = await ProductService.GetProductsAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task AddToTicket(Product product)
+    {
+        await OnProductAdded.InvokeAsync(product);
+    }
+}

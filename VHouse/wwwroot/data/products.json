@@ -1,191 +1,164 @@
 [
   {
+    "ProductId": 18,
+    "Emoji": "🍮",
+    "ProductName": "Gelatina Vegana",
+    "PriceCost": 30.00,
+    "PriceRetail": 35.00,
+    "PriceSuggested": 40.00,
+    "PricePublic": 37.00
+  },
+  {
     "ProductId": 1,
-    "ProductName": "🧀 Mozzarella 1kg",
-    "PricePublic": 205.0,
-    "PriceRetail": 195.0,
-    "PriceCost": 187.0
+    "Emoji": "🥓",
+    "ProductName": "Tocino 200g",
+    "PriceCost": 42.00,
+    "PriceRetail": 48.00,
+    "PriceSuggested": 70.00,
+    "PricePublic": 62.00
   },
   {
     "ProductId": 2,
-    "ProductName": "🧀 Mozzarella 500g",
-    "PricePublic": 118.0,
-    "PriceRetail": 115.0,
-    "PriceCost": 107.74
+    "Emoji": "🥩",
+    "ProductName": "Proteína Texturizada",
+    "PriceCost": 65.00,
+    "PriceRetail": 70.00,
+    "PriceSuggested": 90.00,
+    "PricePublic": 69.00
   },
   {
     "ProductId": 3,
-    "ProductName": "🧀 Oaxaca 1kg",
-    "PricePublic": 205.0,
-    "PriceRetail": 195.0,
-    "PriceCost": 187.0
+    "Emoji": "🍕",
+    "ProductName": "Pepperoni 250g",
+    "PriceCost": 42.00,
+    "PriceRetail": 48.00,
+    "PriceSuggested": 65.00,
+    "PricePublic": 62.00
   },
   {
     "ProductId": 4,
-    "ProductName": "🧀 Oaxaca 500g",
-    "PricePublic": 118.0,
-    "PriceRetail": 115.0,
-    "PriceCost": 107.74
+    "Emoji": "🧈",
+    "ProductName": "Tofu",
+    "PriceCost": 47.50,
+    "PriceRetail": 55.00,
+    "PriceSuggested": 80.00,
+    "PricePublic": 65.00
   },
   {
     "ProductId": 5,
-    "ProductName": "🥓 Jamón 270gr",
-    "PricePublic": 58.0,
-    "PriceRetail": 55.0,
-    "PriceCost": 50.0
+    "Emoji": "🥪",
+    "ProductName": "Jamón 270g",
+    "PriceCost": 50.00,
+    "PriceRetail": 58.00,
+    "PriceSuggested": 75.00,
+    "PricePublic": 73.00
   },
   {
     "ProductId": 6,
-    "ProductName": "🌭 Parrillera 500gr",
-    "PricePublic": 75.0,
-    "PriceRetail": 70.0,
-    "PriceCost": 65.0
+    "Emoji": "🌭",
+    "ProductName": "Salchicha Viena 470g",
+    "PriceCost": 65.00,
+    "PriceRetail": 71.00,
+    "PriceSuggested": 90.00,
+    "PricePublic": 81.00
   },
   {
     "ProductId": 7,
-    "ProductName": "🌭 Viena 470gr",
-    "PricePublic": 75.0,
-    "PriceRetail": 70.0,
-    "PriceCost": 65.0
+    "Emoji": "🌭",
+    "ProductName": "Salchicha Parrillera 500g",
+    "PriceCost": 65.00,
+    "PriceRetail": 71.00,
+    "PriceSuggested": 90.00,
+    "PricePublic": 81.00
   },
   {
     "ProductId": 8,
-    "ProductName": "🍕 Peperoni 250gr",
-    "PricePublic": 48.0,
-    "PriceRetail": 45.0,
-    "PriceCost": 42.0
+    "Emoji": "🐷",
+    "ProductName": "Chicharrón de Seitan",
+    "PriceCost": 77.00,
+    "PriceRetail": 89.00,
+    "PriceSuggested": 120.00,
+    "PricePublic": 97.00
   },
   {
     "ProductId": 9,
-    "ProductName": "🥓 Tocino 200gr",
-    "PricePublic": 48.0,
-    "PriceRetail": 45.0,
-    "PriceCost": 42.0
+    "Emoji": "🍯",
+    "ProductName": "Cajeta sin Azúcar",
+    "PriceCost": 103.30,
+    "PriceRetail": 110.00,
+    "PriceSuggested": 160.00,
+    "PricePublic": 125.00
   },
   {
     "ProductId": 10,
-    "ProductName": "🌶️ Chorizo Rojo 500gr (S/F)",
-    "PricePublic": 92.0,
-    "PriceRetail": 88.0,
-    "PriceCost": 55.0
+    "Emoji": "🌶️",
+    "ProductName": "Chorizo Verde 400g (S/F)",
+    "PriceCost": 80.00,
+    "PriceRetail": 86.00,
+    "PriceSuggested": 110.00,
+    "PricePublic": 99.00
   },
   {
     "ProductId": 11,
-    "ProductName": "🌶️ Chorizo Verde 400gr (S/F)",
-    "PricePublic": 92.0,
-    "PriceRetail": 88.0,
-    "PriceCost": 55.0
+    "Emoji": "🌶️",
+    "ProductName": "Chorizo Rojo 500g (S/F)",
+    "PriceCost": 80.00,
+    "PriceRetail": 86.00,
+    "PriceSuggested": 110.00,
+    "PricePublic": 99.00
   },
   {
     "ProductId": 12,
-    "ProductName": "🎄 Seitan Navideño",
-    "PricePublic": 228.0,
-    "PriceRetail": 220.0,
-    "PriceCost": 208.17
+    "Emoji": "🧀",
+    "ProductName": "Queso Oaxaca 500g",
+    "PriceCost": 107.74,
+    "PriceRetail": 117.00,
+    "PriceSuggested": 150.00,
+    "PricePublic": 127.00
   },
   {
     "ProductId": 13,
-    "ProductName": "🍦 Leche Condensada Veggie Express",
-    "PricePublic": 90.85,
-    "PriceRetail": 88.0,
-    "PriceCost": 82.17
+    "Emoji": "🧀",
+    "ProductName": "Queso Mozzarella 500g",
+    "PriceCost": 107.74,
+    "PriceRetail": 117.00,
+    "PriceSuggested": 150.00,
+    "PricePublic": 127.00
   },
   {
     "ProductId": 14,
-    "ProductName": "🍯 Cajeta sin azúcar",
-    "PricePublic": 90.25,
-    "PriceRetail": 88.0,
-    "PriceCost": 79.0
+    "Emoji": "🍗",
+    "ProductName": "Pollo Vegano NotCo",
+    "PriceCost": 187.00,
+    "PriceRetail": 203.00,
+    "PriceSuggested": 250.00,
+    "PricePublic": 220.00
   },
   {
     "ProductId": 15,
-    "ProductName": "🥛 Crema",
-    "PricePublic": 51.75,
-    "PriceRetail": 50.0,
-    "PriceCost": 45.0
+    "Emoji": "🧀",
+    "ProductName": "Queso Oaxaca 1kg",
+    "PriceCost": 187.00,
+    "PriceRetail": 203.00,
+    "PriceSuggested": 250.00,
+    "PricePublic": 220.00
   },
   {
     "ProductId": 16,
-    "ProductName": "🧀 Queso Crema",
-    "PricePublic": 69.0,
-    "PriceRetail": 65.0,
-    "PriceCost": 60.0
+    "Emoji": "🏋️",
+    "ProductName": "Proteína en Polvo",
+    "PriceCost": 220.00,
+    "PriceRetail": 260.00,
+    "PriceSuggested": 310.00,
+    "PricePublic": 280.00
   },
   {
     "ProductId": 17,
-    "ProductName": "🧀 Panela",
-    "PricePublic": 63.25,
-    "PriceRetail": 60.0,
-    "PriceCost": 55.0
-  },
-  {
-    "ProductId": 18,
-    "ProductName": "🧀 Parmesano",
-    "PricePublic": 58.65,
-    "PriceRetail": 55.0,
-    "PriceCost": 51.0
-  },
-  {
-    "ProductId": 19,
-    "ProductName": "🧀 Ranchero",
-    "PricePublic": 51.75,
-    "PriceRetail": 50.0,
-    "PriceCost": 45.0
-  },
-  {
-    "ProductId": 20,
-    "ProductName": "🌶️ Dip Jalapeño",
-    "PricePublic": 50.14,
-    "PriceRetail": 48.0,
-    "PriceCost": 43.6
-  },
-  {
-    "ProductId": 21,
-    "ProductName": "🧂 Aderezo Queso Azul",
-    "PricePublic": 74.75,
-    "PriceRetail": 70.0,
-    "PriceCost": 65.0
-  },
-  {
-    "ProductId": 22,
-    "ProductName": "🍖 Chicharrón Seitan",
-    "PricePublic": 90.27,
-    "PriceRetail": 88.0,
-    "PriceCost": 90.27
-  },
-  {
-    "ProductId": 23,
-    "ProductName": "🌮 Molida Quinoa",
-    "PricePublic": 69.0,
-    "PriceRetail": 65.0,
-    "PriceCost": 60.0
-  },
-  {
-    "ProductId": 24,
-    "ProductName": "🌮 Suadero Quinoa",
-    "PricePublic": 69.0,
-    "PriceRetail": 65.0,
-    "PriceCost": 60.0
-  },
-  {
-    "ProductId": 25,
-    "ProductName": "🥓 Tocino Veggie Express 200gr",
-    "PricePublic": 56.35,
-    "PriceRetail": 54.0,
-    "PriceCost": 56.35
-  },
-  {
-    "ProductId": 26,
-    "ProductName": "🍕 Pepperoni Veggie Express 200gr",
-    "PricePublic": 57.5,
-    "PriceRetail": 55.0,
-    "PriceCost": 57.5
-  },
-  {
-    "ProductId": 27,
-    "ProductName": "🍲 Consomé Vegano",
-    "PricePublic": 81.65,
-    "PriceRetail": 78.0,
-    "PriceCost": 71.0
+    "Emoji": "🧀",
+    "ProductName": "Queso Mozzarella 1kg",
+    "PriceCost": 187.00,
+    "PriceRetail": 203.00,
+    "PriceSuggested": 250.00,
+    "PricePublic": 220.00
   }
 ]

@@ -1,68 +1,50 @@
-﻿using System.Text.Json;
+﻿using Microsoft.EntityFrameworkCore;
 using VHouse;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 public class ProductService
 {
-    private readonly IWebHostEnvironment _environment;
-    private readonly string _filePath;
+    private readonly ApplicationDbContext _context;
 
-    public ProductService(IWebHostEnvironment environment)
+    public ProductService(ApplicationDbContext context)
     {
-        _environment = environment;
-        _filePath = Path.Combine(_environment.WebRootPath, "data", "products.json");
+        _context = context;
     }
 
     public async Task<List<Product>> GetProductsAsync()
     {
-        if (!File.Exists(_filePath))
-        {
-            // Si no existe el archivo, crea uno vacío
-            await SaveProductsAsync(new List<Product>());
-        }
-
-        var json = await File.ReadAllTextAsync(_filePath);
-        return JsonSerializer.Deserialize<List<Product>>(json) ?? new List<Product>();
-    }
-
-    public async Task SaveProductsAsync(List<Product> products)
-    {
-        var json = JsonSerializer.Serialize(products, new JsonSerializerOptions { WriteIndented = true });
-        await File.WriteAllTextAsync(_filePath, json);
+        return await _context.Products.ToListAsync();
     }
 
     public async Task AddProductAsync(Product product)
     {
-        var products = await GetProductsAsync();
-        product.ProductId = products.Any() ? products.Max(p => p.ProductId) + 1 : 1;
-        products.Add(product);
-        await SaveProductsAsync(products);
+        _context.Products.Add(product);
+        await _context.SaveChangesAsync();
     }
 
     public async Task UpdateProductAsync(Product updatedProduct)
     {
-        var products = await GetProductsAsync();
-        var product = products.FirstOrDefault(p => p.ProductId == updatedProduct.ProductId);
+        var product = await _context.Products.FindAsync(updatedProduct.ProductId);
         if (product != null)
         {
             product.ProductName = updatedProduct.ProductName;
-            product.PricePublic = updatedProduct.PricePublic; // Actualiza Precio Público
-            product.PriceRetail = updatedProduct.PriceRetail; // Actualiza Precio Punto de Venta
-            product.PriceCost = updatedProduct.PriceCost;     // Actualiza Precio de Costo
+            product.PricePublic = updatedProduct.PricePublic;
+            product.PriceRetail = updatedProduct.PriceRetail;
+            product.PriceCost = updatedProduct.PriceCost;
 
-            // Guarda los cambios en la lista de productos
-            await SaveProductsAsync(products);
+            await _context.SaveChangesAsync();
         }
-
     }
 
     public async Task DeleteProductAsync(int productId)
     {
-        var products = await GetProductsAsync();
-        var product = products.FirstOrDefault(p => p.ProductId == productId);
+        var product = await _context.Products.FindAsync(productId);
         if (product != null)
         {
-            products.Remove(product);
-            await SaveProductsAsync(products);
+            _context.Products.Remove(product);
+            await _context.SaveChangesAsync();
         }
     }
 }

@@ -1,9 +1,6 @@
 ﻿@page "/counter"
+@using VHouse.Components.Orders
 @rendermode InteractiveServer
-@using System.Text.Json
-@using VHouse.Components.Pages.Controls
-@inject HttpClient HttpClient
-@inject ChatbotService ChatbotService
 @inject ProductService ProductService
 
 <PageTitle>Gestión de Pedidos Inteligentes</PageTitle>
@@ -12,123 +9,31 @@
 
 <section class="container-fluid">
     <div class="row">
-        <!-- Order Input Section -->
+        <!-- Order Processing Component -->
         <div class="col-lg-4 col-md-6 mb-3">
-            <h3 class="text-primary">Procesar Pedido</h3>
-            <textarea class="form-control form-control-sm mb-2" @bind="userInput"
-                      placeholder="Pega aquí la descripción del pedido" rows="3"></textarea>
-            <button class="btn btn-success btn-sm w-100" @onclick="ProcessOrder">Procesar Pedido</button>
-            @if (errorMessage != null)
-            {
-                <div class="alert alert-danger mt-2 p-2">@errorMessage</div>
-            }
+            <OrderProcessor OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
         </div>
 
-        <!-- Product List Section -->
+        <!-- Product List Component -->
         <div class="col-lg-4 col-md-6 mb-3">
-            <h3 class="text-primary">Lista de Precios</h3>
-            @if (isLoading)
-            {
-                <p>Cargando productos...</p>
-            }
-            else if (products != null && products.Any())
-            {
-                <div class="table-responsive">
-                    <table class="table table-sm table-hover">
-                        <thead class="thead-dark">
-                            <tr>
-                                <th>Producto</th>
-                                <th>Acción</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var product in products)
-                            {
-                                <tr>
-                                    <td>@product.ProductName</td>
-                                    <td>
-                                        <button class="btn btn-primary btn-sm"
-                                                @onclick="() => AddToTicket(product)">
-                                            Agregar
-                                        </button>
-                                    </td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            }
-            else
-            {
-                <p>No hay productos disponibles.</p>
-            }
+            <ProductList OnProductAdded="HandleProductAdded"></ProductList>
         </div>
-        <TicketSection ticket="ticket"></TicketSection>
+
+        <!-- Ticket Section Component -->
+        <TicketSection Ticket="ticket"></TicketSection>
     </div>
 </section>
 
-
 @code {
-    private string userInput = string.Empty;
-    private string? errorMessage = null;
-    private bool isLoading = true;
-
-    // List of products loaded from the service
-    private List<Product> products = new();
     private List<Product> ticket = new();
 
-    protected override async Task OnInitializedAsync()
+    private void HandleOrderProcessed(List<Product> selectedProducts)
     {
-        try
-        {
-            // Fetch products from the service
-            products = await ProductService.GetProductsAsync();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error al cargar los productos: {ex.Message}";
-        }
-        finally
-        {
-            isLoading = false;
-        }
+        ticket.AddRange(selectedProducts);
     }
 
-    private async Task ProcessOrder()
-    {
-        errorMessage = null;
-        try
-        {
-            if (string.IsNullOrWhiteSpace(userInput))
-            {
-                errorMessage = "El pedido está vacío. Por favor ingresa un pedido válido.";
-                return;
-            }
-
-            // Convert products to JSON for processing
-            string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
-            var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
-            userInput = string.Empty;
-
-            if (extractedProductIds == null || !extractedProductIds.Any())
-            {
-                errorMessage = "No se encontraron productos en el pedido.";
-                return;
-            }
-
-            // Add selected products to tickets
-            var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
-            ticket.AddRange(selectedProducts);
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Ocurrió un error al procesar el pedido: {ex.Message}";
-        }
-    }
-
-    private void AddToTicket(Product product)
+    private void HandleProductAdded(Product product)
     {
         ticket.Add(product);
     }
-
 }
