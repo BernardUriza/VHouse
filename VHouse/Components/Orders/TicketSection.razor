@@ -27,10 +27,9 @@
                 📅 Fecha de entrega:
             </label>
             <input id="deliveryDate"
-                   type="date"
+                   type="datetime-local"
                    class="form-control border-primary shadow-sm"
-                   @bind="deliveryDate"
-                   @bind:format="ddMMyyyyFormat"
+                   @bind-value="@deliveryDate" format="@ddMMyyyyFormat"
                    lang="es-MX" />
         </div>
 
@@ -101,8 +100,8 @@
     }
 </div>
 @code {
-    private DateTime? deliveryDate = DateTime.Today; // Default to today
     private readonly string ddMMyyyyFormat = "dd/MM/yyyy"; // Mexican Date Format
+    private DateTime? deliveryDate { get; set; }
 
     [Parameter] public List<Product> ticket { get; set; } = new();
 
@@ -110,7 +109,6 @@
     private decimal discount = 0;
     private decimal shippingCost = 50;
     private string? selectedStore = null;
-    private DateTime? deliveryDate = null;
     private bool isOrderGenerated = false;
 
     private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t)) - discount + shippingCost;
