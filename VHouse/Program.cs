@@ -15,6 +15,7 @@ builder.Services.AddHttpClient();
 builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddScoped<OrderService>();
+builder.Services.AddScoped<CustomerService>();
 builder.Services.AddHttpContextAccessor();
 
 // 📂 Ruta de la base de datos (dentro del volumen en producción)

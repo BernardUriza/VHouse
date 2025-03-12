@@ -83,6 +83,7 @@ else
             return;
         }
 
+        newCustomer.Address = "No especificada"; // ✅ Default value
         await CustomerService.AddCustomerAsync(newCustomer);
         await LoadCustomersAsync();
 
