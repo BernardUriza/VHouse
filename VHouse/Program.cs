@@ -20,9 +20,6 @@ string dbPath = builder.Environment.IsDevelopment()
     ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "sqlite_data", "mydatabase.db")
     : "/data/mydatabase.db";
 
-// 📂 Archivo de log para verificar si el volumen se mantiene entre deploys
-string logFile = "/data/deploy_log.txt";
-File.AppendAllText(logFile, $"🚀 Deploy iniciado en UTC: {DateTime.UtcNow}\n");
 
 // Si estamos en desarrollo, creamos el directorio local
 if (builder.Environment.IsDevelopment())
@@ -33,10 +30,16 @@ if (builder.Environment.IsDevelopment())
         Directory.CreateDirectory(directory);
     }
 }
+else
+{
+    // 📂 Archivo de log para verificar si el volumen se mantiene entre deploys
+    string logFile = "/data/deploy_log.txt";
+    File.AppendAllText(logFile, $"🚀 Deploy iniciado en UTC: {DateTime.UtcNow}\n");
+}
 
-// Configurar Entity Framework con SQLite
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}"));
+    // Configurar Entity Framework con SQLite
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+        options.UseSqlite($"Data Source={dbPath}"));
 
 var app = builder.Build();
 using (var scope = app.Services.CreateScope())
