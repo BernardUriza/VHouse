@@ -1,0 +1,97 @@
+﻿@page "/customers"
+@rendermode InteractiveServer
+@inject CustomerService CustomerService
+
+<h2>👥 Gestión de Clientes</h2>
+
+<div class="mb-4">
+    <h5>➕ Agregar Nuevo Cliente</h5>
+    <form>
+        <div class="row">
+            <div class="col-md-3">
+                <label for="fullName" class="form-label">Nombre Completo</label>
+                <input id="fullName" type="text" class="form-control" @bind="newCustomer.FullName" placeholder="Ej. Juan Pérez" />
+            </div>
+            <div class="col-md-3">
+                <label for="email" class="form-label">Correo Electrónico</label>
+                <input id="email" type="email" class="form-control" @bind="newCustomer.Email" placeholder="Ej. juan@example.com" />
+            </div>
+            <div class="col-md-3">
+                <label for="phone" class="form-label">Teléfono</label>
+                <input id="phone" type="tel" class="form-control" @bind="newCustomer.Phone" placeholder="Ej. 555-123-4567" />
+            </div>
+            <div class="col-md-3 align-self-end">
+                <button type="button" class="btn btn-success" @onclick="AddCustomer">Guardar Cliente</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<h3>📜 Lista de Clientes</h3>
+@if (customers.Any())
+{
+    <table class="table table-striped">
+        <thead class="table-dark">
+            <tr>
+                <th>ID</th>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Teléfono</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var customer in customers)
+            {
+                <tr>
+                    <td>@customer.CustomerId</td>
+                    <td>@customer.FullName</td>
+                    <td>@customer.Email</td>
+                    <td>@customer.Phone</td>
+                    <td>
+                        @* <button class="btn btn-warning btn-sm" @onclick="() => EditCustomer(customer)">✏️ Editar</button> *@
+                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer)">🗑 Eliminar</button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+else
+{
+    <p>No hay clientes registrados.</p>
+}
+
+@code {
+    private List<Customer> customers = new();
+    private Customer newCustomer = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadCustomersAsync();
+    }
+
+    private async Task LoadCustomersAsync()
+    {
+        customers = await CustomerService.GetCustomersAsync();
+    }
+
+    private async Task AddCustomer()
+    {
+        if (string.IsNullOrWhiteSpace(newCustomer.FullName) || string.IsNullOrWhiteSpace(newCustomer.Email) || string.IsNullOrWhiteSpace(newCustomer.Phone))
+        {
+            return;
+        }
+
+        await CustomerService.AddCustomerAsync(newCustomer);
+        await LoadCustomersAsync();
+
+        newCustomer = new Customer();
+    }
+
+    private async Task DeleteCustomer(Customer customer)
+    {
+        await CustomerService.DeleteCustomerAsync(customer.CustomerId);
+        await LoadCustomersAsync();
+    }
+}

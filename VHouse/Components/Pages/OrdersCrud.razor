@@ -71,47 +71,10 @@ else
     <p>No hay pedidos registrados.</p>
 }
 
-<!-- Bootstrap Modal for Order Details -->
+<!-- Order Details Modal Component -->
 @if (selectedOrder != null)
 {
-    <div class="modal fade show d-block" tabindex="-1" role="dialog">
-        <div class="modal-dialog modal-lg" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">🛍 Detalles del Pedido #@selectedOrder.OrderId</h5>
-                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>📅 Fecha:</strong> @selectedOrder.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>🏪 Tipo de Precio:</strong> @selectedOrder.PriceType</p>
-                    <p><strong>📦 Fecha de Entrega:</strong> @selectedOrder.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</p>
-                    <p><strong>💰 Total:</strong> @selectedOrder.TotalAmount.ToString("C")</p>
-
-                    <h5>🛒 Productos:</h5>
-                    <table class="table">
-                        <thead class="table-light">
-                            <tr>
-                                <th>Producto</th>
-                                <th>Precio</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var item in selectedOrder.Items)
-                            {
-                                <tr>
-                                    <td>@item.ProductName</td>
-                                    <td>@item.Price.ToString("C")</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cerrar</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <OrderDetailsModal Order="selectedOrder" OnClose="CloseModal"></OrderDetailsModal>
 }
 
 @code {

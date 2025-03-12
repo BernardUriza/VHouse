@@ -1,0 +1,56 @@
+﻿@using System.Linq
+@code {
+    [Parameter] public Order Order { get; set; }
+    [Parameter] public EventCallback OnClose { get; set; }
+
+    private Dictionary<string, (decimal Price, int Quantity)> GetGroupedItems()
+    {
+        return Order.Items
+            .GroupBy(i => i.ProductName)
+            .ToDictionary(
+                g => g.Key,
+                g => (g.First().Price, g.Count())
+            );
+    }
+}
+
+<div class="modal fade show d-block" tabindex="-1" role="dialog">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">🛍 Detalles del Pedido #@Order.OrderId</h5><button type="button" class="btn-close" @onclick="EventCallback.Factory.Create(this, () => OnClose.InvokeAsync())"></button>
+
+            </div>
+            <div class="modal-body">
+                <p><strong>📅 Fecha:</strong> @Order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                <p><strong>🏪 Tipo de Precio:</strong> @Order.PriceType</p>
+                <p><strong>📦 Fecha de Entrega:</strong> @Order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</p>
+                <p><strong>💰 Total:</strong> @Order.TotalAmount.ToString("C")</p>
+
+                <h5>🛒 Productos:</h5>
+                <table class="table">
+                    <thead class="table-light">
+                        <tr>
+                            <th>Producto</th>
+                            <th>Cantidad</th>
+                            <th>Precio</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in GetGroupedItems())
+                        {
+                            <tr>
+                                <td>@item.Key</td>
+                                <td>@item.Value.Quantity</td>
+                                <td>@item.Value.Price.ToString("C")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn" @onclick="EventCallback.Factory.Create(this, () => OnClose.InvokeAsync())">Cerrar</button>
+            </div>
+        </div>
+    </div>
+</div>
