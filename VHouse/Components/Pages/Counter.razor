@@ -11,14 +11,10 @@
         <!-- Order Processing Component -->
         <div class="col-lg-4 col-md-6 mb-3">
             <OrderProcessor OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
-        </div>
-
-        <!-- Product List Component -->
-        <div class="col-lg-4 col-md-6 mb-3">
             <ProductList OnProductAdded="HandleProductAdded"></ProductList>
         </div>
-
         <!-- Ticket Section Component -->
+        
         <TicketSection Ticket="@ticket"></TicketSection>
     </div>
 </section>

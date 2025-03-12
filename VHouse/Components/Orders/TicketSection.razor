@@ -4,12 +4,12 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject OrderService OrderService
 
-<div class="col-lg-4 col-md-12">
-    <h3 class="text-primary">Ticket Generado</h3>
+<div class="col-lg-6 col-md-12">
+    <h3 class="text-primary">📦 Ticket Generado</h3>
 
     <!-- Price Type Selection -->
     <div class="mb-3">
-        <label for="priceType" class="form-label fw-bold">Selecciona el tipo de precio:</label>
+        <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
         <select id="priceType" class="form-select border-primary shadow-sm"
                 @bind="selectedPriceType" @bind:event="onchange">
             <option value="public">Precio Público</option>
@@ -33,24 +33,69 @@
 
     @if (ticket.Any())
     {
-        <h5 class="text-success">Total: @TotalPrice.ToString("C")</h5>
-
-        <div class="mt-3">
-            <button class="btn btn-secondary me-2" @onclick="ClearTicket">Limpiar Pedido</button>
-            @* <button class="btn btn-success me-2" @onclick="CopyToClipboard">Copiar Ticket para WhatsApp</button> *@
-            <button class="btn btn-primary" @onclick="SaveOrder">Guardar Pedido</button>
+        <!-- Ticket Item List -->
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead class="table-dark">
+                    <tr>
+                        <th>🛍 Producto</th>
+                        <th>💲 Precio</th>
+                        <th>❌ Acción</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var product in ticket)
+                    {
+                        <tr>
+                            <td>@product.ProductName</td>
+                            <td>@GetPriceForType(product).ToString("C")</td>
+                            <td>
+                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(product)">❌</button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
         </div>
 
+        <!-- Totals Section -->
+        <div class="mt-3">
+            <div class="alert alert-info">
+                <strong>🟢 Subtotal:</strong> @ticket.Sum(t => GetPriceForType(t)).ToString("C")
+            </div>
+
+            <div class="mb-2">
+                <label for="discount" class="form-label">🎟 Descuento:</label>
+                <input id="discount" type="number" step="0.01" class="form-control" @bind="discount" placeholder="Ej. 20.00" />
+            </div>
+
+            <div class="mb-2">
+                <label for="shippingCost" class="form-label">🚛 Costo de Envío:</label>
+                <input id="shippingCost" type="number" step="0.01" class="form-control" @bind="shippingCost" placeholder="Ej. 50.00" />
+            </div>
+
+            <h4 class="text-success">✅ Total: @TotalPrice.ToString("C")</h4>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="mt-3 d-flex flex-wrap gap-2">
+            <button class="btn btn-secondary" @onclick="ClearTicket">🗑 Limpiar Pedido</button>
+            <button class="btn btn-success" @onclick="CopyToClipboard">📋 Copiar Ticket</button>
+            <button class="btn btn-primary" @onclick="SaveOrder">💾 Guardar Pedido</button>
+        </div>
+
+        <!-- Order Summary -->
         @if (isOrderGenerated)
         {
             <div class="mt-3">
+                <h5>📜 Resumen del Pedido</h5>
                 <textarea class="form-control mb-2" rows="4" readonly>@GenerateOrderText()</textarea>
             </div>
         }
     }
     else
     {
-        <p>No hay ticket generado.</p>
+        <p class="text-muted">⚠️ No hay ticket generado.</p>
     }
 </div>
 
@@ -59,10 +104,12 @@
     private string selectedPriceType = "public";
     private string? selectedStore = null;
     private bool isOrderGenerated = false;
+    private decimal discount = 0;
+    private decimal shippingCost = 50;
 
     [Parameter] public List<Product> ticket { get; set; } = new();
 
-    private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t));
+    private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t)) - discount + shippingCost;
 
     private async Task SaveOrder()
     {
@@ -103,5 +150,21 @@
         return sb.ToString();
     }
 
-    private void ClearTicket() { ticket.Clear(); isOrderGenerated = false; }
+    private void CopyToClipboard()
+    {
+        var message = GenerateOrderText();
+        var jsRuntime = (IJSRuntime)HttpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IJSRuntime));
+        jsRuntime?.InvokeVoidAsync("navigator.clipboard.writeText", message);
+    }
+
+    private void RemoveFromTicket(Product product)
+    {
+        ticket.Remove(product);
+    }
+
+    private void ClearTicket()
+    {
+        ticket.Clear();
+        isOrderGenerated = false;
+    }
 }
