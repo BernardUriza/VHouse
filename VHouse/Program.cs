@@ -37,7 +37,7 @@ if (!string.IsNullOrEmpty(databaseUrl))
         string username = userInfo[0];
         string password = userInfo[1];
         string database = "vhouse-dev-new"; // Asegúrate de usar el nombre correcto
-        databaseUrl = $"Host={host};Port={port};Username={username};Password={password};Database={database};Pooling=true;Ssl Mode=Require;Trust Server Certificate=true;";
+        databaseUrl = $"Host={host};Port={port};Username={username};Password={password};Database={database};Pooling=true;Ssl Mode=Disable;Trust Server Certificate=true;";
         Console.WriteLine("✅ Connection String generada correctamente.");
     }
     catch (Exception ex)
