@@ -5,7 +5,7 @@
 <h2>📋 Gestión de Pedidos</h2>
 
 <div class="mb-4">
-    <h3>➕ Crear Nuevo Pedido</h3>
+    <h5>➕ Crear Nuevo Pedido</h5>
     <form>
         <div class="row">
             <div class="col-md-4">
@@ -38,7 +38,7 @@
 @if (orders.Any())
 {
     <table class="table table-striped">
-        <thead>
+        <thead class="table-dark">
             <tr>
                 <th>ID</th>
                 <th>📅 Fecha</th>
@@ -58,6 +58,7 @@
                     <td>@order.TotalAmount.ToString("C")</td>
                     <td>@order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</td>
                     <td>
+                        <button class="btn btn-info btn-sm" @onclick="() => ViewOrderDetails(order)">👀 Ver Detalles</button>
                         <button class="btn btn-danger btn-sm" @onclick="() => DeleteOrder(order)">🗑 Eliminar</button>
                     </td>
                 </tr>
@@ -70,8 +71,52 @@ else
     <p>No hay pedidos registrados.</p>
 }
 
+<!-- Bootstrap Modal for Order Details -->
+@if (selectedOrder != null)
+{
+    <div class="modal fade show d-block" tabindex="-1" role="dialog">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">🛍 Detalles del Pedido #@selectedOrder.OrderId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>📅 Fecha:</strong> @selectedOrder.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>🏪 Tipo de Precio:</strong> @selectedOrder.PriceType</p>
+                    <p><strong>📦 Fecha de Entrega:</strong> @selectedOrder.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</p>
+                    <p><strong>💰 Total:</strong> @selectedOrder.TotalAmount.ToString("C")</p>
+
+                    <h5>🛒 Productos:</h5>
+                    <table class="table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Producto</th>
+                                <th>Precio</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in selectedOrder.Items)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td>@item.Price.ToString("C")</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
 @code {
     private List<Order> orders = new();
+    private Order? selectedOrder = null;
     private Order newOrder = new()
         {
             PriceType = "public",
@@ -106,5 +151,15 @@ else
     {
         await OrderService.DeleteOrderAsync(order.OrderId);
         await LoadOrdersAsync();
+    }
+
+    private void ViewOrderDetails(Order order)
+    {
+        selectedOrder = order;
+    }
+
+    private void CloseModal()
+    {
+        selectedOrder = null;
     }
 }
