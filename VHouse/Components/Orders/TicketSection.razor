@@ -1,13 +1,17 @@
 ﻿@using System.Text
+@using VHouse.Services
+@using VHouse.Classes
 @inject IHttpContextAccessor HttpContextAccessor
+@inject OrderService OrderService
 
 <div class="col-lg-4 col-md-12">
     <h3 class="text-primary">Ticket Generado</h3>
 
     <!-- Price Type Selection -->
     <div class="mb-3">
-        <label for="priceType" class="form-label">Selecciona el tipo de precio:</label>
-        <select id="priceType" class="form-select" @bind="selectedPriceType" @bind:event="onchange">
+        <label for="priceType" class="form-label fw-bold">Selecciona el tipo de precio:</label>
+        <select id="priceType" class="form-select border-primary shadow-sm"
+                @bind="selectedPriceType" @bind:event="onchange">
             <option value="public">Precio Público</option>
             <option value="retail">Precio Punto de Venta</option>
             <option value="cost">Precio de Costo</option>
@@ -17,76 +21,26 @@
     <!-- Store Selection if Retail Price -->
     @if (selectedPriceType == "retail")
     {
+        @* <StoreSelector OnStoreSelected="HandleStoreSelected"></StoreSelector> *@
     }
 
     <!-- Delivery Date Selection -->
     <div class="mb-3">
-        <label for="deliveryDate" class="form-label">Fecha de entrega:</label>
-        <div class="mb-3">
-            <label for="deliveryDate" class="form-label fw-bold text-primary">
-                📅 Fecha de entrega:
-            </label>
-            <input id="deliveryDate"
-                   type="datetime-local"
-                   class="form-control border-primary shadow-sm"
-                   @bind-value="@deliveryDate" format="@ddMMyyyyFormat"
-                   lang="es-MX" />
-        </div>
-
+        <label for="deliveryDate" class="form-label fw-bold text-primary">📅 Fecha de entrega:</label>
+        <input id="deliveryDate" type="datetime-local" class="form-control border-primary shadow-sm"
+               @bind-value="@deliveryDate" lang="es-MX" />
     </div>
 
     @if (ticket.Any())
     {
-        <div class="table-responsive" style="max-height: 250px; overflow-y: auto;">
-            <table class="table table-sm">
-                <thead>
-                    <tr>
-                        <th>Producto</th>
-                        <th>Precio</th>
-                        <th>Acción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var product in ticket)
-                    {
-                        <tr>
-                            <td>@product.ProductName</td>
-                            <td>@GetPriceForType(product).ToString("C")</td>
-                            <td>
-                                <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(product)">Eliminar</button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+        <h5 class="text-success">Total: @TotalPrice.ToString("C")</h5>
 
-        <div class="mt-3">
-            <h5>Subtotal: @ticket.Sum(t => GetPriceForType(t)).ToString("C")</h5>
-
-            <!-- Discount Input -->
-            <div class="mb-2">
-                <label for="discount" class="form-label">Descuento:</label>
-                <input id="discount" type="number" step="0.01" class="form-control" @bind="discount" placeholder="Ej. 20.00" />
-            </div>
-
-            <!-- Shipping Cost Input -->
-            <div class="mb-2">
-                <label for="shippingCost" class="form-label">Costo de Envío:</label>
-                <input id="shippingCost" type="number" step="0.01" class="form-control" @bind="shippingCost" placeholder="Ej. 75.00" />
-            </div>
-
-            <h4 class="text-success">Total: @TotalPrice.ToString("C")</h4>
-        </div>
-
-        <!-- Action Buttons -->
         <div class="mt-3">
             <button class="btn btn-secondary me-2" @onclick="ClearTicket">Limpiar Pedido</button>
             <button class="btn btn-success me-2" @onclick="CopyToClipboard">Copiar Ticket para WhatsApp</button>
             <button class="btn btn-primary" @onclick="SaveOrder">Guardar Pedido</button>
         </div>
 
-        <!-- Generated Order Text -->
         @if (isOrderGenerated)
         {
             <div class="mt-3">
@@ -99,89 +53,55 @@
         <p>No hay ticket generado.</p>
     }
 </div>
+
 @code {
-    private readonly string ddMMyyyyFormat = "dd/MM/yyyy"; // Mexican Date Format
-    private DateTime? deliveryDate { get; set; }
-
-    [Parameter] public List<Product> ticket { get; set; } = new();
-
+    private DateTime? deliveryDate = DateTime.Now;
     private string selectedPriceType = "public";
-    private decimal discount = 0;
-    private decimal shippingCost = 50;
     private string? selectedStore = null;
     private bool isOrderGenerated = false;
 
-    private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t)) - discount + shippingCost;
+    [Parameter] public List<Product> ticket { get; set; } = new();
 
-    private void ClearTicket()
+    private decimal TotalPrice => ticket.Sum(t => GetPriceForType(t));
+
+    private async Task SaveOrder()
     {
-        ticket.Clear();
-        discount = 0;
-        shippingCost = 50;
-        isOrderGenerated = false;
+        if (!deliveryDate.HasValue)
+        {
+            return;
+        }
+
+        var order = new Order
+        {
+            DeliveryDate = deliveryDate.Value,
+            PriceType = selectedPriceType,
+            TotalAmount = TotalPrice,
+            SelectedStore = selectedPriceType == "retail" ? selectedStore : null,
+            Items = ticket.Select(p => new OrderItem { ProductName = p.ProductName, Price = GetPriceForType(p) }).ToList()
+        };
+
+        await OrderService.SaveOrderAsync(order);
+        isOrderGenerated = true;
     }
 
-    private void RemoveFromTicket(Product product)
-    {
-        ticket.Remove(product);
-    }
+    private void HandleStoreSelected(string store) => selectedStore = store;
 
-    private decimal GetPriceForType(Product product)
-    {
-        return selectedPriceType switch
+    private decimal GetPriceForType(Product product) =>
+        selectedPriceType switch
         {
             "retail" => product.PriceRetail,
             "cost" => product.PriceCost,
             _ => product.PricePublic
         };
-    }
-
-    private void HandleStoreSelected(string store)
-    {
-        selectedStore = store;
-    }
-
-    private void SaveOrder()
-    {
-        if (!deliveryDate.HasValue)
-        {
-            // Display an error message or handle it in the UI
-            return;
-        }
-
-        isOrderGenerated = true;
-    }
 
     private string GenerateOrderText()
     {
-        var message = new StringBuilder();
-        message.AppendLine("📦 *Pedido Generado:*");
-
-        foreach (var product in ticket)
-        {
-            var price = GetPriceForType(product).ToString("C");
-            message.AppendLine($"- {product.ProductName}: {price}");
-        }
-
-        message.AppendLine($"🟢 *Subtotal:* {ticket.Sum(t => GetPriceForType(t)).ToString("C")}");
-        message.AppendLine($"🔴 *Descuento:* {discount.ToString("C")}");
-        message.AppendLine($"📦 *Envío:* {shippingCost.ToString("C")}");
-        message.AppendLine($"✅ *Total:* {TotalPrice.ToString("C")}");
-        message.AppendLine($"📅 *Entrega:* {deliveryDate?.ToShortDateString()}");
-
-        if (selectedPriceType == "retail" && !string.IsNullOrEmpty(selectedStore))
-        {
-            message.AppendLine($"🏪 *Tienda:* {selectedStore}");
-        }
-
-        message.AppendLine("¡Gracias por tu compra! 🛒");
-        return message.ToString();
+        var sb = new StringBuilder("📦 *Pedido Generado:*\n");
+        foreach (var product in ticket) sb.AppendLine($"- {product.ProductName}: {GetPriceForType(product):C}");
+        sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToShortDateString()}");
+        sb.AppendLine($"✅ *Total:* {TotalPrice:C}");
+        return sb.ToString();
     }
 
-    private void CopyToClipboard()
-    {
-        var message = GenerateOrderText();
-        var jsRuntime = (IJSRuntime)HttpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IJSRuntime));
-        jsRuntime?.InvokeVoidAsync("navigator.clipboard.writeText", message.ToString());
-    }
+    private void ClearTicket() { ticket.Clear(); isOrderGenerated = false; }
 }

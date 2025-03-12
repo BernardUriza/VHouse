@@ -1,9 +1,11 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VHouse;
+using VHouse.Classes;
 
 public class ApplicationDbContext : DbContext
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
-    public DbSet<Product> Products { get; set; } // Tabla de productos
+    public DbSet<Product> Products { get; set; } 
+    public DbSet<Order> Orders { get; set; }
 }
