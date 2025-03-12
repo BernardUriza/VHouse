@@ -15,10 +15,16 @@ builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddScoped<ProductService>();
 builder.Services.AddHttpContextAccessor();
 
+// 📂 Ruta de la base de datos (dentro del volumen en producción)
 string dbPath = builder.Environment.IsDevelopment()
     ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "sqlite_data", "mydatabase.db")
     : "/data/mydatabase.db";
 
+// 📂 Archivo de log para verificar si el volumen se mantiene entre deploys
+string logFile = "/data/deploy_log.txt";
+File.AppendAllText(logFile, $"🚀 Deploy iniciado en UTC: {DateTime.UtcNow}\n");
+
+// Si estamos en desarrollo, creamos el directorio local
 if (builder.Environment.IsDevelopment())
 {
     string directory = Path.GetDirectoryName(dbPath);
@@ -28,50 +34,47 @@ if (builder.Environment.IsDevelopment())
     }
 }
 
+// Configurar Entity Framework con SQLite
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlite($"Data Source={dbPath}")); 
+    options.UseSqlite($"Data Source={dbPath}"));
 
 var app = builder.Build();
-
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    if (!File.Exists(dbPath))
+    // 💡 Verifica si hay tablas en la BD en lugar de checar si el archivo existe
+    var databaseExists = context.Database.GetPendingMigrations().Any() || context.Products.Any();
+
+    if (!databaseExists)
     {
+        app.Logger.LogInformation("🆕 Creando nueva base de datos...");
         context.Database.Migrate();
 
-        if (!context.Products.Any())
+        var env = services.GetRequiredService<IWebHostEnvironment>();
+        string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
+
+        if (File.Exists(jsonPath))
         {
-            var env = services.GetRequiredService<IWebHostEnvironment>();
-            string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
+            var jsonData = File.ReadAllText(jsonPath);
+            var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
 
-            if (File.Exists(jsonPath))
+            if (products != null && products.Count > 0)
             {
-                var jsonData = File.ReadAllText(jsonPath);
-                var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
-
-                if (products != null && products.Count > 0)
-                {
-                    context.Products.AddRange(products);
-                    context.SaveChanges();
-                    app.Logger.LogInformation("✅ Productos cargados desde JSON.");
-                }
-            }
-            else
-            {
-                app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
+                context.Products.AddRange(products);
+                context.SaveChanges();
+                app.Logger.LogInformation("✅ Productos cargados desde JSON.");
             }
         }
         else
         {
-            app.Logger.LogInformation("✅ La base de datos ya tiene productos.");
+            app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
         }
     }
     else
     {
-        app.Logger.LogInformation("📂 Base de datos encontrada, no se ejecuta `Migrate()`.");
+        app.Logger.LogInformation("📂 Base de datos ya existente, no se ejecuta `Migrate()`.");
     }
 }
 

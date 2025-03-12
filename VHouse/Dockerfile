@@ -3,16 +3,24 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
 EXPOSE 8080
 
+# Asegura que el directorio de la base de datos existe y es accesible
+RUN mkdir -p /data && chmod -R 777 /data
+VOLUME ["/data"]
+
 # Usa la imagen SDK de .NET 8 para compilar
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["VHouse.csproj", "./"]
 RUN dotnet restore "VHouse.csproj"
-COPY . .
+COPY . . 
 RUN dotnet publish "VHouse.csproj" -c Release -o /app/publish
 
 # Construye la imagen final con solo los archivos necesarios
 FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
+
+# Usa el volumen en el contenedor final
+VOLUME ["/data"]
+
 ENTRYPOINT ["dotnet", "VHouse.dll"]
