@@ -5,9 +5,6 @@ using VHouse.Components;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")
-    ?? builder.Configuration.GetConnectionString("DefaultConnection");
-
 builder.WebHost.UseWebRoot("wwwroot");
 builder.WebHost.UseStaticWebAssets();
 
@@ -41,35 +38,43 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    //context.Database.Migrate(); 
-
-    if (!context.Products.Any()) 
+    if (!File.Exists(dbPath))
     {
-        var env = services.GetRequiredService<IWebHostEnvironment>();
-        string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
+        context.Database.Migrate();
 
-        if (File.Exists(jsonPath))
+        if (!context.Products.Any())
         {
-            var jsonData = File.ReadAllText(jsonPath);
-            var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
+            var env = services.GetRequiredService<IWebHostEnvironment>();
+            string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
 
-            if (products != null && products.Count > 0)
+            if (File.Exists(jsonPath))
             {
-                context.Products.AddRange(products);
-                context.SaveChanges();
-                app.Logger.LogInformation("✅ Productos cargados desde JSON.");
+                var jsonData = File.ReadAllText(jsonPath);
+                var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
+
+                if (products != null && products.Count > 0)
+                {
+                    context.Products.AddRange(products);
+                    context.SaveChanges();
+                    app.Logger.LogInformation("✅ Productos cargados desde JSON.");
+                }
+            }
+            else
+            {
+                app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
             }
         }
         else
         {
-            app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
+            app.Logger.LogInformation("✅ La base de datos ya tiene productos.");
         }
     }
     else
     {
-        app.Logger.LogInformation("✅ La base de datos ya tiene productos.");
+        app.Logger.LogInformation("📂 Base de datos encontrada, no se ejecuta `Migrate()`.");
     }
 }
+
 
 // Configuración del pipeline de la aplicación
 if (!app.Environment.IsDevelopment())
