@@ -31,5 +31,18 @@ namespace VHouse.Services
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
         }
+
+        /// <summary>
+        /// Deletes an order from the database.
+        /// </summary>
+        public async Task DeleteOrderAsync(int orderId)
+        {
+            var order = await _context.Orders.FindAsync(orderId);
+            if (order != null)
+            {
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+            }
+        }
     }
 }

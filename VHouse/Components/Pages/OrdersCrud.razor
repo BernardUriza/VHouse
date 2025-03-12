@@ -104,7 +104,7 @@ else
 
     private async Task DeleteOrder(Order order)
     {
-        // await OrderService.DeleteOrderAsync(order.OrderId);
+        await OrderService.DeleteOrderAsync(order.OrderId);
         await LoadOrdersAsync();
     }
 }
