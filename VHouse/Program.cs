@@ -2,6 +2,7 @@
 using System.Text.Json;
 using VHouse;
 using VHouse.Components;
+using VHouse.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +14,7 @@ builder.Services.AddRazorComponents()
 builder.Services.AddHttpClient();
 builder.Services.AddScoped<ChatbotService>();
 builder.Services.AddScoped<ProductService>();
+builder.Services.AddScoped<OrderService>();
 builder.Services.AddHttpContextAccessor();
 
 // 📂 Ruta de la base de datos (dentro del volumen en producción)

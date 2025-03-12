@@ -1,4 +1,5 @@
-﻿using VHouse.Classes;
+﻿using Microsoft.EntityFrameworkCore;
+using VHouse.Classes;
 
 namespace VHouse.Services
 {
