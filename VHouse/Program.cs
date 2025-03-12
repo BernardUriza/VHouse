@@ -18,46 +18,61 @@ builder.Services.AddScoped<OrderService>();
 builder.Services.AddScoped<CustomerService>();
 builder.Services.AddHttpContextAccessor();
 
-// 📂 Ruta de la base de datos (dentro del volumen en producción)
-string dbPath = builder.Environment.IsDevelopment()
-    ? Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "sqlite_data", "mydatabase.db")
-    : "/data/mydatabase.db";
+// 🔄 Detectar si estamos en producción o desarrollo
+bool isDevelopment = builder.Environment.IsDevelopment();
+string? connectionString;
 
-
-// Si estamos en desarrollo, creamos el directorio local
-if (builder.Environment.IsDevelopment())
+// 🛢️ PostgreSQL en ambos entornos
+if (isDevelopment)
 {
-    string directory = Path.GetDirectoryName(dbPath);
-    if (!Directory.Exists(directory))
-    {
-        Directory.CreateDirectory(directory);
-    }
+    // Configuración para PostgreSQL en desarrollo (local)
+    connectionString = builder.Configuration.GetConnectionString("PostgresLocal")
+        ?? "Host=localhost;Port=5432;Database=vhouse_dev;Username=postgres;Password=mysecretpassword";
 }
 else
 {
-    // 📂 Archivo de log para verificar si el volumen se mantiene entre deploys
+    // Configuración para PostgreSQL en producción (Fly.io)
+    connectionString = Environment.GetEnvironmentVariable("DATABASE_URL")?
+        .Replace("postgres://", "Host=")
+        .Replace(":", ";Port=")
+        .Replace("@", ";Username=")
+        .Replace(";", ";Password=") + ";Database=postgres;Pooling=true;";
+
+    if (string.IsNullOrEmpty(connectionString))
+    {
+        throw new InvalidOperationException("❌ No se encontró la variable de entorno DATABASE_URL para PostgreSQL.");
+    }
+
+    // 📂 Log en el volumen persistente para verificar reinicios
     string logFile = "/data/deploy_log.txt";
     File.AppendAllText(logFile, $"🚀 Deploy iniciado en UTC: {DateTime.UtcNow}\n");
 }
 
-    // Configurar Entity Framework con SQLite
-    builder.Services.AddDbContext<ApplicationDbContext>(options =>
-        options.UseSqlite($"Data Source={dbPath}"));
+// Configurar Entity Framework con PostgreSQL
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseNpgsql(connectionString));
 
 var app = builder.Build();
+
+// 📌 Ejecutar migraciones automáticamente en Fly.io y local
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    // 💡 Verifica si hay tablas en la BD en lugar de checar si el archivo existe
-    var databaseExists = context.Database.GetPendingMigrations().Any() || context.Products.Any();
-
-    if (!databaseExists)
+    try
     {
-        app.Logger.LogInformation("🆕 Creando nueva base de datos...");
         context.Database.Migrate();
+        app.Logger.LogInformation("✅ Migraciones aplicadas correctamente.");
+    }
+    catch (Exception ex)
+    {
+        app.Logger.LogError("❌ Error al ejecutar migraciones: {Message}", ex.Message);
+    }
 
+    // Cargar productos si la base de datos está vacía
+    if (!context.Products.Any())
+    {
         var env = services.GetRequiredService<IWebHostEnvironment>();
         string jsonPath = Path.Combine(env.WebRootPath, "data", "products.json");
 
@@ -78,33 +93,20 @@ using (var scope = app.Services.CreateScope())
             app.Logger.LogWarning("⚠️ Archivo 'products.json' no encontrado. No se importaron productos.");
         }
     }
-    else
-    {
-        app.Logger.LogInformation("📂 Base de datos ya existente, no se ejecuta `Migrate()`.");
-    }
 }
 
-
-// Configuración del pipeline de la aplicación
-if (!app.Environment.IsDevelopment())
+// 📌 Configuración del pipeline de la aplicación
+if (!isDevelopment)
 {
     app.UseExceptionHandler("/Error", createScopeForErrors: true);
     app.UseHsts();
 }
 
 app.UseStaticFiles();
-
-var httpsPort = Environment.GetEnvironmentVariable("ASPNETCORE_HTTPS_PORT");
-if (!string.IsNullOrEmpty(httpsPort))
-{
-    app.UseHttpsRedirection();
-}
-
-app.Logger.LogInformation("🚀 VHouse se está ejecutando en {Environment}...", app.Environment.EnvironmentName);
-
 app.UseAntiforgery();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
+app.Logger.LogInformation("🚀 VHouse se está ejecutando en {Environment}...", app.Environment.EnvironmentName);
 app.Run();

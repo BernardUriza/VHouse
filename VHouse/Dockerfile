@@ -1,26 +1,30 @@
-# Usa la imagen base de .NET 8 para producción
-FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
-WORKDIR /app
-EXPOSE 8080
-
-# Asegura que el directorio de la base de datos existe y es accesible
-RUN mkdir -p /data && chmod -R 777 /data
-VOLUME ["/data"]
-
-# Usa la imagen SDK de .NET 8 para compilar
+# 1️⃣ Usa el SDK para compilar y generar migraciones
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 COPY ["VHouse.csproj", "./"]
-RUN dotnet restore "VHouse.csproj"
-COPY . . 
-RUN dotnet publish "VHouse.csproj" -c Release -o /app/publish
+RUN dotnet restore
+COPY . .
+RUN dotnet publish -c Release -o /app
 
-# Construye la imagen final con solo los archivos necesarios
-FROM base AS final
+# 2️⃣ Crea una capa con el SDK solo para migraciones
+FROM build AS migrations
+WORKDIR /src
+RUN dotnet tool install --global dotnet-ef
+ENV PATH="$PATH:/root/.dotnet/tools"
+
+# 3️⃣ Usa la imagen final SIN el SDK para producción
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
-COPY --from=build /app/publish .
 
-# Usa el volumen en el contenedor final
-VOLUME ["/data"]
+# Asegurar que el directorio de la base de datos existe
+RUN mkdir -p /data && chmod -R 777 /data
 
+# Configurar variables de entorno de Fly.io
+ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_ENVIRONMENT=Production
+
+# Copiar la app compilada desde la etapa de construcción
+COPY --from=build /app .
+
+# Comando de inicio de la app
 ENTRYPOINT ["dotnet", "VHouse.dll"]
