@@ -2,11 +2,7 @@
 
 <h3 class="text-primary">Lista de Precios</h3>
 
-@if (isLoading)
-{
-    <p>Cargando productos...</p>
-}
-else if (products != null && products.Any())
+@if (products != null && products.Any())
 {
     <div class="table-responsive">
         <table class="table table-sm table-hover">
@@ -39,22 +35,8 @@ else
 }
 
 @code {
-    private bool isLoading = true;
-    private List<Product> products = new();
-
+    [Parameter] public List<Product> products { get; set; } = new();
     [Parameter] public EventCallback<Product> OnProductAdded { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            products = await ProductService.GetProductsAsync();
-        }
-        finally
-        {
-            isLoading = false;
-        }
-    }
 
     private async Task AddToTicket(Product product)
     {

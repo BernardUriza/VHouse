@@ -37,8 +37,13 @@
 
         /// <summary>
         /// Delivery date for the order.
-        /// </summary>
-        public DateTime DeliveryDate { get; set; }
+        /// </summary> private DateTime _deliveryDate;
+        private DateTime _deliveryDate;
+        public DateTime DeliveryDate
+        {
+            get => _deliveryDate;
+            set => _deliveryDate = DateTime.SpecifyKind(value, DateTimeKind.Utc); // ✅ Ensure it's UTC
+        }
 
         /// <summary>
         /// The selected store for retail purchases (only applicable if price type is "retail").

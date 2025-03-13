@@ -28,6 +28,10 @@ namespace VHouse.Services
         /// </summary>
         public async Task SaveOrderAsync(Order order)
         {
+            // ✅ Ensure DateTime fields are stored in UTC
+            order.OrderDate = DateTime.UtcNow;
+            order.DeliveryDate = order.DeliveryDate.ToUniversalTime();
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
         }

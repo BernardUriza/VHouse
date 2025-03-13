@@ -16,21 +16,9 @@
 @code {
     private string userInput = string.Empty;
     private string? errorMessage = null;
-    private List<Product> products = new();
 
+    [Parameter] public List<Product> Products { get; set; } = new();
     [Parameter] public EventCallback<List<Product>> OnOrderProcessed { get; set; }
-
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
-            products = await ProductService.GetProductsAsync();
-        }
-        catch (Exception ex)
-        {
-            errorMessage = $"Error al cargar los productos: {ex.Message}";
-        }
-    }
 
     private async Task ProcessOrder()
     {
@@ -43,7 +31,7 @@
                 return;
             }
 
-            string catalogJson = JsonSerializer.Serialize(products.Select(p => new { p.ProductId, p.ProductName }));
+            string catalogJson = JsonSerializer.Serialize(Products.Select(p => new { p.ProductId, p.ProductName }));
             var extractedProductIds = await ChatbotService.ExtractProductIdsAsync(catalogJson, userInput);
             userInput = string.Empty;
 
@@ -53,7 +41,7 @@
                 return;
             }
 
-            var selectedProducts = products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
+            var selectedProducts = Products.Where(p => extractedProductIds.Contains(p.ProductId)).ToList();
             await OnOrderProcessed.InvokeAsync(selectedProducts);
         }
         catch (Exception ex)

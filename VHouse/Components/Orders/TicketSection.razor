@@ -120,7 +120,7 @@
 
         var order = new Order
         {
-            DeliveryDate = deliveryDate.Value,
+            DeliveryDate = deliveryDate.Value.ToUniversalTime(), // ✅ Convert to UTC
             PriceType = selectedPriceType,
             TotalAmount = TotalPrice,
             SelectedStore = selectedPriceType == "retail" ? selectedStore : null,

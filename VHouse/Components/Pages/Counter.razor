@@ -8,10 +8,15 @@
 
 <section class="container-fluid">
     <div class="row">
+        @if (errorMessage != null)
+        {
+            <div class="alert alert-danger mt-2 p-2">@errorMessage</div>
+        }
+
         <!-- Order Processing Component -->
         <div class="col-lg-4 col-md-6 mb-3">
-            <OrderProcessor OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
-            <ProductList OnProductAdded="HandleProductAdded"></ProductList>
+            <OrderProcessor Products="@Products" OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
+            <ProductList Products="@Products" OnProductAdded="HandleProductAdded"></ProductList>
         </div>
         <!-- Ticket Section Component -->
         
@@ -20,7 +25,21 @@
 </section>
 
 @code {
+    public List<Product> Products { get; set; } = new();
     private List<Product> ticket = new();
+    private string? errorMessage = null;
+    
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Products = await ProductService.GetProductsAsync();
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error al cargar los productos: {ex.Message}";
+        }
+    }
 
     private void HandleOrderProcessed(List<Product> selectedProducts)
     {
