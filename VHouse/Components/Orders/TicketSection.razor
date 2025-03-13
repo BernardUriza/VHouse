@@ -136,22 +136,26 @@ else
     {
         if (!deliveryDate.HasValue) return;
 
-
-        var order = new Order
+        var orderCopy = new Order
             {
                 DeliveryDate = deliveryDate.Value.ToUniversalTime(),
                 PriceType = selectedPriceType,
                 TotalAmount = TotalPrice,
-                Items = ticket.Values.ToList()// set Product to null to all items here or it will try to add more products with same id
+                Items = ticket.Values
+                    .Select(item => new OrderItem
+                    {
+                        ProductId = item.ProductId,   // ✅ Keep ProductId
+                        ProductName = item.ProductName, // ✅ Keep ProductName
+                        Price = item.Price,   // ✅ Keep Price
+                        Quantity = item.Quantity, // ✅ Keep Quantity
+                        Product = null // ✅ Prevent EF from inserting duplicate Products
+                    })
+                    .ToList()
             };
 
-        foreach (var item in order.Items)
-        {
-            item.Product = null; // ✅ Prevents EF from trying to re-insert Products
-        }
-
-        await OrderService.SaveOrderAsync(order);
+        await OrderService.SaveOrderAsync(orderCopy);
         isOrderGenerated = true;
+
     }
 
     private async Task CopyToClipboard()

@@ -32,6 +32,10 @@ namespace VHouse.Services
             order.OrderDate = DateTime.UtcNow;
             order.DeliveryDate = order.DeliveryDate.ToUniversalTime();
 
+            foreach (var item in order.Items)
+            {
+                item.Product = null; // ✅ Prevents EF from trying to re-insert Products
+            }
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
         }
