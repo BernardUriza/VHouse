@@ -201,7 +201,7 @@ else
         sb.AppendLine($"🟢 *Subtotal:* {Subtotal.ToString("C", new CultureInfo("es-MX"))}");
         sb.AppendLine($"🎟 *Descuento ({discount}%):* -{DiscountAmount.ToString("C", new CultureInfo("es-MX"))}");
         sb.AppendLine($"🚛 *Costo de Envío:* {shippingCost.ToString("C", new CultureInfo("es-MX"))}");
-        sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-MX"))}");
+        sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToString("dddd dd MMMM yyyy HH:mm", new CultureInfo("es-MX"))}");
         sb.AppendLine($"✅ *Total a Pagar:* {TotalPrice.ToString("C", new CultureInfo("es-MX"))}");
 
         return sb.ToString();
