@@ -1,4 +1,5 @@
 ﻿@using System.Text
+@using AsyncWindowsClipboard
 @using VHouse.Services
 @using VHouse.Classes
 @inject IHttpContextAccessor HttpContextAccessor
@@ -145,16 +146,16 @@
     {
         var sb = new StringBuilder("📦 *Pedido Generado:*\n");
         foreach (var product in ticket) sb.AppendLine($"- {product.ProductName}: {GetPriceForType(product):C}");
-        sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToShortDateString()}");
+        sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToString("dd/MM/yyyy HH:mm", new CultureInfo("es-MX"))}");
         sb.AppendLine($"✅ *Total:* {TotalPrice:C}");
         return sb.ToString();
     }
 
-    private void CopyToClipboard()
+    private async Task CopyToClipboard()
     {
         var message = GenerateOrderText();
-        var jsRuntime = (IJSRuntime)HttpContextAccessor.HttpContext?.RequestServices.GetService(typeof(IJSRuntime));
-        jsRuntime?.InvokeVoidAsync("navigator.clipboard.writeText", message);
+        var clipboardService = new WindowsClipboardService();
+        await clipboardService.SetTextAsync(message); // Sets the text
     }
 
     private void RemoveFromTicket(Product product)
