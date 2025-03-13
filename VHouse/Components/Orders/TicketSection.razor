@@ -136,10 +136,6 @@ else
     {
         if (!deliveryDate.HasValue) return;
 
-        foreach (var item in ticket.Values)
-        {
-            item.Product = null; // ✅ Prevents EF from trying to re-insert Products
-        }
 
         var order = new Order
             {
@@ -148,6 +144,11 @@ else
                 TotalAmount = TotalPrice,
                 Items = ticket.Values.ToList()// set Product to null to all items here or it will try to add more products with same id
             };
+
+        foreach (var item in order.Items)
+        {
+            item.Product = null; // ✅ Prevents EF from trying to re-insert Products
+        }
 
         await OrderService.SaveOrderAsync(order);
         isOrderGenerated = true;
