@@ -49,7 +49,7 @@
                             @bind="item.Quantity" @bind:event="oninput" @onchange="UpdateTotal">
                         </td>
                         <td>@GetPriceForType(item.Product).ToString("C", new CultureInfo("es-MX"))</td>
-                        <td>@(GetPriceForType(item.Product) * item.Quantity).ToString("C", new CultureInfo("es-MX"))</td>
+                        <td>@((GetPriceForType(item.Product) * item.Quantity).ToString("C", new CultureInfo("es-MX")))</td>
                         <td>
                             <button class="btn btn-danger btn-sm" @onclick="() => RemoveFromTicket(item.Product)">❌</button>
                         </td>
@@ -136,12 +136,17 @@ else
     {
         if (!deliveryDate.HasValue) return;
 
+        foreach (var item in ticket.Values)
+        {
+            item.Product = null; // ✅ Prevents EF from trying to re-insert Products
+        }
+
         var order = new Order
             {
                 DeliveryDate = deliveryDate.Value.ToUniversalTime(),
                 PriceType = selectedPriceType,
                 TotalAmount = TotalPrice,
-                Items = ticket.Values.ToList()
+                Items = ticket.Values.ToList()// set Product to null to all items here or it will try to add more products with same id
             };
 
         await OrderService.SaveOrderAsync(order);
