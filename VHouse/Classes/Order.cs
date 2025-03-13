@@ -55,15 +55,4 @@
         /// </summary>
         public List<OrderItem> Items { get; set; } = new();
     }
-
-    /// <summary>
-    /// Represents a product within an order.
-    /// </summary>
-    public class OrderItem
-    {
-        public int OrderItemId { get; set; }
-        public int OrderId { get; set; }  // Foreign Key
-        public string ProductName { get; set; }
-        public decimal Price { get; set; }
-    }
 }
