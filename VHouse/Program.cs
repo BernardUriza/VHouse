@@ -99,10 +99,10 @@ using (var scope = app.Services.CreateScope())
 }
 using (var scope = app.Services.CreateScope())
 {
-    //var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
-    //var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+    var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
+    var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
-    //await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext
+    await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext
 }
 
 app.UseStaticFiles();
