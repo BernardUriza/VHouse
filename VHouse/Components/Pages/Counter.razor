@@ -18,17 +18,29 @@
             <OrderProcessor Products="@Products" OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
             <ProductList Products="@Products" OnProductAdded="HandleProductAdded"></ProductList>
         </div>
-        <!-- Ticket Section Component -->
-        
-        <TicketSection Ticket="@ticket"></TicketSection>
+
+        <div class="col-lg-6 col-md-12">
+            <!-- Ticket Section Component -->
+            <div class="mb-3">
+                <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
+                <select id="priceType" class="form-select border-primary shadow-sm"
+                        @bind="selectedPriceType">
+                    <option value="public">Precio Público</option>
+                    <option value="retail">Precio Punto de Venta</option>
+                    <option value="cost">Precio de Costo</option>
+                </select>
+            </div>
+            <TicketSection Ticket="@ticket"></TicketSection>
+        </div>
     </div>
 </section>
 
 @code {
     public List<Product> Products { get; set; } = new();
-    private List<Product> ticket = new();
+    public Dictionary<int, OrderItem> ticket = new();
     private string? errorMessage = null;
-    
+    private string selectedPriceType = "public"; // ✅ Default to Public Price
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -43,11 +55,44 @@
 
     private void HandleOrderProcessed(List<Product> selectedProducts)
     {
-        ticket.AddRange(selectedProducts);
+        foreach (var product in selectedProducts)
+        {
+            AddToTicket(product);
+        }
     }
 
     private void HandleProductAdded(Product product)
     {
-        ticket.Add(product);
+        AddToTicket(product);
+    }
+
+    private decimal GetPriceForType(Product product)
+    {
+        return selectedPriceType switch
+        {
+            "retail" => product.PriceRetail,
+            "cost" => product.PriceCost,
+            _ => product.PricePublic
+        };
+    }
+
+    private void AddToTicket(Product product)
+    {
+        if (ticket.ContainsKey(product.ProductId))
+        {
+            ticket[product.ProductId].Quantity++;
+            ticket[product.ProductId].Price = GetPriceForType(product); // ✅ Update price dynamically
+        }
+        else
+        {
+            ticket[product.ProductId] = new OrderItem
+                {
+                    ProductId = product.ProductId,
+                    ProductName = product.ProductName,
+                    Product = product,
+                    Price = GetPriceForType(product),
+                    Quantity = 1
+                };
+        }
     }
 }
