@@ -100,7 +100,9 @@ using (var scope = app.Services.CreateScope())
 using (var scope = app.Services.CreateScope())
 {
     var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
-    await productService.SeedProductsAsync(); // ✅ Seed products from JSON on startup
+    var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+
+    await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext
 }
 
 app.UseStaticFiles();

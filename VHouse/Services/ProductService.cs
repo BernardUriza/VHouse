@@ -12,7 +12,7 @@ public class ProductService
     {
         _context = context;
         _env = env;
-        _jsonFilePath = Path.Combine(_env.ContentRootPath, "Data", "products.json"); // ✅ Load JSON from 'Data/' folder
+        _jsonFilePath = Path.Combine(_env.ContentRootPath, "wwwroot\\data", "products.json"); // ✅ Load JSON from 'Data/' folder
     }
 
     /// <summary>
@@ -20,8 +20,11 @@ public class ProductService
     /// </summary>
     public async Task<List<Product>> GetProductsAsync()
     {
-        return await _context.Products.ToListAsync();
+        return await _context.Products
+            .AsNoTracking() // ✅ Prevent tracking issues
+            .ToListAsync();
     }
+
 
     /// <summary>
     /// Adds a new product to the database.
@@ -67,9 +70,12 @@ public class ProductService
     /// <summary>
     /// Seeds products from JSON if the database is empty.
     /// </summary>
-    public async Task SeedProductsAsync()
+    public async Task SeedProductsAsync(IServiceScopeFactory scopeFactory)
     {
-        if (await _context.Products.AnyAsync()) return; // ✅ Prevent duplicate seeding
+        using var scope = scopeFactory.CreateScope(); // ✅ Creates a new scoped DbContext
+        var scopedContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+
+        if (await scopedContext.Products.AnyAsync()) return; // ✅ Prevent duplicate seeding
 
         if (File.Exists(_jsonFilePath))
         {
@@ -80,18 +86,14 @@ public class ProductService
 
                 if (products != null && products.Any())
                 {
-                    _context.Products.AddRange(products);
-                    await _context.SaveChangesAsync();
+                    scopedContext.Products.AddRange(products);
+                    await scopedContext.SaveChangesAsync();
                 }
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"❌ Error loading products from JSON: {ex.Message}");
             }
-        }
-        else
-        {
-            Console.WriteLine($"⚠️ No product JSON file found at {_jsonFilePath}");
         }
     }
 }
