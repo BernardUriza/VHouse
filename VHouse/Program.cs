@@ -97,6 +97,11 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate(); // Aplica las migraciones
     Console.WriteLine("✅ Migraciones aplicadas correctamente.");
 }
+using (var scope = app.Services.CreateScope())
+{
+    var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
+    await productService.SeedProductsAsync(); // ✅ Seed products from JSON on startup
+}
 
 app.UseStaticFiles();
 app.UseAntiforgery();
