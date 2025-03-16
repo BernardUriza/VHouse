@@ -52,5 +52,51 @@ namespace VHouse.Services
                 await _context.SaveChangesAsync();
             }
         }
+
+        public async Task<bool> ProcessOrderAsync(Order order)
+        {
+            _context.Orders.Add(order);
+            await _context.SaveChangesAsync();
+
+            var customer = await _context.Customers.FindAsync(order.CustomerId);
+            if (customer?.IsRetail == true)
+            {
+                await UpdateInventory(customer.CustomerId, order.Items);
+            }
+
+            return true;
+        }
+
+        private async Task UpdateInventory(int customerId, List<OrderItem> items)
+        {
+            var inventory = await _context.Inventories
+                .Include(i => i.Items)
+                .FirstOrDefaultAsync(i => i.CustomerId == customerId);
+
+            if (inventory == null)
+            {
+                inventory = new Inventory { CustomerId = customerId };
+                _context.Inventories.Add(inventory);
+            }
+
+            foreach (var item in items)
+            {
+                var inventoryItem = inventory.Items.FirstOrDefault(i => i.ProductId == item.ProductId);
+                if (inventoryItem == null)
+                {
+                    inventory.Items.Add(new InventoryItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity
+                    });
+                }
+                else
+                {
+                    inventoryItem.Quantity += item.Quantity;
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
     }
 }

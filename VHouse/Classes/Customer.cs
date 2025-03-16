@@ -42,5 +42,10 @@ namespace VHouse.Classes
         /// Orders associated with this customer.
         /// </summary>
         public List<Order> Orders { get; set; } = new();
+        /// <summary>
+        /// Identificar clientes retail.
+        /// </summary>
+        public bool IsRetail { get; set; }
+        
     }
 }

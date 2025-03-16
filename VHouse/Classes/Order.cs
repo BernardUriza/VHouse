@@ -13,7 +13,7 @@
         /// <summary>
         /// The date and time when the order was placed.
         /// </summary>
-        public DateTime OrderDate { get; set; } = DateTime.Now;
+        public DateTime OrderDate { get; set; } = DateTime.UtcNow;
 
         /// <summary>
         /// The selected price type for this order (public, retail, or cost).
@@ -37,12 +37,12 @@
 
         /// <summary>
         /// Delivery date for the order.
-        /// </summary> private DateTime _deliveryDate;
+        /// </summary>
         private DateTime _deliveryDate;
         public DateTime DeliveryDate
         {
             get => _deliveryDate;
-            set => _deliveryDate = DateTime.SpecifyKind(value, DateTimeKind.Utc); // ✅ Ensure it's UTC
+            set => _deliveryDate = DateTime.SpecifyKind(value, DateTimeKind.Utc);
         }
 
         /// <summary>
@@ -54,5 +54,11 @@
         /// List of products included in the order.
         /// </summary>
         public List<OrderItem> Items { get; set; } = new();
+
+        /// <summary>
+        /// Optional Customer who placed the order.
+        /// </summary>
+        public int? CustomerId { get; set; } // ✅ Nullable foreign key
+        public Customer? Customer { get; set; } // ✅ Nullable navigation property
     }
 }
