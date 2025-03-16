@@ -5,5 +5,10 @@
 <PageTitle>Inventario y Tickets</PageTitle>
 
 <h1>Bienvenidos</h1>
-<h4>Tu acceso directo al veganismo</h4>
+<h4>Tu acceso directo al veganismo, sin excusas al precio que buscas</h4>
 
+<p><strong>Última actualización:</strong> @deployDate</p>
+
+@code {
+    private readonly string deployDate = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
+}

@@ -102,7 +102,9 @@ using (var scope = app.Services.CreateScope())
     var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
     var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
+    Console.WriteLine("📦 Aplying semillas...");
     await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext
+    Console.WriteLine("✅ Semillas aplicadas correctamente.");
 }
 
 app.UseStaticFiles();
