@@ -24,6 +24,17 @@ namespace VHouse.Services
         }
 
         /// <summary>
+        /// Retrieves the inventory of a specific customer.
+        /// </summary>
+        public async Task<Inventory> GetInventoryAsync(int customerId)
+        {
+            return await _context.Inventories
+                .Where(i => i.CustomerId == customerId)
+                .Include(i => i.Items)
+                .FirstOrDefaultAsync();
+        }
+
+        /// <summary>
         /// Adds a new customer to the database.
         /// </summary>
         public async Task AddCustomerAsync(Customer customer)
