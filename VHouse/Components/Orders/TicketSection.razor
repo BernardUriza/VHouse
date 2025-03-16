@@ -4,14 +4,26 @@
 @using VHouse.Classes
 @inject OrderService OrderService
 @inject IJSRuntime JSRuntime
+@inject CustomerService CustomerService
 
 <h3 class="text-primary">📦 Ticket Generado</h3>
 
+<!-- Customer Selection -->
+<div class="mb-3">
+    <label for="customerSelect" class="form-label fw-bold">👤 Selecciona un cliente (opcional para retail):</label>
+    <select id="customerSelect" class="form-select border-primary shadow-sm" @bind="selectedCustomerId">
+        <option value="">-- Sin cliente --</option>
+        @foreach (var customer in customers)
+        {
+            <option value="@customer.CustomerId">@customer.FullName</option>
+        }
+    </select>
+</div>
+
 <!-- Price Type Selection -->
 <div class="mb-3">
-    <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
-    <select id="priceType" class="form-select border-primary shadow-sm"
-    @bind="selectedPriceType" @bind:event="onchange">
+    <label for="priceType" class="form-label fw-bold">💲 Tipo de Precio:</label>
+    <select id="priceType" class="form-select border-primary shadow-sm" @bind="selectedPriceType" @bind:event="onchange">
         <option value="public">Precio Público</option>
         <option value="retail">Precio Punto de Venta</option>
         <option value="cost">Precio de Costo</option>
@@ -20,9 +32,8 @@
 
 <!-- Delivery Date Selection -->
 <div class="mb-3">
-    <label for="deliveryDate" class="form-label fw-bold text-primary">📅 Fecha de entrega:</label>
-    <input id="deliveryDate" type="datetime-local" class="form-control border-primary shadow-sm"
-    @bind-value="@deliveryDate" lang="es-MX" />
+    <label for="deliveryDate" class="form-label fw-bold text-primary">📅 Fecha de Entrega:</label>
+    <input id="deliveryDate" type="datetime-local" class="form-control border-primary shadow-sm" @bind-value="@deliveryDate" lang="es-MX" />
 </div>
 
 @if (ticket.Any())
@@ -45,8 +56,7 @@
                     <tr>
                         <td>@item.Product.ProductName</td>
                         <td>
-                            <input type="number" min="1" class="form-control" style="width: 60px;"
-                            @bind="item.Quantity" @bind:event="oninput" @onchange="UpdateTotal">
+                            <input type="number" min="1" class="form-control" style="width: 60px;" @bind="item.Quantity" @bind:event="oninput" @onchange="UpdateTotal">
                         </td>
                         <td>@GetPriceForType(item.Product).ToString("C", new CultureInfo("es-MX"))</td>
                         <td>@((GetPriceForType(item.Product) * item.Quantity).ToString("C", new CultureInfo("es-MX")))</td>
@@ -67,28 +77,25 @@
 
         <div class="mb-2">
             <label for="discount" class="form-label">🎟 Descuento (%):</label>
-            <input id="discount" type="number" step="0.1" class="form-control" @bind="discount" @bind:event="oninput" @onchange="UpdateTotal" placeholder="Ej. 10" />
+            <input id="discount" type="number" step="0.1" class="form-control" @bind="discount" @bind:event="oninput" @onchange="UpdateTotal" />
             <div class="form-text">Descuento aplicado: @DiscountAmount.ToString("C", new CultureInfo("es-MX"))</div>
         </div>
 
         <div class="mb-2">
             <label for="shippingCost" class="form-label">🚛 Costo de Envío:</label>
-            <input id="shippingCost" type="number" step="0.01" class="form-control" @bind="shippingCost" @bind:event="oninput" @onchange="UpdateTotal" placeholder="Ej. 50.00" />
+            <input id="shippingCost" type="number" step="0.01" class="form-control" @bind="shippingCost" @bind:event="oninput" @onchange="UpdateTotal" />
             <div class="form-text">Costo en MXN: @shippingCost.ToString("C", new CultureInfo("es-MX"))</div>
         </div>
 
         <h4 class="text-success">✅ Total: @TotalPrice.ToString("C", new CultureInfo("es-MX"))</h4>
     </div>
 
-    <!-- Action Buttons (Only Appear After Saving Order) -->
     @if (isOrderGenerated)
     {
         <div class="mt-3 d-flex flex-wrap gap-2">
             <button class="btn btn-success" @onclick="CopyToClipboard">📋 Copiar Ticket</button>
             <button class="btn btn-danger" @onclick="DeleteOrder">🗑 Eliminar Pedido</button>
         </div>
-
-        <!-- Order Summary -->
         <div class="mt-3">
             <h5>📜 Resumen del Pedido</h5>
             <textarea class="form-control mb-2" rows="4" readonly>@GenerateOrderText()</textarea>
@@ -105,10 +112,12 @@ else
 }
 
 @code {
+    private List<Customer> customers = new();
+    private string? selectedCustomerId;
     private DateTime? deliveryDate = DateTime.Now;
     private string selectedPriceType = "public";
     private bool isOrderGenerated = false;
-    private decimal discount = 0; // Now percentage
+    private decimal discount = 0;
     private decimal shippingCost = 50;
 
     [Parameter]
@@ -118,14 +127,14 @@ else
     private decimal DiscountAmount => (discount / 100) * Subtotal;
     private decimal TotalPrice => Subtotal - DiscountAmount + shippingCost;
 
-    private void UpdateTotal(ChangeEventArgs args)
+    protected override async Task OnInitializedAsync()
     {
-        StateHasChanged(); // Refresh UI after updating quantity
+        customers = await CustomerService.GetCustomersAsync();
     }
 
     private async Task ConfirmSaveOrder()
     {
-        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", "¿Estás seguro de guardar el pedido? No podrás editarlo después.");
+        bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", "¿Guardar el pedido?");
         if (confirm)
         {
             await SaveOrder();
@@ -137,31 +146,38 @@ else
         if (!deliveryDate.HasValue) return;
 
         var orderCopy = new Order
+        {
+            CustomerId = string.IsNullOrEmpty(selectedCustomerId) ? null : int.Parse(selectedCustomerId),
+            DeliveryDate = deliveryDate.Value.ToUniversalTime(),
+            PriceType = selectedPriceType,
+            TotalAmount = TotalPrice,
+            Items = ticket.Values.Select(item => new OrderItem
             {
-                DeliveryDate = deliveryDate.Value.ToUniversalTime(),
-                PriceType = selectedPriceType,
-                TotalAmount = TotalPrice,
-                Items = ticket.Values
-                    .Select(item => new OrderItem
-                    {
-                        ProductId = item.ProductId,   // ✅ Keep ProductId
-                        ProductName = item.ProductName, // ✅ Keep ProductName
-                        Price = item.Price,   // ✅ Keep Price
-                        Quantity = item.Quantity, // ✅ Keep Quantity
-                        Product = null // ✅ Prevent EF from inserting duplicate Products
-                    })
-                    .ToList()
-            };
+                ProductId = item.ProductId,
+                ProductName = item.ProductName,
+                Price = item.Price,
+                Quantity = item.Quantity,
+                Product = null
+            }).ToList()
+        };
 
         await OrderService.SaveOrderAsync(orderCopy);
         isOrderGenerated = true;
 
+        if (!string.IsNullOrEmpty(selectedCustomerId))
+        {
+            await UpdateInventory(orderCopy);
+        }
+    }
+
+    private async Task UpdateInventory(Order order)
+    {
+        await OrderService.ProcessOrderAsync(order);
     }
 
     private async Task CopyToClipboard()
     {
-        var message = GenerateOrderText();
-        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", message);
+        await JSRuntime.InvokeVoidAsync("navigator.clipboard.writeText", GenerateOrderText());
     }
 
     private void DeleteOrder()
@@ -177,6 +193,7 @@ else
             "cost" => product.PriceCost,
             _ => product.PricePublic
         };
+
     private void RemoveFromTicket(Product product)
     {
         if (ticket.ContainsKey(product.ProductId))
@@ -206,5 +223,8 @@ else
 
         return sb.ToString();
     }
-
+    private void UpdateTotal(ChangeEventArgs args)
+    {
+        StateHasChanged(); // Refresh UI after updating quantity
+    }
 }
