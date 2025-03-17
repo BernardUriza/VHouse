@@ -28,10 +28,14 @@ namespace VHouse.Services
         /// </summary>
         public async Task<Inventory> GetInventoryAsync(int customerId)
         {
-            return await _context.Inventories
+            var inventory = await _context.Inventories
                 .Where(i => i.CustomerId == customerId)
                 .Include(i => i.Items)
                 .FirstOrDefaultAsync();
+            if(inventory == null)
+                inventory  = new() { Items = new List<InventoryItem>() };
+
+            return inventory;
         }
 
         /// <summary>
