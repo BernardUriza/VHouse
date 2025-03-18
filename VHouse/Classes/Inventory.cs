@@ -5,7 +5,7 @@
         public int InventoryId { get; set; }
         public int CustomerId { get; set; }
         public Customer Customer { get; set; } = null!;
-
+        public bool IsGeneralInventory { get; set; }
         public List<InventoryItem> Items { get; set; } = new();
     }
 

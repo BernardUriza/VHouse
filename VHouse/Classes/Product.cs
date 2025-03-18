@@ -6,7 +6,7 @@
     public class Product
     {
         /// <summary>
-        /// Unique identifier for the product.
+        /// Unique identifier for the product. 
         /// </summary>
         public int ProductId { get; set; }
 
@@ -39,5 +39,10 @@
         /// Activism price (special price for community or activism purposes).
         /// </summary>
         public decimal PricePublic { get; set; }
+
+        /// <summary>
+        /// Nuevo campo: mide la popularidad del producto
+        /// </summary>
+        public int Score { get; set; } = 0;
     }
 }
