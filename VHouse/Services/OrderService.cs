@@ -55,6 +55,22 @@ namespace VHouse.Services
 
         public async Task<bool> ProcessOrderAsync(Order order)
         {
+            if (order.IsInventoryEntry)
+            {
+                foreach (var item in order.Items)
+                {
+                    var inventoryItem = new InventoryItem
+                    {
+                        ProductId = item.ProductId,
+                        Quantity = item.Quantity,
+                        ExpirationDate = DateTime.UtcNow.AddMonths(6),  // 📆 Default a 6 meses
+                        InvoiceId = order.OrderId  // 🔗 Relacionado con la "factura"
+                    };
+
+                    _context.Inventory.Add(inventoryItem);
+                }
+            }
+
             _context.Orders.Add(order);
             await _context.SaveChangesAsync();
 

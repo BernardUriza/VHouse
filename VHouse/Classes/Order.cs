@@ -19,6 +19,10 @@
         /// The selected price type for this order (public, retail, or cost).
         /// </summary>
         public string PriceType { get; set; } = "public";
+        /// <summary>
+        ///  ✅ Si es entrada, sumamos al inventario
+        /// </summary>
+        public bool IsInventoryEntry { get; set; }  
 
         /// <summary>
         /// The total amount of the order.
@@ -60,5 +64,6 @@
         /// </summary>
         public int? CustomerId { get; set; } // ✅ Nullable foreign key
         public Customer? Customer { get; set; } // ✅ Nullable navigation property
+
     }
 }
