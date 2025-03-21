@@ -25,8 +25,7 @@
         <!-- Price Type Selection -->
         <div class="mb-3">
             <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
-            <select id="priceType" class="form-select border-primary shadow-sm"
-        @bind="selectedPriceType" @onchange="OnPriceTypeChanged">
+            <select id="priceType" class="form-select border-primary shadow-sm" @onchange="OnPriceTypeChanged">
                 <option value="public">Precio Público</option>
                 <option value="retail">Precio Punto de Venta</option>
                 <option value="cost">Precio de Costo</option>
