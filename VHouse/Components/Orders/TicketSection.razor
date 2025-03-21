@@ -6,34 +6,34 @@
 @inject IJSRuntime JSRuntime
 @inject CustomerService CustomerService
 
-<h3 class="text-primary">📦 Ticket Generado</h3>
-
-        <div class="row">
-            <div class="col-lg-6 col-md-12">
-                <!-- Customer Selection -->
-                <div class="mb-3">
-                    <label for="customerSelect" class="form-label fw-bold">👤 Selecciona un cliente (opcional para retail):</label>
-                    <select id="customerSelect" class="form-select border-primary shadow-sm" @bind="selectedCustomerId">
-                        <option value="">-- Sin cliente --</option>
-                        @foreach (var customer in customers)
-                        {
-                            <option value="@customer.CustomerId">@customer.FullName</option>
-                        }
-                    </select>
-                </div>
-            </div>
-            <div class="col-lg-6 col-md-12">
-                <!-- Price Type Selection -->
-                <div class="mb-3">
-                    <label for="priceType" class="form-label fw-bold">💲 Tipo de Precio:</label>
-                    <select id="priceType" class="form-select border-primary shadow-sm" @bind="selectedPriceType" @bind:event="onchange">
-                        <option value="public">Precio Público</option>
-                        <option value="retail">Precio Punto de Venta</option>
-                        <option value="cost">Precio de Costo</option>
-                    </select>
-                </div>
-            </div>
+<div class="row">
+    <div class="col-lg-6 col-md-12">
+        <!-- Customer Selection -->
+        <div class="mb-3">
+            <label for="customerSelect" class="form-label fw-bold">👤 Selecciona un cliente (opcional para retail):</label>
+            <select id="customerSelect" class="form-select border-primary shadow-sm" @bind="selectedCustomerId">
+                <option value="">-- Sin cliente --</option>
+                @foreach (var customer in customers)
+                {
+                    <option value="@customer.CustomerId">@customer.FullName</option>
+                }
+            </select>
         </div>
+    </div>
+
+    <div class="col-lg-6 col-md-12">
+        <!-- Ticket Section Component -->
+        <div class="mb-3">
+            <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
+            <select id="priceType" class="form-select border-primary shadow-sm"
+                    @bind="selectedPriceType">
+                <option value="public">Precio Público</option>
+                <option value="retail">Precio Punto de Venta</option>
+                <option value="cost">Precio de Costo</option>
+            </select>
+        </div>
+    </div>
+</div>
 
 @if (ticket.Any())
 {
@@ -229,9 +229,12 @@ else
 
         // Order details
         sb.AppendLine();
-        sb.AppendLine($"🟢 *Subtotal:* {Subtotal.ToString("C", new CultureInfo("es-MX"))}");
-        sb.AppendLine($"🎟 *Descuento ({discount}%):* -{DiscountAmount.ToString("C", new CultureInfo("es-MX"))}");
-        sb.AppendLine($"🚛 *Costo de Envío:* {shippingCost.ToString("C", new CultureInfo("es-MX"))}");
+        if(Subtotal<TotalPrice)
+            sb.AppendLine($"🟢 *Subtotal:* {Subtotal.ToString("C", new CultureInfo("es-MX"))}");
+        if (discount > 0)
+            sb.AppendLine($"🎟 *Descuento ({discount}%):* -{DiscountAmount.ToString("C", new CultureInfo("es-MX"))}");
+        if (discount > 0)
+            sb.AppendLine($"🚛 *Costo de Envío:* {shippingCost.ToString("C", new CultureInfo("es-MX"))}");
         sb.AppendLine($"📅 *Entrega:* {deliveryDate?.ToString("dddd dd MMMM yyyy HH:mm", new CultureInfo("es-MX"))}");
         sb.AppendLine($"✅ *Total a Pagar:* {TotalPrice.ToString("C", new CultureInfo("es-MX"))}");
 

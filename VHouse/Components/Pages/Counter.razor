@@ -20,17 +20,7 @@
         </div>
 
         <div class="col-lg-9 col-md-12">
-            <!-- Ticket Section Component -->
-            <div class="mb-3">
-                <label for="priceType" class="form-label fw-bold">💲 Selecciona el tipo de precio:</label>
-                <select id="priceType" class="form-select border-primary shadow-sm"
-                        @bind="selectedPriceType">
-                    <option value="public">Precio Público</option>
-                    <option value="retail">Precio Punto de Venta</option>
-                    <option value="cost">Precio de Costo</option>
-                </select>
-            </div>
-            <TicketSection Ticket="@ticket"></TicketSection>
+            <TicketSection Ticket="@ticket" ></TicketSection>
         </div>
     </div>
 </section>
@@ -39,7 +29,6 @@
     public List<Product> Products { get; set; } = new();
     public Dictionary<int, OrderItem> ticket = new();
     private string? errorMessage = null;
-    private string selectedPriceType = "public"; // ✅ Default to Public Price
 
     protected override async Task OnInitializedAsync()
     {
@@ -66,22 +55,11 @@
         AddToTicket(product);
     }
 
-    private decimal GetPriceForType(Product product)
-    {
-        return selectedPriceType switch
-        {
-            "retail" => product.PriceRetail,
-            "cost" => product.PriceCost,
-            _ => product.PricePublic
-        };
-    }
-
     private void AddToTicket(Product product)
     {
         if (ticket.ContainsKey(product.ProductId))
         {
             ticket[product.ProductId].Quantity++;
-            ticket[product.ProductId].Price = GetPriceForType(product); // ✅ Update price dynamically
         }
         else
         {
