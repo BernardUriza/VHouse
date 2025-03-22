@@ -20,7 +20,7 @@
         </div>
 
         <div class="col-lg-9 col-md-12">
-            <TicketSection Ticket="@ticket" ></TicketSection>
+            <TicketSection Ticket="@ticket" @ref="ticketSection"></TicketSection>
         </div>
     </div>
 </section>
@@ -29,6 +29,7 @@
     public List<Product> Products { get; set; } = new();
     public Dictionary<int, OrderItem> ticket = new();
     private string? errorMessage = null;
+    private TicketSection? ticketSection { get; set; }
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,5 +72,6 @@
                     Quantity = 1
                 };
         }
+        ticketSection.UpdatePricesByPriceType();
     }
 }

@@ -150,7 +150,7 @@ else
     {
         if (!deliveryDate.HasValue) return;
 
-        var orderCopy = new Order
+        var order = new Order
             {
                 CustomerId = string.IsNullOrEmpty(selectedCustomerId) ? null : int.Parse(selectedCustomerId),
                 DeliveryDate = deliveryDate.Value.ToUniversalTime(),
@@ -165,34 +165,22 @@ else
                     Product = null
                 }).ToList()
             };
-
-        await OrderService.SaveOrderAsync(orderCopy);
-        isOrderGenerated = true;
-
-        if (!string.IsNullOrEmpty(selectedCustomerId))
-        {
-            await UpdateInventory(orderCopy);
-        }
+        await OrderService.ProcessOrderAsync(order);
     }
 
     private void OnPriceTypeChanged(ChangeEventArgs e)
     {
         selectedPriceType = e.Value?.ToString() ?? "public";
         UpdatePricesByPriceType();
-        StateHasChanged(); // 🔁 Refrescar UI
     }
 
-    private void UpdatePricesByPriceType()
+    public void UpdatePricesByPriceType()
     {
         foreach (var item in ticket.Values)
         {
             item.Price = GetPriceForType(item.Product);
         }
-    }
-
-    private async Task UpdateInventory(Order order)
-    {
-        await OrderService.ProcessOrderAsync(order);
+        StateHasChanged(); 
     }
 
     private async Task ConfirmSaveOrder()

@@ -4,36 +4,6 @@
 
 <h2>📋 Gestión de Pedidos</h2>
 
-<div class="mb-4">
-    <h5>➕ Crear Nuevo Pedido</h5>
-    <form>
-        <div class="row">
-            <div class="col-md-4">
-                <label for="priceType" class="form-label">Tipo de Precio</label>
-                <select id="priceType" class="form-select" @bind="newOrder.PriceType">
-                    <option value="public">Precio Público</option>
-                    <option value="retail">Precio Punto de Venta</option>
-                    <option value="cost">Precio de Costo</option>
-                </select>
-            </div>
-
-            <div class="col-md-4">
-                <label for="deliveryDate" class="form-label">📅 Fecha de Entrega</label>
-                <input id="deliveryDate" type="datetime-local" class="form-control" @bind="newOrder.DeliveryDate" />
-            </div>
-
-            <div class="col-md-2">
-                <label for="totalAmount" class="form-label">💰 Total</label>
-                <input id="totalAmount" type="number" step="0.01" class="form-control" @bind="newOrder.TotalAmount" placeholder="Ej. 500.00" />
-            </div>
-
-            <div class="col-md-2 align-self-end">
-                <button type="button" class="btn btn-success" @onclick="AddOrder">Guardar Pedido</button>
-            </div>
-        </div>
-    </form>
-</div>
-
 <h3>📜 Lista de Pedidos</h3>
 @if (orders.Any())
 {
@@ -95,19 +65,6 @@ else
     private async Task LoadOrdersAsync()
     {
         orders = await OrderService.GetOrdersAsync();
-    }
-
-    private async Task AddOrder()
-    {
-        if (newOrder.TotalAmount <= 0)
-        {
-            return;
-        }
-
-        await OrderService.SaveOrderAsync(newOrder);
-        await LoadOrdersAsync();
-
-        newOrder = new Order { PriceType = "public", DeliveryDate = DateTime.Now, TotalAmount = 0 };
     }
 
     private async Task DeleteOrder(Order order)
