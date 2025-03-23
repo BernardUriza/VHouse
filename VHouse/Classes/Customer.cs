@@ -43,6 +43,10 @@ namespace VHouse.Classes
         /// </summary>
         public List<Order> Orders { get; set; } = new();
         /// <summary>
+        /// Inventory navigation associated with this customer.
+        /// </summary>
+        public Inventory Inventory { get; set; } = new();
+        /// <summary>
         /// Identificar clientes retail.
         /// </summary>
         public bool IsRetail { get; set; }

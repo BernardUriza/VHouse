@@ -165,7 +165,7 @@ else
                     Product = null
                 }).ToList()
             };
-        await OrderService.ProcessOrderAsync(order);
+        isOrderGenerated = await OrderService.ProcessOrderAsync(order);
     }
 
     private void OnPriceTypeChanged(ChangeEventArgs e)

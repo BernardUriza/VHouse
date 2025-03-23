@@ -20,6 +20,12 @@ public class ApplicationDbContext : DbContext
         base.OnModelCreating(modelBuilder);
 
         // Configurar relaciones
+        modelBuilder.Entity<Customer>()
+            .HasOne(i => i.Inventory)
+            .WithOne(ii => ii.Customer)
+            .HasForeignKey<Inventory>(i => i.CustomerId)
+            .OnDelete(DeleteBehavior.Cascade);
+
         modelBuilder.Entity<Inventory>()
             .HasMany(i => i.Items)
             .WithOne(ii => ii.Inventory)
