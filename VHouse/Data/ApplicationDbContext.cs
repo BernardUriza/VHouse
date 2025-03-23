@@ -11,7 +11,9 @@ public class ApplicationDbContext : DbContext
     public DbSet<Customer> Customers { get; set; }
     public DbSet<Inventory> Inventories { get; set; }
     public DbSet<InventoryItem> InventoryItems { get; set; }
-    public DbSet<Invoice> Invoices { get; set; }  // 🔗 Nueva tabla de facturas
+    public DbSet<Invoice> Invoices { get; set; }
+    // dotnet ef migrations add AddNullableInvoiceIdAndGeneralInventorySupport
+    // dotnet ef database update
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -25,9 +27,10 @@ public class ApplicationDbContext : DbContext
             .OnDelete(DeleteBehavior.Cascade);
 
         modelBuilder.Entity<InventoryItem>()
-            .HasOne(ii => ii.Invoice)
-            .WithMany(i => i.Items)
-            .HasForeignKey(ii => ii.InvoiceId)
-            .OnDelete(DeleteBehavior.Restrict);
+            .HasOne(i => i.Invoice)
+            .WithMany() 
+            .HasForeignKey(i => i.InvoiceId)
+            .OnDelete(DeleteBehavior.SetNull); 
+
     }
 }
