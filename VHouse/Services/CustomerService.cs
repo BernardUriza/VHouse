@@ -20,7 +20,7 @@ namespace VHouse.Services
         /// </summary>
         public async Task<List<Customer>> GetCustomersAsync()
         {
-            return await _context.Customers.Include(c => c.Orders).Include(u => u.Inventory).ToListAsync();
+            return await _context.Customers.Include(c => c.Orders).Include(u => u.Inventory).ThenInclude(u => u.Items).ThenInclude(u => u.Product).ToListAsync();
         }
 
         /// <summary>
