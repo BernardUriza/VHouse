@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VHouse.Classes;
+using VHouse.Interfaces;
 
 namespace VHouse.Services
 {
     /// <summary>
     /// Service for managing customers.
     /// </summary>
-    public class CustomerService
+    public class CustomerService : ICustomerService
     {
         private readonly ApplicationDbContext _context;
 

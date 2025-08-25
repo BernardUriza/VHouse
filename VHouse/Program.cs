@@ -1,10 +1,15 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using FluentValidation;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using VHouse;
 using VHouse.Classes;
 using VHouse.Components;
+using VHouse.Interfaces;
+using VHouse.Middleware;
+using VHouse.Repositories;
 using VHouse.Services;
+using VHouse.Validators;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -22,19 +27,42 @@ builder.WebHost.UseStaticWebAssets();
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
-builder.Services.AddScoped<ChatbotService>();
-builder.Services.AddScoped<ProductService>();
-builder.Services.AddScoped<OrderService>();
-builder.Services.AddScoped<CustomerService>();
+
+// Register services with their interfaces
+builder.Services.AddScoped<IChatbotService, ChatbotService>();
+builder.Services.AddScoped<IProductService, ProductService>();
+builder.Services.AddScoped<IOrderService, OrderService>();
+builder.Services.AddScoped<ICustomerService, CustomerService>();
+
+// Register repositories and unit of work
+builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+// Add FluentValidation
+builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
+builder.Services.AddFluentValidationAutoValidation();
+builder.Services.AddFluentValidationClientsideAdapters();
+
+// Add localization
+builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
+builder.Services.Configure<RequestLocalizationOptions>(options =>
+{
+    var supportedCultures = new[] { "en-US", "es-MX" };
+    options.SetDefaultCulture(supportedCultures[0])
+        .AddSupportedCultures(supportedCultures)
+        .AddSupportedUICultures(supportedCultures);
+});
+
 builder.Services.AddHttpContextAccessor();
 
-Console.WriteLine("🚀 Iniciando VHouse...");
+var logger = LoggerFactory.Create(builder => builder.AddConsole()).CreateLogger("VHouse.Startup");
+logger.LogInformation("🚀 Starting VHouse...");
 
 // 📌 Obtener la cadena de conexión
 string? databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
 if (!string.IsNullOrEmpty(databaseUrl))
 {
-    Console.WriteLine($"🌍 DATABASE_URL encontrada: {databaseUrl}");
+    logger.LogInformation("🌍 DATABASE_URL found: {DatabaseUrl}", databaseUrl);
 
     try
     {
@@ -47,16 +75,16 @@ if (!string.IsNullOrEmpty(databaseUrl))
         string password = userInfo[1];
         string database = "vhouse-dev-new"; // Asegúrate de usar el nombre correcto
         databaseUrl = $"Host={host};Port={port};Username={username};Password={password};Database={database};Pooling=true;Ssl Mode=Disable;Trust Server Certificate=true;";
-        Console.WriteLine("✅ Connection String generada correctamente.");
+        logger.LogInformation("✅ Connection string generated successfully.");
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"❌ ERROR: No se pudo procesar DATABASE_URL: {ex.Message}");
+        logger.LogError(ex, "❌ Could not process DATABASE_URL");
     }
 }
 else
 {
-    Console.WriteLine("⚠️ No se encontró DATABASE_URL. Usando configuración por defecto.");
+    logger.LogInformation("⚠️ DATABASE_URL not found. Using default configuration.");
     databaseUrl = builder.Configuration.GetConnectionString("DefaultConnection");
     
     // Replace environment variable placeholder with actual value
@@ -67,7 +95,7 @@ else
     }
     else
     {
-        Console.WriteLine("⚠️ DB_PASSWORD environment variable not set. Using default password.");
+        logger.LogWarning("⚠️ DB_PASSWORD environment variable not set. Using default password.");
         databaseUrl = databaseUrl?.Replace("${DB_PASSWORD}", "mysecretpassword");
     }
 }
@@ -81,16 +109,16 @@ while (attempt < maxRetries)
 {
     try
     {
-        Console.WriteLine($"🔄 Intentando conectar a PostgreSQL... (Intento {attempt + 1}/{maxRetries})");
+        logger.LogInformation("🔄 Attempting to connect to PostgreSQL... (Attempt {Attempt}/{MaxRetries})", attempt + 1, maxRetries);
         using var testConnection = new NpgsqlConnection(databaseUrl);
         testConnection.Open();
-        Console.WriteLine("✅ Conexión exitosa a PostgreSQL.");
+        logger.LogInformation("✅ Successfully connected to PostgreSQL.");
         connected = true;
         break;
     }
     catch (Exception ex)
     {
-        Console.WriteLine($"⚠️ No se pudo conectar a PostgreSQL: {ex.Message}");
+        logger.LogWarning(ex, "⚠️ Could not connect to PostgreSQL");
         attempt++;
         Thread.Sleep(3000); // Esperar 3 segundos antes de reintentar
     }
@@ -98,7 +126,7 @@ while (attempt < maxRetries)
 
 if (!connected)
 {
-    Console.WriteLine("❌ ERROR: No se pudo conectar a PostgreSQL después de varios intentos. Abortando.");
+    logger.LogError("❌ Could not connect to PostgreSQL after several attempts. Aborting.");
     return;
 }
 
@@ -150,6 +178,9 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
+// Add global exception handling middleware
+app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+
 // Add security headers middleware
 app.Use(async (context, next) =>
 {
@@ -173,22 +204,27 @@ using (var scope = app.Services.CreateScope())
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
 
-    Console.WriteLine("📦 Aplicando migraciones...");
+    using var scope = app.Services.CreateScope();
+    var migrationLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    migrationLogger.LogInformation("📦 Applying migrations...");
     context.Database.Migrate(); // Aplica las migraciones
-    Console.WriteLine("✅ Migraciones aplicadas correctamente.");
+    migrationLogger.LogInformation("✅ Migrations applied successfully.");
 }
 using (var scope = app.Services.CreateScope())
 {
     var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
     var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
-    Console.WriteLine("📦 Aplying semillas...");
+    migrationLogger.LogInformation("📦 Applying seeds...");
     await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext
-    Console.WriteLine("✅ Semillas aplicadas correctamente.");
+    migrationLogger.LogInformation("✅ Seeds applied successfully.");
 }
 
 app.UseStaticFiles();
 app.UseRouting();
+
+// Add request localization
+app.UseRequestLocalization();
 
 // 🔐 Add authentication and authorization middleware
 app.UseAuthentication();
@@ -208,7 +244,8 @@ using (var scope = app.Services.CreateScope())
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
     
-    Console.WriteLine("🔐 Inicializando roles y usuario administrador...");
+    var identityLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    identityLogger.LogInformation("🔐 Initializing roles and admin user...");
     
     // Create roles if they don't exist
     string[] roles = { "Admin", "Employee", "Customer" };
@@ -217,7 +254,7 @@ using (var scope = app.Services.CreateScope())
         if (!await roleManager.RoleExistsAsync(role))
         {
             await roleManager.CreateAsync(new IdentityRole(role));
-            Console.WriteLine($"✅ Rol creado: {role}");
+            identityLogger.LogInformation("✅ Role created: {Role}", role);
         }
     }
     
@@ -239,21 +276,21 @@ using (var scope = app.Services.CreateScope())
         if (result.Succeeded)
         {
             await userManager.AddToRoleAsync(adminUser, "Admin");
-            Console.WriteLine($"✅ Usuario administrador creado: {adminEmail}");
-            Console.WriteLine("🔑 Password: Admin123!");
+            identityLogger.LogInformation("✅ Admin user created: {AdminEmail}", adminEmail);
+            identityLogger.LogInformation("🔑 Password: Admin123!");
         }
         else
         {
-            Console.WriteLine("❌ Error creando usuario administrador:");
+            identityLogger.LogError("❌ Error creating admin user:");
             foreach (var error in result.Errors)
             {
-                Console.WriteLine($"   - {error.Description}");
+                identityLogger.LogError("   - {ErrorDescription}", error.Description);
             }
         }
     }
     else
     {
-        Console.WriteLine("ℹ️ Usuario administrador ya existe.");
+        identityLogger.LogInformation("ℹ️ Admin user already exists.");
     }
 }
 

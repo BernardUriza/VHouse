@@ -1,12 +1,13 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using VHouse.Classes;
+using VHouse.Interfaces;
 
 namespace VHouse.Services;
 
 /// <summary>
 /// Service for managing orders, inventory, and product metrics.
 /// </summary>
-public class OrderService
+public class OrderService : IOrderService
 {
     private readonly ApplicationDbContext _context;
     private readonly ILogger<OrderService> _logger;
@@ -49,7 +50,7 @@ public class OrderService
 
         try
         {
-            _logger.LogInformation("🔄 Procesando pedido {OrderId}...", order.OrderId);
+            _logger.LogInformation("🔄 Processing order {OrderId}...", order.OrderId);
 
             // Save order first
             _context.Orders.Add(order);
@@ -68,7 +69,7 @@ public class OrderService
             }
 
             await transaction.CommitAsync();
-            _logger.LogInformation("✅ Pedido {OrderId} procesado correctamente.", order.OrderId);
+            _logger.LogInformation("✅ Order {OrderId} processed successfully.", order.OrderId);
             return true;
         }
         catch (Exception ex)
@@ -114,7 +115,7 @@ public class OrderService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("📦 Inventario general actualizado para pedido {OrderId}", order.OrderId);
+        _logger.LogInformation("📦 General inventory updated for order {OrderId}", order.OrderId);
     }
 
     /// <summary>
@@ -130,7 +131,7 @@ public class OrderService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("🌟 Puntuaciones de productos actualizadas.");
+        _logger.LogInformation("🌟 Product scores updated.");
     }
 
     /// <summary>
@@ -167,6 +168,6 @@ public class OrderService
         }
 
         await _context.SaveChangesAsync();
-        _logger.LogInformation("🏬 Inventario de cliente {CustomerId} actualizado.", customerId);
+        _logger.LogInformation("🏬 Customer {CustomerId} inventory updated.", customerId);
     }
 }

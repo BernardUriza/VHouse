@@ -1,18 +1,21 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using VHouse;
+using VHouse.Interfaces;
 
-public class ProductService
+public class ProductService : IProductService
 {
     private readonly ApplicationDbContext _context;
     private readonly IWebHostEnvironment _env;
+    private readonly ILogger<ProductService> _logger;
     private readonly string _jsonFilePath;
 
-    public ProductService(ApplicationDbContext context, IWebHostEnvironment env)
+    public ProductService(ApplicationDbContext context, IWebHostEnvironment env, ILogger<ProductService> logger)
     {
         _context = context;
         _env = env;
-        _jsonFilePath = Path.Combine(_env.ContentRootPath, "wwwroot/data", "products.json"); // ✅ Load JSON from 'Data/' folder
+        _logger = logger;
+        _jsonFilePath = Path.Combine(_env.ContentRootPath, "wwwroot/data", "products.json");
     }
 
     /// <summary>
@@ -72,7 +75,7 @@ public class ProductService
     /// </summary>
     public async Task SeedProductsAsync(IServiceScopeFactory scopeFactory)
     {
-        Console.WriteLine("🚀 Starting product seeding...");
+        _logger.LogInformation("🚀 Starting product seeding...");
 
         using var scope = scopeFactory.CreateScope();
         var scopedContext = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
@@ -80,51 +83,51 @@ public class ProductService
         // Debug database connection
         try
         {
-            Console.WriteLine($"🟢 Checking DB Connection: {scopedContext.Database.GetConnectionString()}");
+            _logger.LogInformation("🟢 Checking database connection: {ConnectionString}", scopedContext.Database.GetConnectionString());
             await scopedContext.Database.CanConnectAsync();
-            Console.WriteLine("✅ Database connection successful!");
+            _logger.LogInformation("✅ Database connection successful!");
         }
         catch (Exception dbEx)
         {
-            Console.WriteLine($"❌ ERROR: Unable to connect to database: {dbEx.Message}");
+            _logger.LogError(dbEx, "❌ Unable to connect to database");
             return;
         }
 
         // Check if products already exist
         bool productsExist = await scopedContext.Products.AnyAsync();
-        Console.WriteLine($"🔎 Products already exist? {productsExist}");
+        _logger.LogInformation("🔎 Products already exist? {ProductsExist}", productsExist);
 
         if (productsExist)
         {
-            Console.WriteLine("⚠️ Skipping seeding, products already exist in the database.");
+            _logger.LogInformation("⚠️ Skipping seeding, products already exist in the database.");
             return;
         }
 
-        Console.WriteLine($"📂 Checking if JSON file exists at: {_jsonFilePath}");
+        _logger.LogInformation("📂 Checking if JSON file exists at: {JsonFilePath}", _jsonFilePath);
 
         if (!File.Exists(_jsonFilePath))
         {
-            Console.WriteLine($"❌ ERROR2: JSON file not found: {_jsonFilePath}");
+            _logger.LogError("❌ JSON file not found: {JsonFilePath}", _jsonFilePath);
             return;
         }
 
         try
         {
-            Console.WriteLine("📖 Reading JSON file...");
+            _logger.LogInformation("📖 Reading JSON file...");
             var jsonData = await File.ReadAllTextAsync(_jsonFilePath);
 
             if (string.IsNullOrWhiteSpace(jsonData))
             {
-                Console.WriteLine("⚠️ WARNING: JSON file is empty!");
+                _logger.LogWarning("⚠️ JSON file is empty!");
                 return;
             }
 
-            Console.WriteLine("📊 Deserializing JSON data...");
+            _logger.LogInformation("📊 Deserializing JSON data...");
             var products = JsonSerializer.Deserialize<List<Product>>(jsonData);
 
             if (products == null || !products.Any())
             {
-                Console.WriteLine("⚠️ WARNING: No products found in JSON file!");
+                _logger.LogWarning("⚠️ No products found in JSON file!");
                 return;
             }
 
@@ -133,19 +136,19 @@ public class ProductService
             {
                 if (string.IsNullOrWhiteSpace(product.Emoji))
                 {
-                    Console.WriteLine($"⚠️ WARNING: Product '{product.ProductName}' is missing an Emoji. Assigning default emoji.");
+                    _logger.LogWarning("⚠️ Product '{ProductName}' is missing an Emoji. Assigning default emoji.", product.ProductName);
                     product.Emoji = "🌟"; // Default emoji
                 }
             }
 
-            Console.WriteLine($"✅ Adding {products.Count} products to the database...");
+            _logger.LogInformation("✅ Adding {ProductCount} products to the database...", products.Count);
             scopedContext.Products.AddRange(products);
             await scopedContext.SaveChangesAsync();
-            Console.WriteLine("🎉 Products successfully seeded!");
+            _logger.LogInformation("🎉 Products successfully seeded!");
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ ERROR: Exception while loading products from JSON: {ex.Message}");
+            _logger.LogError(ex, "❌ Exception while loading products from JSON");
         }
     }
 

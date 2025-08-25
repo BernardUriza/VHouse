@@ -6,8 +6,9 @@ using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
+using VHouse.Interfaces;
 
-public class ChatbotService
+public class ChatbotService : IChatbotService
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<ChatbotService> logger;
