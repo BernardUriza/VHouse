@@ -2,148 +2,171 @@
 @rendermode InteractiveServer
 @using System.Linq
 
-<PageTitle>VHouse - Dashboard</PageTitle>
+<PageTitle>VHouse POS</PageTitle>
 
-<div class="hero-section">
-    <div class="hero-content">
-        <div class="hero-badge">
-            <i class="fas fa-leaf"></i>
-            <span>Vegano & Sostenible</span>
-        </div>
-        <h1 class="hero-title">
-            Bienvenidos a <span class="gradient-text">VHouse</span>
-        </h1>
-        <p class="hero-subtitle">
-            Tu acceso directo al veganismo, sin excusas al precio que buscas
-        </p>
-        <div class="hero-stats">
-            <div class="stat-card">
-                <div class="stat-number">2,847</div>
-                <div class="stat-label">Productos</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">1,235</div>
-                <div class="stat-label">Clientes</div>
-            </div>
-            <div class="stat-card">
-                <div class="stat-number">5,692</div>
-                <div class="stat-label">Órdenes</div>
-            </div>
+<div class="pos-header">
+    <div class="terminal-info">
+        <span class="terminal-id">TERMINAL 01</span>
+        <span class="live-time">@DateTime.Now.ToString("HH:mm")</span>
+    </div>
+    <div class="session-date">@DateTime.Now.ToString("dd/MM/yyyy")</div>
+</div>
+
+<div class="kpi-dashboard">
+    <div class="kpi-card primary">
+        <div class="kpi-icon">💰</div>
+        <div class="kpi-content">
+            <div class="kpi-value">$127,450</div>
+            <div class="kpi-label">Ventas Mes</div>
+            <div class="kpi-trend positive">↗ +12.5%</div>
         </div>
     </div>
-    <div class="hero-visual">
-        <div class="floating-card card-1">
-            <i class="fas fa-shopping-cart"></i>
-            <span>Pedidos</span>
+    <div class="kpi-card">
+        <div class="kpi-icon">📦</div>
+        <div class="kpi-content">
+            <div class="kpi-value">2,847</div>
+            <div class="kpi-label">Productos</div>
+            <div class="kpi-trend neutral">— 0%</div>
         </div>
-        <div class="floating-card card-2">
-            <i class="fas fa-users"></i>
-            <span>Clientes</span>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon">👥</div>
+        <div class="kpi-content">
+            <div class="kpi-value">1,235</div>
+            <div class="kpi-label">Clientes</div>
+            <div class="kpi-trend positive">↗ +8.3%</div>
         </div>
-        <div class="floating-card card-3">
-            <i class="fas fa-box"></i>
-            <span>Inventario</span>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-icon">📈</div>
+        <div class="kpi-content">
+            <div class="kpi-value">5,692</div>
+            <div class="kpi-label">Órdenes</div>
+            <div class="kpi-trend positive">↗ +15.2%</div>
         </div>
     </div>
 </div>
 
-<div class="dashboard-grid">
-    <div class="dashboard-card feature-card">
-        <div class="card-header">
-            <i class="fas fa-chart-line"></i>
-            <h3>Análisis de Ventas</h3>
+<div class="ai-insights-panel">
+    <div class="insight-card ai-recommendation">
+        <div class="insight-header">
+            <div class="ai-icon">🤖</div>
+            <span>Recomendación IA</span>
         </div>
-        <div class="card-body">
-            <div class="metric-display">
-                <div class="metric-value">+23%</div>
-                <div class="metric-label">Crecimiento mensual</div>
+        <div class="insight-content">
+            <p><strong>Tofu Orgánico</strong> experimentará alta demanda mañana (+34% probabilidad)</p>
+            <div class="action-btn">Reabastecer Ahora</div>
+        </div>
+    </div>
+
+    <div class="insight-card prediction">
+        <div class="insight-header">
+            <div class="ai-icon">📊</div>
+            <span>Predicción de Ventas</span>
+        </div>
+        <div class="insight-content">
+            <p>Ventas estimadas hoy: <strong>$4,200</strong></p>
+            <div class="prediction-bar">
+                <div class="prediction-progress" style="width: 81%;"></div>
             </div>
-            <div class="progress-bar">
-                <div class="progress-fill" style="width: 75%;"></div>
+            <small>81% del objetivo diario completado</small>
+        </div>
+    </div>
+
+    <div class="insight-card optimization">
+        <div class="insight-header">
+            <div class="ai-icon">⚡</div>
+            <span>Optimización</span>
+        </div>
+        <div class="insight-content">
+            <p>Hora pico: <strong>14:30-16:30</strong></p>
+            <p>Sugiere tener 2 cajeros activos</p>
+        </div>
+    </div>
+</div>
+
+<div class="operational-grid">
+    <div class="ops-section">
+        <div class="section-header">
+            <span>📈 Métricas en Tiempo Real</span>
+        </div>
+        <div class="metrics-list">
+            <div class="metric-row">
+                <span>Transacciones/Hora</span>
+                <span class="metric-value">23</span>
+            </div>
+            <div class="metric-row">
+                <span>Tiempo Promedio</span>
+                <span class="metric-value">1:32min</span>
+            </div>
+            <div class="metric-row">
+                <span>Satisfacción Cliente</span>
+                <span class="metric-value satisfaction">98%</span>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-card feature-card">
-        <div class="card-header">
-            <i class="fas fa-bell"></i>
-            <h3>Notificaciones</h3>
+    <div class="ops-section">
+        <div class="section-header">
+            <span>⚠️ Alertas Sistema</span>
         </div>
-        <div class="card-body">
-            <div class="notification-item">
-                <div class="notification-dot success"></div>
-                <span>Nueva orden recibida</span>
-                <small>Hace 5 min</small>
+        <div class="alert-list">
+            <div class="system-alert critical">
+                <div class="alert-dot"></div>
+                <span>Stock crítico: Leche de Avena</span>
             </div>
-            <div class="notification-item">
-                <div class="notification-dot warning"></div>
-                <span>Stock bajo en productos</span>
-                <small>Hace 1 hora</small>
+            <div class="system-alert warning">
+                <div class="alert-dot"></div>
+                <span>Impresora ticket: papel bajo</span>
             </div>
-            <div class="notification-item">
-                <div class="notification-dot info"></div>
-                <span>Cliente nuevo registrado</span>
-                <small>Hace 2 horas</small>
+            <div class="system-alert info">
+                <div class="alert-dot"></div>
+                <span>Backup completado: 14:00</span>
             </div>
         </div>
     </div>
 
-    <div class="dashboard-card feature-card full-width">
-        <div class="card-header">
-            <i class="fas fa-clock"></i>
-            <h3>Actividad Reciente</h3>
+    <div class="ops-section">
+        <div class="section-header">
+            <span>🔄 Actividad Reciente</span>
         </div>
-        <div class="card-body">
-            <div class="activity-timeline">
-                <div class="timeline-item">
-                    <div class="timeline-marker success"></div>
-                    <div class="timeline-content">
-                        <strong>Orden completada</strong>
-                        <p>Pedido #1234 entregado exitosamente</p>
-                        <small>@DateTime.Now.AddMinutes(-15).ToString("HH:mm")</small>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-marker info"></div>
-                    <div class="timeline-content">
-                        <strong>Nuevo cliente</strong>
-                        <p>María González se registró en la plataforma</p>
-                        <small>@DateTime.Now.AddHours(-1).ToString("HH:mm")</small>
-                    </div>
-                </div>
-                <div class="timeline-item">
-                    <div class="timeline-marker warning"></div>
-                    <div class="timeline-content">
-                        <strong>Inventario bajo</strong>
-                        <p>Tofu orgánico necesita reposición</p>
-                        <small>@DateTime.Now.AddHours(-3).ToString("HH:mm")</small>
-                    </div>
-                </div>
+        <div class="activity-feed">
+            <div class="activity-item">
+                <span class="time-stamp">@DateTime.Now.AddMinutes(-2).ToString("HH:mm")</span>
+                <span>Venta: $47.50 - Contactless</span>
+            </div>
+            <div class="activity-item">
+                <span class="time-stamp">@DateTime.Now.AddMinutes(-5).ToString("HH:mm")</span>
+                <span>Cliente VIP: Ana Rodríguez</span>
+            </div>
+            <div class="activity-item">
+                <span class="time-stamp">@DateTime.Now.AddMinutes(-8).ToString("HH:mm")</span>
+                <span>Devolución procesada: $23.99</span>
             </div>
         </div>
     </div>
 </div>
 
-<div class="system-info">
-    <div class="info-card">
-        <i class="fas fa-server"></i>
-        <div class="info-content">
-            <div class="info-label">Sistema</div>
-            <div class="info-value">Online</div>
+<div class="ai-pos-footer">
+    <div class="system-status-bar">
+        <div class="status-group">
+            <div class="status-dot online"></div>
+            <span>Sistema Operativo</span>
         </div>
-    </div>
-    <div class="info-card">
-        <i class="fas fa-clock"></i>
-        <div class="info-content">
-            <div class="info-label">Última actualización</div>
-            <div class="info-value">@deployDate</div>
+        <div class="status-group">
+            <div class="status-dot online"></div>
+            <span>Conectividad</span>
         </div>
-    </div>
-    <div class="info-card">
-        <i class="fas fa-database"></i>
-        <div class="info-content">
-            <div class="info-label">Base de datos</div>
-            <div class="info-value">PostgreSQL</div>
+        <div class="status-group">
+            <div class="status-dot online"></div>
+            <span>Base de Datos</span>
+        </div>
+        <div class="status-group">
+            <div class="status-dot online"></div>
+            <span>Pagos</span>
+        </div>
+        <div class="ai-version">
+            VHouse AI-POS v2025.1 | Última sincronización: @DateTime.Now.ToString("HH:mm")
         </div>
     </div>
 </div>

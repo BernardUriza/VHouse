@@ -89,6 +89,16 @@ namespace VHouse.Classes
         public DateTime CreatedDate { get; set; } = DateTime.UtcNow;
 
         /// <summary>
+        /// Foreign key to distribution center.
+        /// </summary>
+        public int? DistributionCenterId { get; set; }
+
+        /// <summary>
+        /// Navigation property to distribution center.
+        /// </summary>
+        public DistributionCenter? DistributionCenter { get; set; }
+
+        /// <summary>
         /// Purchase orders received at this warehouse.
         /// </summary>
         public List<PurchaseOrder> PurchaseOrders { get; set; } = new();

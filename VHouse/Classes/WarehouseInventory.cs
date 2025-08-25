@@ -64,6 +64,26 @@ namespace VHouse.Classes
         public DateTime? LastCountDate { get; set; }
 
         /// <summary>
+        /// Unit cost of the product at this warehouse.
+        /// </summary>
+        public decimal UnitCost { get; set; } = 0;
+
+        /// <summary>
+        /// Minimum level threshold for reorder alerts.
+        /// </summary>
+        public int MinimumLevel { get; set; } = 0;
+
+        /// <summary>
+        /// Maximum level for inventory management.
+        /// </summary>
+        public int MaximumLevel { get; set; } = int.MaxValue;
+
+        /// <summary>
+        /// Reorder point threshold.
+        /// </summary>
+        public int ReorderPoint { get; set; } = 0;
+
+        /// <summary>
         /// Navigation property to warehouse.
         /// </summary>
         public Warehouse? Warehouse { get; set; }

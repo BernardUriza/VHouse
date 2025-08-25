@@ -29,6 +29,25 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 builder.Services.AddHttpClient();
 
+// Add caching
+builder.Services.AddMemoryCache();
+var redisConnectionString = builder.Configuration.GetConnectionString("Redis");
+if (!string.IsNullOrEmpty(redisConnectionString))
+{
+    builder.Services.AddStackExchangeRedisCache(options =>
+    {
+        options.Configuration = redisConnectionString;
+        options.InstanceName = "VHouse";
+    });
+}
+else
+{
+    builder.Services.AddDistributedMemoryCache();
+}
+
+// Add response caching
+builder.Services.AddResponseCaching();
+
 // Register services with their interfaces
 builder.Services.AddScoped<IChatbotService, ChatbotService>();
 builder.Services.AddScoped<IProductService, ProductService>();
@@ -41,6 +60,30 @@ builder.Services.AddScoped<IBrandService, BrandService>();
 builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IShrinkageService, ShrinkageService>();
+
+// Phase 5: Advanced Distribution Services
+builder.Services.AddScoped<ITenantService, TenantService>();
+builder.Services.AddScoped<IDistributionCenterService, DistributionCenterService>();
+builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
+builder.Services.AddScoped<IInventorySynchronizationService, InventorySynchronizationService>();
+
+// Register caching services (safe for dev)
+builder.Services.AddScoped<ICachingService, CachingService>();
+
+// Register background job service
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddSingleton<IBackgroundJobService, BackgroundJobService>();
+    builder.Services.AddHostedService<BackgroundJobService>();
+}
+
+// Add compression (safe for dev)
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
+    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
+});
 
 // Register repositories and unit of work
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
@@ -173,8 +216,42 @@ if (!connected)
 }
 
 // 📌 Configurar Entity Framework con PostgreSQL
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseNpgsql(databaseUrl));
+if (builder.Environment.IsDevelopment())
+{
+    // Configuración para desarrollo con logging básico
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        options.UseNpgsql(databaseUrl);
+        options.EnableSensitiveDataLogging(true);
+        options.EnableDetailedErrors(true);
+    });
+}
+else
+{
+    // Configuración avanzada para producción
+    builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    {
+        options.UseNpgsql(databaseUrl, npgsqlOptions =>
+        {
+            npgsqlOptions.EnableRetryOnFailure(
+                maxRetryCount: 3,
+                maxRetryDelay: TimeSpan.FromSeconds(30),
+                errorCodesToAdd: null);
+            npgsqlOptions.CommandTimeout(30);
+        });
+        
+        options.EnableServiceProviderCaching();
+        options.EnableSensitiveDataLogging(false);
+    });
+}
+
+// Add health checks after databaseUrl is configured
+if (!builder.Environment.IsDevelopment())
+{
+    builder.Services.AddHealthChecks()
+        .AddNpgSql(databaseUrl ?? "Host=localhost;Database=vhouse;Username=postgres;Password=postgres", name: "postgresql", tags: new[] { "database", "postgresql" })
+        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "self" });
+}
 
 // 🔐 Configure Identity services
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
@@ -251,7 +328,7 @@ using (var scope = app.Services.CreateScope())
     context.Database.Migrate(); // Aplica las migraciones
     migrationLogger.LogInformation("✅ Migrations applied successfully.");
 
-    var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
+    var productService = scope.ServiceProvider.GetRequiredService<IProductService>();
     var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
     migrationLogger.LogInformation("📦 Applying seeds...");
@@ -259,8 +336,40 @@ using (var scope = app.Services.CreateScope())
     migrationLogger.LogInformation("✅ Seeds applied successfully.");
 }
 
+// Add compression middleware (safe for dev)
+app.UseResponseCompression();
+
 app.UseStaticFiles();
+
+// Add response caching middleware (safe for dev)
+app.UseResponseCaching();
+
 app.UseRouting();
+
+// Add health check endpoint (solo en producción)
+if (!app.Environment.IsDevelopment())
+{
+    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    {
+        ResponseWriter = async (context, report) =>
+        {
+            context.Response.ContentType = "application/json";
+            var response = new
+            {
+                status = report.Status.ToString(),
+                checks = report.Entries.Select(x => new
+                {
+                    name = x.Key,
+                    status = x.Value.Status.ToString(),
+                    exception = x.Value.Exception?.Message,
+                    duration = x.Value.Duration.ToString()
+                }),
+                duration = report.TotalDuration.ToString()
+            };
+            await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+        }
+    });
+}
 
 // Add request localization
 app.UseRequestLocalization();
@@ -277,8 +386,9 @@ app.MapRazorPages();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-// 🔧 Initialize roles and admin user
-using (var scope = app.Services.CreateScope())
+// 🔧 Initialize roles and admin user (disabled temporarily due to connection issues)
+// TODO: Re-enable after stabilizing PostgreSQL connection
+/*using (var scope = app.Services.CreateScope())
 {
     var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
     var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
@@ -331,6 +441,6 @@ using (var scope = app.Services.CreateScope())
     {
         identityLogger.LogInformation("ℹ️ Admin user already exists.");
     }
-}
+}*/
 
 app.Run();

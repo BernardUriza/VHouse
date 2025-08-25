@@ -22,6 +22,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<Warehouse> Warehouses { get; set; }
     public DbSet<WarehouseInventory> WarehouseInventories { get; set; }
     public DbSet<ShrinkageRecord> ShrinkageRecords { get; set; }
+    
+    // Phase 5: Advanced Distribution entities
+    public DbSet<Tenant> Tenants { get; set; }
+    public DbSet<DistributionCenter> DistributionCenters { get; set; }
+    public DbSet<DeliveryRoute> DeliveryRoutes { get; set; }
+    public DbSet<Delivery> Deliveries { get; set; }
     // dotnet ef migrations add AddNullableInvoiceIdAndGeneralInventorySupport
     // dotnet ef database update
 
@@ -132,5 +138,203 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Warehouse>()
             .HasIndex(w => w.Code)
             .IsUnique();
+
+        // Performance indexes
+        
+        // Product indexes for fast lookups
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.SKU)
+            .HasDatabaseName("IX_Product_SKU");
+            
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.Barcode)
+            .HasDatabaseName("IX_Product_Barcode");
+            
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => p.IsActive)
+            .HasDatabaseName("IX_Product_IsActive");
+            
+        modelBuilder.Entity<Product>()
+            .HasIndex(p => new { p.BrandId, p.IsActive })
+            .HasDatabaseName("IX_Product_Brand_Active");
+
+        // Customer indexes
+        modelBuilder.Entity<Customer>()
+            .HasIndex(c => c.Email)
+            .HasDatabaseName("IX_Customer_Email");
+            
+        modelBuilder.Entity<Customer>()
+            .HasIndex(c => c.IsRetail)
+            .HasDatabaseName("IX_Customer_IsRetail");
+
+        // Order indexes for reporting and analytics
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => o.OrderDate)
+            .HasDatabaseName("IX_Order_Date");
+            
+        modelBuilder.Entity<Order>()
+            .HasIndex(o => new { o.CustomerId, o.OrderDate })
+            .HasDatabaseName("IX_Order_Customer_Date");
+
+        // Supplier indexes
+        modelBuilder.Entity<Supplier>()
+            .HasIndex(s => s.IsActive)
+            .HasDatabaseName("IX_Supplier_IsActive");
+            
+        modelBuilder.Entity<Supplier>()
+            .HasIndex(s => s.Email)
+            .HasDatabaseName("IX_Supplier_Email");
+
+        // PurchaseOrder indexes
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex(po => po.OrderDate)
+            .HasDatabaseName("IX_PurchaseOrder_Date");
+            
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex(po => po.Status)
+            .HasDatabaseName("IX_PurchaseOrder_Status");
+            
+        modelBuilder.Entity<PurchaseOrder>()
+            .HasIndex(po => new { po.SupplierId, po.Status })
+            .HasDatabaseName("IX_PurchaseOrder_Supplier_Status");
+
+        // Warehouse inventory indexes
+        modelBuilder.Entity<WarehouseInventory>()
+            .HasIndex(wi => wi.LastUpdated)
+            .HasDatabaseName("IX_WarehouseInventory_LastUpdated");
+            
+        modelBuilder.Entity<WarehouseInventory>()
+            .HasIndex(wi => wi.QuantityOnHand)
+            .HasDatabaseName("IX_WarehouseInventory_Quantity");
+
+        // Shrinkage indexes for reporting
+        modelBuilder.Entity<ShrinkageRecord>()
+            .HasIndex(sr => sr.DiscoveryDate)
+            .HasDatabaseName("IX_ShrinkageRecord_DiscoveryDate");
+            
+        modelBuilder.Entity<ShrinkageRecord>()
+            .HasIndex(sr => sr.Reason)
+            .HasDatabaseName("IX_ShrinkageRecord_Reason");
+            
+        modelBuilder.Entity<ShrinkageRecord>()
+            .HasIndex(sr => sr.IsApproved)
+            .HasDatabaseName("IX_ShrinkageRecord_IsApproved");
+
+        // Brand indexes
+        modelBuilder.Entity<Brand>()
+            .HasIndex(b => b.IsActive)
+            .HasDatabaseName("IX_Brand_IsActive");
+
+        // Inventory indexes
+        modelBuilder.Entity<Inventory>()
+            .HasIndex(i => i.CustomerId)
+            .HasDatabaseName("IX_Inventory_Customer");
+            
+        modelBuilder.Entity<InventoryItem>()
+            .HasIndex(ii => ii.ExpirationDate)
+            .HasDatabaseName("IX_InventoryItem_Expiration");
+
+        // Phase 5: Tenant and Distribution Center relationships
+        
+        // Tenant-DistributionCenter relationship
+        modelBuilder.Entity<DistributionCenter>()
+            .HasOne(dc => dc.Tenant)
+            .WithMany(t => t.DistributionCenters)
+            .HasForeignKey(dc => dc.TenantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Tenant-DeliveryRoute relationship
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.Tenant)
+            .WithMany(t => t.DeliveryRoutes)
+            .HasForeignKey(dr => dr.TenantId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // DistributionCenter-DeliveryRoute relationship
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasOne(dr => dr.DistributionCenter)
+            .WithMany(dc => dc.DeliveryRoutes)
+            .HasForeignKey(dr => dr.DistributionCenterId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // DistributionCenter-Warehouse relationship
+        modelBuilder.Entity<Warehouse>()
+            .HasOne(w => w.DistributionCenter)
+            .WithMany(dc => dc.Warehouses)
+            .HasForeignKey(w => w.DistributionCenterId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // DeliveryRoute-Delivery relationship
+        modelBuilder.Entity<Delivery>()
+            .HasOne(d => d.DeliveryRoute)
+            .WithMany(dr => dr.Deliveries)
+            .HasForeignKey(d => d.DeliveryRouteId)
+            .OnDelete(DeleteBehavior.SetNull);
+
+        // Delivery-Order relationship
+        modelBuilder.Entity<Delivery>()
+            .HasOne(d => d.Order)
+            .WithMany()
+            .HasForeignKey(d => d.OrderId)
+            .OnDelete(DeleteBehavior.Cascade);
+
+        // Unique constraints for Phase 5
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.TenantCode)
+            .IsUnique();
+
+        modelBuilder.Entity<DistributionCenter>()
+            .HasIndex(dc => new { dc.TenantId, dc.CenterCode })
+            .IsUnique();
+
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasIndex(dr => new { dr.TenantId, dr.RouteCode })
+            .IsUnique();
+
+        // Performance indexes for Phase 5
+        
+        // Tenant indexes
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.IsActive)
+            .HasDatabaseName("IX_Tenant_IsActive");
+
+        modelBuilder.Entity<Tenant>()
+            .HasIndex(t => t.ContactEmail)
+            .HasDatabaseName("IX_Tenant_ContactEmail");
+
+        // DistributionCenter indexes
+        modelBuilder.Entity<DistributionCenter>()
+            .HasIndex(dc => dc.IsActive)
+            .HasDatabaseName("IX_DistributionCenter_IsActive");
+
+        modelBuilder.Entity<DistributionCenter>()
+            .HasIndex(dc => new { dc.Latitude, dc.Longitude })
+            .HasDatabaseName("IX_DistributionCenter_Location");
+
+        // DeliveryRoute indexes
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasIndex(dr => dr.IsActive)
+            .HasDatabaseName("IX_DeliveryRoute_IsActive");
+
+        modelBuilder.Entity<DeliveryRoute>()
+            .HasIndex(dr => new { dr.DistributionCenterId, dr.IsActive })
+            .HasDatabaseName("IX_DeliveryRoute_Center_Active");
+
+        // Delivery indexes
+        modelBuilder.Entity<Delivery>()
+            .HasIndex(d => d.Status)
+            .HasDatabaseName("IX_Delivery_Status");
+
+        modelBuilder.Entity<Delivery>()
+            .HasIndex(d => d.ScheduledDate)
+            .HasDatabaseName("IX_Delivery_ScheduledDate");
+
+        modelBuilder.Entity<Delivery>()
+            .HasIndex(d => new { d.DeliveryRouteId, d.Status })
+            .HasDatabaseName("IX_Delivery_Route_Status");
+
+        modelBuilder.Entity<Delivery>()
+            .HasIndex(d => new { d.Latitude, d.Longitude })
+            .HasDatabaseName("IX_Delivery_Location");
     }
 }

@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using VHouse;
+using VHouse.Classes;
+using VHouse.Extensions;
 using VHouse.Interfaces;
 
 public class ProductService : IProductService
@@ -152,4 +154,93 @@ public class ProductService : IProductService
         }
     }
 
+    /// <summary>
+    /// Gets products with pagination support.
+    /// </summary>
+    public async Task<PagedResult<Product>> GetProductsPagedAsync(PaginationParameters pagination)
+    {
+        var query = _context.Products
+            .Include(p => p.Brand)
+            .Include(p => p.Supplier)
+            .AsReadOnly();
+
+        // Apply sorting
+        query = query.ApplySorting(pagination.SortBy ?? "ProductName", pagination.SortDirection);
+
+        return await query.ToPagedResultAsync(pagination);
+    }
+
+    /// <summary>
+    /// Searches products with pagination support.
+    /// </summary>
+    public async Task<PagedResult<Product>> SearchProductsAsync(string searchTerm, PaginationParameters pagination)
+    {
+        var query = _context.Products
+            .Include(p => p.Brand)
+            .Include(p => p.Supplier)
+            .AsReadOnly();
+
+        if (!string.IsNullOrEmpty(searchTerm))
+        {
+            var lowerSearchTerm = searchTerm.ToLower();
+            query = query.Where(p => 
+                p.ProductName.ToLower().Contains(lowerSearchTerm) ||
+                p.SKU.ToLower().Contains(lowerSearchTerm) ||
+                p.Barcode.ToLower().Contains(lowerSearchTerm) ||
+                p.Description.ToLower().Contains(lowerSearchTerm) ||
+                (p.Brand != null && p.Brand.Name.ToLower().Contains(lowerSearchTerm)));
+        }
+
+        // Apply sorting
+        query = query.ApplySorting(pagination.SortBy ?? "ProductName", pagination.SortDirection);
+
+        return await query.ToPagedResultAsync(pagination);
+    }
+
+    /// <summary>
+    /// Gets products by brand and active status.
+    /// </summary>
+    public async Task<List<Product>> GetProductsByCategoryAsync(int? brandId, bool? isActive = true)
+    {
+        var query = _context.Products
+            .Include(p => p.Brand)
+            .Include(p => p.Supplier)
+            .AsReadOnly();
+
+        if (brandId.HasValue)
+        {
+            query = query.Where(p => p.BrandId == brandId.Value);
+        }
+
+        if (isActive.HasValue)
+        {
+            query = query.Where(p => p.IsActive == isActive.Value);
+        }
+
+        return await query
+            .OrderBy(p => p.ProductName)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Gets a product by its ID.
+    /// </summary>
+    public async Task<Product?> GetProductByIdAsync(int id)
+    {
+        return await _context.Products
+            .Include(p => p.Brand)
+            .Include(p => p.Supplier)
+            .AsReadOnly()
+            .FirstOrDefaultAsync(p => p.ProductId == id);
+    }
+
+    /// <summary>
+    /// Checks if a product exists by its ID.
+    /// </summary>
+    public async Task<bool> ProductExistsAsync(int id)
+    {
+        return await _context.Products
+            .AsReadOnly()
+            .AnyAsync(p => p.ProductId == id);
+    }
 }

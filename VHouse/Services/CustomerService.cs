@@ -10,10 +10,12 @@ namespace VHouse.Services
     public class CustomerService : ICustomerService
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _environment;
 
-        public CustomerService(ApplicationDbContext context)
+        public CustomerService(ApplicationDbContext context, IWebHostEnvironment environment)
         {
             _context = context;
+            _environment = environment;
         }
 
         /// <summary>
@@ -21,7 +23,13 @@ namespace VHouse.Services
         /// </summary>
         public async Task<List<Customer>> GetCustomersAsync()
         {
-            return await _context.Customers.Include(c => c.Orders).Include(u => u.Inventory).ThenInclude(u => u.Items).ThenInclude(u => u.Product).ToListAsync();
+            return await _context.Customers
+                .Include(c => c.Orders)
+                .Include(u => u.Inventory)
+                    .ThenInclude(u => u.Items)
+                    .ThenInclude(u => u.Product)
+                .AsNoTracking()
+                .ToListAsync();
         }
 
         /// <summary>
