@@ -11,6 +11,7 @@ using VHouse.Repositories;
 using VHouse.Services;
 using VHouse.Validators;
 using Npgsql;
+using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,14 +35,19 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IOrderService, OrderService>();
 builder.Services.AddScoped<ICustomerService, CustomerService>();
 
+// Register B2B services
+builder.Services.AddScoped<ISupplierService, SupplierService>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
+builder.Services.AddScoped<IWarehouseService, WarehouseService>();
+builder.Services.AddScoped<IShrinkageService, ShrinkageService>();
+
 // Register repositories and unit of work
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
-builder.Services.AddFluentValidationAutoValidation();
-builder.Services.AddFluentValidationClientsideAdapters();
 
 // Add localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");
@@ -97,6 +103,42 @@ else
     {
         logger.LogWarning("⚠️ DB_PASSWORD environment variable not set. Using default password.");
         databaseUrl = databaseUrl?.Replace("${DB_PASSWORD}", "mysecretpassword");
+    }
+}
+
+// 🚀 Iniciar PostgreSQL automáticamente en desarrollo
+if (builder.Environment.IsDevelopment())
+{
+    try
+    {
+        logger.LogInformation("🔍 Starting PostgreSQL for development...");
+        var startInfo = new ProcessStartInfo
+        {
+            FileName = "bash",
+            Arguments = "../start-postgres.sh",
+            WorkingDirectory = builder.Environment.ContentRootPath,
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true
+        };
+
+        using var process = Process.Start(startInfo);
+        if (process != null)
+        {
+            await process.WaitForExitAsync();
+            if (process.ExitCode == 0)
+            {
+                logger.LogInformation("✅ PostgreSQL startup script completed successfully.");
+            }
+            else
+            {
+                logger.LogWarning("⚠️ PostgreSQL startup script completed with warnings.");
+            }
+        }
+    }
+    catch (Exception ex)
+    {
+        logger.LogWarning(ex, "⚠️ Could not run PostgreSQL startup script. Continuing anyway...");
     }
 }
 
@@ -184,15 +226,15 @@ app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
 // Add security headers middleware
 app.Use(async (context, next) =>
 {
-    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
-    context.Response.Headers.Add("X-Frame-Options", "DENY");
-    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
-    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
-    context.Response.Headers.Add("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+    context.Response.Headers["X-Frame-Options"] = "DENY";
+    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
     
     if (!app.Environment.IsDevelopment())
     {
-        context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
     }
     
     await next();
@@ -203,15 +245,12 @@ using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
     var context = services.GetRequiredService<ApplicationDbContext>();
-
-    using var scope = app.Services.CreateScope();
     var migrationLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    
     migrationLogger.LogInformation("📦 Applying migrations...");
     context.Database.Migrate(); // Aplica las migraciones
     migrationLogger.LogInformation("✅ Migrations applied successfully.");
-}
-using (var scope = app.Services.CreateScope())
-{
+
     var productService = scope.ServiceProvider.GetRequiredService<ProductService>();
     var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 

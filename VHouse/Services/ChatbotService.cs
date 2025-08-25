@@ -64,7 +64,7 @@ public class ChatbotService : IChatbotService
             string payloadJson = JsonSerializer.Serialize(requestPayload);
 
             // Set the authorization header with the OpenAI API key
-            string apiKey = configuration["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
+            string apiKey = configuration["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY") ?? string.Empty;
             if (string.IsNullOrEmpty(apiKey))
             {
                 throw new InvalidOperationException("OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable or configure OpenAI:ApiKey in appsettings.");
@@ -90,8 +90,8 @@ public class ChatbotService : IChatbotService
                 var responseObject = JsonSerializer.Deserialize<ResponseObject>(responseContent);
 
                 // Extract and return the product IDs from the response
-                string responseText = responseObject.choices[0].text.Trim();
-                var productIds = JsonSerializer.Deserialize<List<int>>(responseText);
+                string responseText = responseObject?.choices?[0]?.text?.Trim() ?? string.Empty;
+                var productIds = JsonSerializer.Deserialize<List<int>>(responseText) ?? new List<int>();
 
                 return productIds;
             }
@@ -113,11 +113,11 @@ public class ChatbotService : IChatbotService
     // Response structure for OpenAI API
     private class ResponseObject
     {
-        public List<Choice> choices { get; set; }
+        public List<Choice> choices { get; set; } = new();
     }
 
     private class Choice
     {
-        public string text { get; set; }
+        public string text { get; set; } = string.Empty;
     }
 }

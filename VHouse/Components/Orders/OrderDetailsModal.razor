@@ -1,6 +1,6 @@
 ﻿@using System.Linq
 @code {
-    [Parameter] public Order Order { get; set; }
+    [Parameter] public Order Order { get; set; } = new();
     [Parameter] public EventCallback OnClose { get; set; }
 
     private Dictionary<string, (decimal Price, int Quantity)> GetGroupedItems()

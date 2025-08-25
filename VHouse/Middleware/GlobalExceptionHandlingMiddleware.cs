@@ -46,8 +46,8 @@ namespace VHouse.Middleware
 
             switch (exception)
             {
-                case ArgumentException:
                 case ArgumentNullException:
+                case ArgumentException:
                     context.Response.StatusCode = (int)HttpStatusCode.BadRequest;
                     response = new
                     {

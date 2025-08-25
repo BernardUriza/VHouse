@@ -18,25 +18,25 @@ namespace VHouse.Classes
         /// Full name of the customer.
         /// </summary>
         [Required, StringLength(100)]
-        public string FullName { get; set; }
+        public string FullName { get; set; } = string.Empty;
 
         /// <summary>
         /// Email address of the customer.
         /// </summary>
         [Required, EmailAddress]
-        public string Email { get; set; }
+        public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// Phone number of the customer.
         /// </summary>
         [Required, Phone]
-        public string Phone { get; set; }
+        public string Phone { get; set; } = string.Empty;
 
         /// <summary>
         /// Address of the customer.
         /// </summary>
         [StringLength(255)]
-        public string Address { get; set; }
+        public string Address { get; set; } = string.Empty;
 
         /// <summary>
         /// Orders associated with this customer.
