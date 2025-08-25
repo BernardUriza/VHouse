@@ -5,16 +5,19 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Configuration;
 
 public class ChatbotService
 {
     private readonly HttpClient httpClient;
     private readonly ILogger<ChatbotService> logger;
+    private readonly IConfiguration configuration;
 
-    public ChatbotService(HttpClient httpClient, ILogger<ChatbotService> logger)
+    public ChatbotService(HttpClient httpClient, ILogger<ChatbotService> logger, IConfiguration configuration)
     {
         this.httpClient = httpClient;
         this.logger = logger;
+        this.configuration = configuration;
     }
 
     public async Task<List<int>> ExtractProductIdsAsync(string catalogJson, string customerInput)
@@ -60,10 +63,10 @@ public class ChatbotService
             string payloadJson = JsonSerializer.Serialize(requestPayload);
 
             // Set the authorization header with the OpenAI API key
-            string apiKey = "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";
+            string apiKey = configuration["OpenAI:ApiKey"] ?? Environment.GetEnvironmentVariable("OPENAI_API_KEY");
             if (string.IsNullOrEmpty(apiKey))
             {
-                throw new InvalidOperationException("API key is not set. Please configure the OPENAI_API_KEY environment variable.");
+                throw new InvalidOperationException("OpenAI API key is not configured. Please set the OPENAI_API_KEY environment variable or configure OpenAI:ApiKey in appsettings.");
             }
             httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
 

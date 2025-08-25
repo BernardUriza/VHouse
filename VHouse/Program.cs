@@ -1,11 +1,20 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using VHouse;
+using VHouse.Classes;
 using VHouse.Components;
 using VHouse.Services;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure environment variables and user secrets
+builder.Configuration.AddEnvironmentVariables();
+if (builder.Environment.IsDevelopment())
+{
+    builder.Configuration.AddUserSecrets<Program>();
+}
 
 builder.WebHost.UseWebRoot("wwwroot");
 builder.WebHost.UseStaticWebAssets();
@@ -49,6 +58,18 @@ else
 {
     Console.WriteLine("⚠️ No se encontró DATABASE_URL. Usando configuración por defecto.");
     databaseUrl = builder.Configuration.GetConnectionString("DefaultConnection");
+    
+    // Replace environment variable placeholder with actual value
+    var dbPassword = Environment.GetEnvironmentVariable("DB_PASSWORD");
+    if (!string.IsNullOrEmpty(dbPassword))
+    {
+        databaseUrl = databaseUrl?.Replace("${DB_PASSWORD}", dbPassword);
+    }
+    else
+    {
+        Console.WriteLine("⚠️ DB_PASSWORD environment variable not set. Using default password.");
+        databaseUrl = databaseUrl?.Replace("${DB_PASSWORD}", "mysecretpassword");
+    }
 }
 
 // 🛠 Reintentar conexión a la base de datos antes de rendirse
@@ -85,7 +106,66 @@ if (!connected)
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(databaseUrl));
 
+// 🔐 Configure Identity services
+builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
+    // Password settings
+    options.Password.RequireDigit = true;
+    options.Password.RequireLowercase = true;
+    options.Password.RequireUppercase = true;
+    options.Password.RequireNonAlphanumeric = false;
+    options.Password.RequiredLength = 6;
+    
+    // Lockout settings
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+    options.Lockout.MaxFailedAccessAttempts = 5;
+    options.Lockout.AllowedForNewUsers = true;
+    
+    // User settings
+    options.User.AllowedUserNameCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-._@+";
+    options.User.RequireUniqueEmail = true;
+    
+    // Email confirmation settings
+    options.SignIn.RequireConfirmedEmail = false; // Set to true in production
+    options.SignIn.RequireConfirmedAccount = false;
+})
+.AddRoles<IdentityRole>()
+.AddEntityFrameworkStores<ApplicationDbContext>();
+
+// Configure cookie settings
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Identity/Account/Login";
+    options.LogoutPath = "/Identity/Account/Logout";
+    options.AccessDeniedPath = "/Identity/Account/AccessDenied";
+    options.ExpireTimeSpan = TimeSpan.FromHours(24);
+    options.SlidingExpiration = true;
+});
+
 var app = builder.Build();
+
+// 🔒 Configure HTTPS and security headers
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+    app.UseHsts();
+}
+
+// Add security headers middleware
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("X-Content-Type-Options", "nosniff");
+    context.Response.Headers.Add("X-Frame-Options", "DENY");
+    context.Response.Headers.Add("X-XSS-Protection", "1; mode=block");
+    context.Response.Headers.Add("Referrer-Policy", "strict-origin-when-cross-origin");
+    context.Response.Headers.Add("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
+    
+    if (!app.Environment.IsDevelopment())
+    {
+        context.Response.Headers.Add("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    }
+    
+    await next();
+});
 
 // 🔧 Aplica migraciones automáticamente en cada inicio
 using (var scope = app.Services.CreateScope())
@@ -108,9 +188,73 @@ using (var scope = app.Services.CreateScope())
 }
 
 app.UseStaticFiles();
+app.UseRouting();
+
+// 🔐 Add authentication and authorization middleware
+app.UseAuthentication();
+app.UseAuthorization();
+
 app.UseAntiforgery();
+
+// Map Identity UI pages
+app.MapRazorPages();
 
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
+
+// 🔧 Initialize roles and admin user
+using (var scope = app.Services.CreateScope())
+{
+    var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
+    var userManager = scope.ServiceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+    
+    Console.WriteLine("🔐 Inicializando roles y usuario administrador...");
+    
+    // Create roles if they don't exist
+    string[] roles = { "Admin", "Employee", "Customer" };
+    foreach (var role in roles)
+    {
+        if (!await roleManager.RoleExistsAsync(role))
+        {
+            await roleManager.CreateAsync(new IdentityRole(role));
+            Console.WriteLine($"✅ Rol creado: {role}");
+        }
+    }
+    
+    // Create admin user if it doesn't exist
+    var adminEmail = "admin@vhouse.com";
+    var adminUser = await userManager.FindByEmailAsync(adminEmail);
+    if (adminUser == null)
+    {
+        adminUser = new ApplicationUser
+        {
+            UserName = adminEmail,
+            Email = adminEmail,
+            EmailConfirmed = true,
+            FullName = "Administrador",
+            CompanyName = "VHouse"
+        };
+        
+        var result = await userManager.CreateAsync(adminUser, "Admin123!");
+        if (result.Succeeded)
+        {
+            await userManager.AddToRoleAsync(adminUser, "Admin");
+            Console.WriteLine($"✅ Usuario administrador creado: {adminEmail}");
+            Console.WriteLine("🔑 Password: Admin123!");
+        }
+        else
+        {
+            Console.WriteLine("❌ Error creando usuario administrador:");
+            foreach (var error in result.Errors)
+            {
+                Console.WriteLine($"   - {error.Description}");
+            }
+        }
+    }
+    else
+    {
+        Console.WriteLine("ℹ️ Usuario administrador ya existe.");
+    }
+}
 
 app.Run();

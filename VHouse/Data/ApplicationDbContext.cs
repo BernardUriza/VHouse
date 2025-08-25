@@ -1,8 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using VHouse;
 using VHouse.Classes;
 
-public class ApplicationDbContext : DbContext
+public class ApplicationDbContext : IdentityDbContext<ApplicationUser>
 {
     public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options) { }
 
@@ -36,7 +37,13 @@ public class ApplicationDbContext : DbContext
             .HasOne(i => i.Invoice)
             .WithMany() 
             .HasForeignKey(i => i.InvoiceId)
-            .OnDelete(DeleteBehavior.SetNull); 
+            .OnDelete(DeleteBehavior.SetNull);
 
+        // Configure ApplicationUser relationship with Customer
+        modelBuilder.Entity<ApplicationUser>()
+            .HasOne(u => u.Customer)
+            .WithMany()
+            .HasForeignKey(u => u.CustomerId)
+            .OnDelete(DeleteBehavior.SetNull);
     }
 }
