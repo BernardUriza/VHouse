@@ -67,6 +67,10 @@ builder.Services.AddScoped<IDistributionCenterService, DistributionCenterService
 builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
 builder.Services.AddScoped<IInventorySynchronizationService, InventorySynchronizationService>();
 
+// Phase 6: Production Security Framework
+builder.Services.AddScoped<ISecurityService, SecurityService>();
+builder.Services.AddScoped<IMonitoringService, MonitoringService>();
+
 // Register caching services (safe for dev)
 builder.Services.AddScoped<ICachingService, CachingService>();
 
@@ -299,6 +303,7 @@ if (!app.Environment.IsDevelopment())
 
 // Add global exception handling middleware
 app.UseMiddleware<GlobalExceptionHandlingMiddleware>();
+app.UseSecurityMiddleware();
 
 // Add security headers middleware
 app.Use(async (context, next) =>
