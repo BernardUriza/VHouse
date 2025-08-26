@@ -70,6 +70,13 @@ builder.Services.AddScoped<IInventorySynchronizationService, InventorySynchroniz
 // Phase 6: Production Security Framework
 builder.Services.AddScoped<ISecurityService, SecurityService>();
 builder.Services.AddScoped<IMonitoringService, MonitoringService>();
+builder.Services.AddScoped<IBackupService, BackupService>();
+
+// Phase 7: Advanced Analytics & Business Intelligence
+builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
+builder.Services.AddScoped<IBusinessIntelligenceService, BusinessIntelligenceService>();
+builder.Services.AddScoped<IPredictionService, PredictionService>();
+builder.Services.AddScoped<IDataWarehouseService, DataWarehouseService>();
 
 // Register caching services (safe for dev)
 builder.Services.AddScoped<ICachingService, CachingService>();
