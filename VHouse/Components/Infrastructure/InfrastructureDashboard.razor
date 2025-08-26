@@ -1,0 +1,507 @@
+@page "/infrastructure"
+@using VHouse.Interfaces
+@inject ICloudOrchestrationService CloudOrchestration
+@inject IContainerOrchestrationService ContainerOrchestration
+@inject IInfrastructureService Infrastructure
+@inject IJSRuntime JSRuntime
+
+<div class="infrastructure-dashboard">
+    <div class="dashboard-header">
+        <h2>
+            <i class="fas fa-cloud"></i>
+            Infrastructure Management
+        </h2>
+        <div class="dashboard-controls">
+            <select @bind="selectedView" @bind:after="RefreshDashboard" class="form-select">
+                <option value="overview">Overview</option>
+                <option value="cloud">Cloud Resources</option>
+                <option value="containers">Containers</option>
+                <option value="monitoring">Monitoring</option>
+                <option value="costs">Cost Analysis</option>
+            </select>
+            <button class="btn btn-success" @onclick="ShowDeployModal">
+                <i class="fas fa-rocket"></i> Deploy
+            </button>
+            <button class="btn btn-primary" @onclick="RefreshDashboard">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+
+    @if (selectedView == "overview")
+    {
+        <div class="overview-section">
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-server"></i></div>
+                    <div class="stat-content">
+                        <h3>@totalResources</h3>
+                        <p>Total Resources</p>
+                        <small class="stat-change positive">+12% this month</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-chart-line"></i></div>
+                    <div class="stat-content">
+                        <h3>@healthyResources</h3>
+                        <p>Healthy Resources</p>
+                        <small class="stat-change positive">98.5% uptime</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-dollar-sign"></i></div>
+                    <div class="stat-content">
+                        <h3>$@monthlyCost.ToString("N0")</h3>
+                        <p>Monthly Cost</p>
+                        <small class="stat-change negative">+5% vs last month</small>
+                    </div>
+                </div>
+                <div class="stat-card">
+                    <div class="stat-icon"><i class="fas fa-cubes"></i></div>
+                    <div class="stat-content">
+                        <h3>@runningContainers</h3>
+                        <p>Running Containers</p>
+                        <small class="stat-change positive">24 deployments today</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="charts-section">
+                <div class="chart-card">
+                    <h4>Resource Utilization</h4>
+                    <div class="chart-container" id="utilization-chart"></div>
+                </div>
+                <div class="chart-card">
+                    <h4>Cost Breakdown by Provider</h4>
+                    <div class="chart-container" id="cost-chart"></div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (selectedView == "cloud")
+    {
+        <div class="cloud-section">
+            <div class="section-header">
+                <h3>Cloud Resources</h3>
+                <div class="section-actions">
+                    <button class="btn btn-outline-primary" @onclick="RefreshResources">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn btn-success" @onclick="ShowProvisionModal">
+                        <i class="fas fa-plus"></i> Provision
+                    </button>
+                </div>
+            </div>
+
+            @if (cloudResources?.Any() == true)
+            {
+                <div class="resources-grid">
+                    @foreach (var resource in cloudResources)
+                    {
+                        <div class="resource-card">
+                            <div class="resource-header">
+                                <div class="resource-icon">
+                                    <i class="@GetResourceIcon(resource.Type)"></i>
+                                </div>
+                                <div class="resource-info">
+                                    <h5>@resource.Name</h5>
+                                    <small>@resource.Provider - @resource.Region</small>
+                                </div>
+                                <div class="resource-status @GetStatusClass(resource.Status)">
+                                    @resource.Status
+                                </div>
+                            </div>
+                            <div class="resource-details">
+                                <div class="detail-item">
+                                    <span>Type:</span>
+                                    <span>@resource.Type</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Cost:</span>
+                                    <span>$@resource.Cost?.MonthlyCost.ToString("N2")/month</span>
+                                </div>
+                                <div class="detail-item">
+                                    <span>Created:</span>
+                                    <span>@resource.CreatedAt.ToString("MMM dd, yyyy")</span>
+                                </div>
+                            </div>
+                            <div class="resource-actions">
+                                <button class="btn btn-sm btn-outline-info" @onclick="() => ShowResourceDetails(resource.ResourceId)">
+                                    <i class="fas fa-info"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-warning" @onclick="() => RestartResource(resource.ResourceId)">
+                                    <i class="fas fa-redo"></i>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger" @onclick="() => TerminateResource(resource.ResourceId)">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-cloud"></i>
+                    <h4>No Cloud Resources</h4>
+                    <p>Deploy your first resource to get started</p>
+                    <button class="btn btn-primary" @onclick="ShowProvisionModal">
+                        <i class="fas fa-rocket"></i> Deploy Now
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else if (selectedView == "containers")
+    {
+        <div class="containers-section">
+            <div class="section-header">
+                <h3>Container Services</h3>
+                <div class="section-actions">
+                    <button class="btn btn-outline-primary" @onclick="RefreshContainers">
+                        <i class="fas fa-sync"></i> Refresh
+                    </button>
+                    <button class="btn btn-success" @onclick="ShowContainerDeployModal">
+                        <i class="fas fa-plus"></i> Deploy Container
+                    </button>
+                </div>
+            </div>
+
+            @if (containerServices?.Any() == true)
+            {
+                <div class="containers-table">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Service</th>
+                                <th>Image</th>
+                                <th>Replicas</th>
+                                <th>Status</th>
+                                <th>CPU</th>
+                                <th>Memory</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var service in containerServices)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@service.Name</strong>
+                                        <br><small class="text-muted">@service.ServiceId</small>
+                                    </td>
+                                    <td>@service.ImageName:@service.ImageTag</td>
+                                    <td>@service.RunningReplicas/@service.DesiredReplicas</td>
+                                    <td>
+                                        <span class="badge @GetServiceStatusBadge(service.Status)">
+                                            @service.Status
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="progress progress-sm">
+                                            <div class="progress-bar bg-info" style="width: @(new Random().Next(20, 80))%"></div>
+                                        </div>
+                                        <small>@(new Random().Next(20, 80))%</small>
+                                    </td>
+                                    <td>
+                                        <div class="progress progress-sm">
+                                            <div class="progress-bar bg-warning" style="width: @(new Random().Next(30, 90))%"></div>
+                                        </div>
+                                        <small>@(new Random().Next(30, 90))%</small>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <button class="btn btn-outline-info" @onclick="() => ShowServiceLogs(service.ServiceId)">
+                                                <i class="fas fa-file-alt"></i>
+                                            </button>
+                                            <button class="btn btn-outline-primary" @onclick="() => ScaleService(service.ServiceId)">
+                                                <i class="fas fa-expand-arrows-alt"></i>
+                                            </button>
+                                            <button class="btn btn-outline-warning" @onclick="() => RestartService(service.ServiceId)">
+                                                <i class="fas fa-redo"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fas fa-cubes"></i>
+                    <h4>No Container Services</h4>
+                    <p>Deploy your first container to get started</p>
+                    <button class="btn btn-primary" @onclick="ShowContainerDeployModal">
+                        <i class="fas fa-rocket"></i> Deploy Container
+                    </button>
+                </div>
+            }
+        </div>
+    }
+    else if (selectedView == "monitoring")
+    {
+        <div class="monitoring-section">
+            <div class="section-header">
+                <h3>Infrastructure Monitoring</h3>
+                <div class="health-indicator @GetOverallHealthClass()">
+                    <i class="fas fa-heart"></i>
+                    <span>@overallHealthStatus</span>
+                </div>
+            </div>
+
+            <div class="monitoring-grid">
+                <div class="monitor-card">
+                    <h5>System Health</h5>
+                    <div class="health-metrics">
+                        <div class="metric">
+                            <span>CPU Usage</span>
+                            <div class="metric-value">
+                                <span class="value">@cpuUsage%</span>
+                                <div class="gauge" style="--percentage: @cpuUsage"></div>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <span>Memory Usage</span>
+                            <div class="metric-value">
+                                <span class="value">@memoryUsage%</span>
+                                <div class="gauge" style="--percentage: @memoryUsage"></div>
+                            </div>
+                        </div>
+                        <div class="metric">
+                            <span>Storage Usage</span>
+                            <div class="metric-value">
+                                <span class="value">@storageUsage%</span>
+                                <div class="gauge" style="--percentage: @storageUsage"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="monitor-card">
+                    <h5>Recent Alerts</h5>
+                    <div class="alerts-list">
+                        @for (int i = 0; i < 5; i++)
+                        {
+                            <div class="alert-item @GetAlertSeverityClass()">
+                                <div class="alert-icon">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                </div>
+                                <div class="alert-content">
+                                    <div class="alert-message">High CPU usage on production server</div>
+                                    <small class="alert-time">@DateTime.UtcNow.AddMinutes(-new Random().Next(5, 120)).ToString("HH:mm")</small>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else if (selectedView == "costs")
+    {
+        <div class="costs-section">
+            <div class="section-header">
+                <h3>Cost Analysis</h3>
+                <div class="cost-summary">
+                    <span class="current-cost">$@monthlyCost.ToString("N2")</span>
+                    <small>This Month</small>
+                </div>
+            </div>
+
+            <div class="cost-cards">
+                <div class="cost-card">
+                    <h5>Cost by Provider</h5>
+                    <div class="cost-breakdown">
+                        <div class="cost-item">
+                            <span class="provider">AWS</span>
+                            <span class="amount">$@(monthlyCost * 0.4).ToString("N2")</span>
+                            <div class="cost-bar" style="width: 40%"></div>
+                        </div>
+                        <div class="cost-item">
+                            <span class="provider">Azure</span>
+                            <span class="amount">$@(monthlyCost * 0.35).ToString("N2")</span>
+                            <div class="cost-bar" style="width: 35%"></div>
+                        </div>
+                        <div class="cost-item">
+                            <span class="provider">GCP</span>
+                            <span class="amount">$@(monthlyCost * 0.25).ToString("N2")</span>
+                            <div class="cost-bar" style="width: 25%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cost-card">
+                    <h5>Optimization Opportunities</h5>
+                    <div class="optimization-list">
+                        <div class="optimization-item">
+                            <i class="fas fa-lightbulb text-warning"></i>
+                            <span>Downsize 3 overprovisioned instances</span>
+                            <span class="savings">-$245/mo</span>
+                        </div>
+                        <div class="optimization-item">
+                            <i class="fas fa-clock text-info"></i>
+                            <span>Schedule dev environments</span>
+                            <span class="savings">-$180/mo</span>
+                        </div>
+                        <div class="optimization-item">
+                            <i class="fas fa-archive text-success"></i>
+                            <span>Archive unused storage</span>
+                            <span class="savings">-$95/mo</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+@code {
+    private string selectedView = "overview";
+    private List<CloudResource> cloudResources = new();
+    private List<ContainerService> containerServices = new();
+    
+    private int totalResources = 24;
+    private int healthyResources = 23;
+    private double monthlyCost = 1847;
+    private int runningContainers = 42;
+    
+    private string overallHealthStatus = "Healthy";
+    private int cpuUsage = 65;
+    private int memoryUsage = 72;
+    private int storageUsage = 45;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDashboardData();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            cloudResources = await CloudOrchestration.GetAllResourcesAsync() ?? new();
+            containerServices = await ContainerOrchestration.GetContainerServicesAsync() ?? new();
+            
+            if (cloudResources.Any())
+            {
+                totalResources = cloudResources.Count;
+                healthyResources = cloudResources.Count(r => r.Status == "Running");
+                monthlyCost = cloudResources.Sum(r => r.Cost?.MonthlyCost ?? 0);
+            }
+            
+            if (containerServices.Any())
+            {
+                runningContainers = containerServices.Sum(s => s.RunningReplicas);
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading dashboard data: {ex.Message}");
+        }
+    }
+
+    private async Task RefreshDashboard()
+    {
+        await LoadDashboardData();
+        StateHasChanged();
+    }
+
+    private async Task RefreshResources()
+    {
+        cloudResources = await CloudOrchestration.GetAllResourcesAsync() ?? new();
+        StateHasChanged();
+    }
+
+    private async Task RefreshContainers()
+    {
+        containerServices = await ContainerOrchestration.GetContainerServicesAsync() ?? new();
+        StateHasChanged();
+    }
+
+    private async Task TerminateResource(string resourceId)
+    {
+        var success = await CloudOrchestration.TerminateResourceAsync(resourceId);
+        if (success)
+        {
+            await RefreshResources();
+        }
+    }
+
+    private async Task RestartService(string serviceId)
+    {
+        var success = await ContainerOrchestration.RestartContainerServiceAsync(serviceId);
+        if (success)
+        {
+            await RefreshContainers();
+        }
+    }
+
+    private string GetResourceIcon(ResourceType type)
+    {
+        return type switch
+        {
+            ResourceType.ComputeInstance => "fas fa-server",
+            ResourceType.Database => "fas fa-database",
+            ResourceType.LoadBalancer => "fas fa-balance-scale",
+            ResourceType.Storage => "fas fa-hdd",
+            ResourceType.Network => "fas fa-network-wired",
+            ResourceType.Container => "fas fa-cube",
+            ResourceType.Function => "fas fa-bolt",
+            _ => "fas fa-box"
+        };
+    }
+
+    private string GetStatusClass(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "running" or "active" => "status-healthy",
+            "stopped" or "terminated" => "status-stopped",
+            "pending" or "starting" => "status-pending",
+            "error" or "failed" => "status-error",
+            _ => "status-unknown"
+        };
+    }
+
+    private string GetServiceStatusBadge(string status)
+    {
+        return status?.ToLower() switch
+        {
+            "running" => "bg-success",
+            "stopped" => "bg-secondary",
+            "pending" => "bg-warning",
+            "error" => "bg-danger",
+            _ => "bg-secondary"
+        };
+    }
+
+    private string GetOverallHealthClass()
+    {
+        return overallHealthStatus?.ToLower() switch
+        {
+            "healthy" => "health-good",
+            "degraded" => "health-warning",
+            "unhealthy" => "health-critical",
+            _ => "health-unknown"
+        };
+    }
+
+    private string GetAlertSeverityClass()
+    {
+        var severities = new[] { "alert-low", "alert-medium", "alert-high", "alert-critical" };
+        return severities[new Random().Next(severities.Length)];
+    }
+
+    // Modal and action methods (stubs)
+    private Task ShowDeployModal() => Task.CompletedTask;
+    private Task ShowProvisionModal() => Task.CompletedTask;
+    private Task ShowContainerDeployModal() => Task.CompletedTask;
+    private Task ShowResourceDetails(string resourceId) => Task.CompletedTask;
+    private Task ShowServiceLogs(string serviceId) => Task.CompletedTask;
+    private Task RestartResource(string resourceId) => Task.CompletedTask;
+    private Task ScaleService(string serviceId) => Task.CompletedTask;
+}

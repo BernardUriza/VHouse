@@ -78,6 +78,11 @@ builder.Services.AddScoped<IBusinessIntelligenceService, BusinessIntelligenceSer
 builder.Services.AddScoped<IPredictionService, PredictionService>();
 builder.Services.AddScoped<IDataWarehouseService, DataWarehouseService>();
 
+// Phase 8: Multi-Cloud & Hybrid Infrastructure
+builder.Services.AddScoped<ICloudOrchestrationService, CloudOrchestrationService>();
+builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
+builder.Services.AddScoped<IContainerOrchestrationService, ContainerOrchestrationService>();
+
 // Register caching services (safe for dev)
 builder.Services.AddScoped<ICachingService, CachingService>();
 
