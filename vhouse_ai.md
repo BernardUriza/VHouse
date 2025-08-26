@@ -4,7 +4,15 @@
 
 **Estado actual:** `ChatbotService.cs:20` - Solo convierte texto libre de pedidos en español a array de IDs de productos.
 
-La integración con OpenAI tiene un potencial enorme más allá del procesamiento básico de pedidos. El sistema actual solo extrae IDs de productos, pero podría convertirse en el cerebro inteligente de toda la operación de distribución, desde predicción de demanda hasta optimización logística y análisis de negocio en tiempo real.
+REGLA PRIMORDIAL: NO PUEDES CREAR ARCHIVOS NUEVOS PARA IMPLEMENTAR ESTA GUIA. ACTUALMENTE HEMOS PREPARADO UNA SELECCION DE ARCHIVOS ENTERPRISE EN UN PROYECTO CON UNA ARQUITECTURA EJEMPLAR. APROVECHALA.
+
+NOTA: LA UI DEBE PERMANECER MINIMALISTA DE ALTO CONTRASTE. ACTUALMENTE NO REFLEJA TODO LO QUE SE PUEDE HACER EN EL BACKEND, ASI QUE TUS REQUERIMIENTOS DEBEN SER ENFOCADOS EN QUE SEA VISUAL LO QUE EL DISEÑO DE LA APP ES CAPAZ.
+
+CICLO DE TRABAJO: Lee este archivo completo, implementa una fase. Regresa aqui y marca esa fase como completada, con un emoji, ve por la siguiente fase.
+
+FILOSOFIA: Es un piloto que nadie usa aun, pero lo implementare primero para mi tienda, tengo dos amigos emprendedores con su marca de quesos y carne respectivamente. Tengo un año vendiendo, y distribuyo a tiendas con un sitsema de consigacion, y a prticulares con prepago. Este es un proyecto a futuro que dara a tinedas veganas el entry point a la AI activista vegana. Todo es por ayudar a los animales. Este mundo merece que tengan una IA a su favor en el sistema mercantil. Eficiencia, inventarios, expiraciones, y poner a trabajar al usuario, sin fallar en retribuir su esfuerzo. Todo eso son los valores que te permiten aumentar o plastificar estos requerimientos.
+
+La integración con OpenAI Y blockchain tiene un potencial enorme más allá del procesamiento básico de pedidos. El sistema actual solo extrae IDs de productos, pero podría convertirse en el cerebro inteligente de toda la operación de distribución, desde predicción de demanda hasta optimización logística y análisis de negocio en tiempo real.
 
 ## Oportunidades de Expansión para Sistema B2B de Distribución
 

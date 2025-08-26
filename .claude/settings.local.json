@@ -3,9 +3,13 @@
     "allow": [
       "Bash(rm:*)",
       "Bash(git push:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(dotnet build:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "C:\\c\\Users\\Bernard\\Documents\\GitHub"
+    ]
   }
 }

@@ -1,0 +1,886 @@
+@page "/enterprise"
+@using VHouse.Interfaces
+@using VHouse.Classes
+@inject IAPIGatewayService ApiGatewayService
+@inject IIntegrationService IntegrationService
+@inject IBlockchainService BlockchainService
+@inject IJSRuntime JSRuntime
+
+<PageTitle>🏢 VHouse Enterprise Platform</PageTitle>
+
+<div class="enterprise-dashboard">
+    <div class="dashboard-header">
+        <h1 class="dashboard-title">🏢 Enterprise Ecosystem & API Economy</h1>
+        <p class="dashboard-subtitle">Phase 10: Advanced enterprise integrations, blockchain, and API management</p>
+    </div>
+
+    <div class="dashboard-tabs">
+        <button class="tab-btn @(activeTab == "overview" ? "active" : "")" @onclick='() => SetActiveTab("overview")'>
+            📊 Overview
+        </button>
+        <button class="tab-btn @(activeTab == "api" ? "active" : "")" @onclick='() => SetActiveTab("api")'>
+            🔌 API Gateway
+        </button>
+        <button class="tab-btn @(activeTab == "integrations" ? "active" : "")" @onclick='() => SetActiveTab("integrations")'>
+            🔗 Integrations
+        </button>
+        <button class="tab-btn @(activeTab == "blockchain" ? "active" : "")" @onclick='() => SetActiveTab("blockchain")'>
+            ⛓️ Blockchain
+        </button>
+        <button class="tab-btn @(activeTab == "partner" ? "active" : "")" @onclick='() => SetActiveTab("partner")'>
+            🤝 Partner Portal
+        </button>
+        <button class="tab-btn @(activeTab == "monitoring" ? "active" : "")" @onclick='() => SetActiveTab("monitoring")'>
+            📈 Monitoring
+        </button>
+    </div>
+
+    <div class="tab-content">
+        @if (activeTab == "overview")
+        {
+            <div class="overview-section">
+                <div class="metrics-grid">
+                    <div class="metric-card">
+                        <div class="metric-icon">🔌</div>
+                        <div class="metric-content">
+                            <h3>API Gateway</h3>
+                            <div class="metric-value">@totalAPIRequests.ToString("N0")</div>
+                            <div class="metric-label">Total Requests Today</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🔗</div>
+                        <div class="metric-content">
+                            <h3>Active Integrations</h3>
+                            <div class="metric-value">@activeIntegrations</div>
+                            <div class="metric-label">Systems Connected</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">⛓️</div>
+                        <div class="metric-content">
+                            <h3>Blockchain</h3>
+                            <div class="metric-value">@blockchainTransactions</div>
+                            <div class="metric-label">Transactions Today</div>
+                        </div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-icon">🤝</div>
+                        <div class="metric-content">
+                            <h3>Partners</h3>
+                            <div class="metric-value">@activePartners</div>
+                            <div class="metric-label">Active Partners</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="status-grid">
+                    <div class="status-card">
+                        <h3>🌐 System Health</h3>
+                        <div class="health-indicator @(systemHealth > 95 ? "healthy" : systemHealth > 85 ? "warning" : "critical")">
+                            @systemHealth.ToString("F1")%
+                        </div>
+                        <div class="health-details">
+                            <div>API Gateway: @(apiGatewayHealth ? "✅" : "❌")</div>
+                            <div>Integrations: @(integrationsHealth ? "✅" : "❌")</div>
+                            <div>Blockchain: @(blockchainHealth ? "✅" : "❌")</div>
+                        </div>
+                    </div>
+                    <div class="status-card">
+                        <h3>📊 Performance</h3>
+                        <div class="perf-metrics">
+                            <div>Avg Response: @avgResponseTime ms</div>
+                            <div>Success Rate: @successRate.ToString("F1")%</div>
+                            <div>Throughput: @throughputRPS RPS</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeTab == "api")
+        {
+            <div class="api-section">
+                <div class="section-header">
+                    <h2>🔌 API Gateway Management</h2>
+                    <button class="btn btn-primary" @onclick="TestAPIGateway">Test Gateway</button>
+                </div>
+
+                <div class="api-grid">
+                    <div class="api-card">
+                        <h3>🚦 Request Routing</h3>
+                        <div class="api-form">
+                            <input @bind="testApiPath" placeholder="API Path (e.g., /api/products)" class="form-input" />
+                            <select @bind="testHttpMethod" class="form-select">
+                                <option value="GET">GET</option>
+                                <option value="POST">POST</option>
+                                <option value="PUT">PUT</option>
+                                <option value="DELETE">DELETE</option>
+                            </select>
+                            <button class="btn btn-secondary" @onclick="RouteTestRequest" disabled="@isProcessing">
+                                @(isProcessing ? "Routing..." : "Route Request")
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(routingResult))
+                        {
+                            <div class="result-box">
+                                <pre>@routingResult</pre>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="api-card">
+                        <h3>🔐 Authentication Test</h3>
+                        <div class="api-form">
+                            <input @bind="testApiKey" placeholder="API Key" class="form-input" />
+                            <input @bind="testSecretKey" placeholder="Secret Key" class="form-input" />
+                            <button class="btn btn-secondary" @onclick="TestAuthentication" disabled="@isProcessing">
+                                @(isProcessing ? "Testing..." : "Test Auth")
+                            </button>
+                        </div>
+                        @if (!string.IsNullOrEmpty(authResult))
+                        {
+                            <div class="result-box">
+                                <pre>@authResult</pre>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="api-card">
+                        <h3>📊 API Analytics</h3>
+                        @if (apiAnalytics != null)
+                        {
+                            <div class="analytics-display">
+                                <div class="stat">Total Requests: @apiAnalytics.TotalRequests.ToString("N0")</div>
+                                <div class="stat">Success Rate: @(((double)apiAnalytics.SuccessfulRequests / apiAnalytics.TotalRequests * 100).ToString("F1"))%</div>
+                                <div class="stat">Avg Response: @apiAnalytics.AverageResponseTime.TotalMilliseconds.ToString("F0")ms</div>
+                                <div class="stat">P95 Response: @apiAnalytics.P95ResponseTime.TotalMilliseconds.ToString("F0")ms</div>
+                            </div>
+                        }
+                        <button class="btn btn-secondary" @onclick="LoadAPIAnalytics" disabled="@isProcessing">
+                            Refresh Analytics
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeTab == "integrations")
+        {
+            <div class="integrations-section">
+                <div class="section-header">
+                    <h2>🔗 System Integrations</h2>
+                    <button class="btn btn-primary" @onclick="RefreshIntegrations">Refresh Status</button>
+                </div>
+
+                <div class="integrations-grid">
+                    <div class="integration-card">
+                        <h3>💼 ERP Integration</h3>
+                        <div class="integration-status @(erpStatus?.Success == true ? "success" : "error")">
+                            @(erpStatus?.Success == true ? "✅ Connected" : "❌ Disconnected")
+                        </div>
+                        <button class="btn btn-secondary" @onclick="TestERPSync" disabled="@isProcessing">
+                            @(isProcessing ? "Syncing..." : "Test ERP Sync")
+                        </button>
+                        @if (erpStatus != null)
+                        {
+                            <div class="sync-stats">
+                                <div>Records: @erpStatus.ProcessedRecords.ToString("N0")</div>
+                                <div>Success: @erpStatus.SuccessfulRecords.ToString("N0")</div>
+                                <div>Errors: @erpStatus.FailedRecords</div>
+                                <div>Time: @erpStatus.ProcessingTime.TotalSeconds.ToString("F1")s</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="integration-card">
+                        <h3>👥 CRM Integration</h3>
+                        <div class="integration-status @(crmStatus?.Success == true ? "success" : "error")">
+                            @(crmStatus?.Success == true ? "✅ Connected" : "❌ Disconnected")
+                        </div>
+                        <button class="btn btn-secondary" @onclick="TestCRMSync" disabled="@isProcessing">
+                            @(isProcessing ? "Syncing..." : "Test CRM Sync")
+                        </button>
+                        @if (crmStatus != null)
+                        {
+                            <div class="sync-stats">
+                                <div>Contacts: @crmStatus.ContactsProcessed</div>
+                                <div>Leads: @crmStatus.LeadsProcessed</div>
+                                <div>Opportunities: @crmStatus.OpportunitiesProcessed</div>
+                                <div>Time: @crmStatus.ProcessingTime.TotalSeconds.ToString("F1")s</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="integration-card">
+                        <h3>🛒 E-commerce Integration</h3>
+                        <div class="integration-status @(ecommerceStatus?.Success == true ? "success" : "error")">
+                            @(ecommerceStatus?.Success == true ? "✅ Connected" : "❌ Disconnected")
+                        </div>
+                        <button class="btn btn-secondary" @onclick="TestECommerceSync" disabled="@isProcessing">
+                            @(isProcessing ? "Syncing..." : "Test E-commerce Sync")
+                        </button>
+                        @if (ecommerceStatus != null)
+                        {
+                            <div class="sync-stats">
+                                <div>Products: @ecommerceStatus.ProductsSynced</div>
+                                <div>Orders: @ecommerceStatus.OrdersSynced</div>
+                                <div>Customers: @ecommerceStatus.CustomersSynced</div>
+                                <div>Time: @ecommerceStatus.ProcessingTime.TotalSeconds.ToString("F1")s</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeTab == "blockchain")
+        {
+            <div class="blockchain-section">
+                <div class="section-header">
+                    <h2>⛓️ Blockchain Operations</h2>
+                    <button class="btn btn-primary" @onclick="RefreshBlockchain">Refresh Status</button>
+                </div>
+
+                <div class="blockchain-grid">
+                    <div class="blockchain-card">
+                        <h3>📦 Supply Chain Tracking</h3>
+                        <div class="blockchain-form">
+                            <input @bind="productIdForTracking" placeholder="Product ID" class="form-input" />
+                            <button class="btn btn-secondary" @onclick="TrackProduct" disabled="@isProcessing">
+                                @(isProcessing ? "Tracking..." : "Track Product")
+                            </button>
+                        </div>
+                        @if (productVerification != null)
+                        {
+                            <div class="verification-result @(productVerification.IsValid ? "valid" : "invalid")">
+                                <div class="result-header">
+                                    @(productVerification.IsValid ? "✅ Verified" : "❌ Unverified")
+                                    <span class="trust-score">Trust: @productVerification.TrustScore.ToString("F2")</span>
+                                </div>
+                                <div class="verification-steps">
+                                    @foreach (var step in productVerification.VerificationSteps)
+                                    {
+                                        <div class="step">• @step</div>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="blockchain-card">
+                        <h3>💰 Token Operations</h3>
+                        <div class="blockchain-form">
+                            <input @bind="fromAddress" placeholder="From Address" class="form-input" />
+                            <input @bind="toAddress" placeholder="To Address" class="form-input" />
+                            <input @bind="transferAmount" placeholder="Amount" type="number" class="form-input" />
+                            <button class="btn btn-secondary" @onclick="TransferTokens" disabled="@isProcessing">
+                                @(isProcessing ? "Processing..." : "Transfer Tokens")
+                            </button>
+                        </div>
+                        @if (tokenTransaction != null)
+                        {
+                            <div class="transaction-result @(tokenTransaction.Status == "CONFIRMED" ? "confirmed" : "failed")">
+                                <div>Status: @tokenTransaction.Status</div>
+                                <div>Amount: @transferAmount</div>
+                                <div>Hash: @tokenTransaction.TransactionHash[..12]...</div>
+                                <div>Gas: @tokenTransaction.GasUsed</div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="blockchain-card">
+                        <h3>📋 Smart Contracts</h3>
+                        <div class="blockchain-form">
+                            <input @bind="contractAddress" placeholder="Contract Address" class="form-input" />
+                            <input @bind="functionName" placeholder="Function Name" class="form-input" />
+                            <button class="btn btn-secondary" @onclick="ExecuteSmartContract" disabled="@isProcessing">
+                                @(isProcessing ? "Executing..." : "Execute Function")
+                            </button>
+                        </div>
+                        @if (contractResult != null)
+                        {
+                            <div class="contract-result @(contractResult.Success ? "success" : "failed")">
+                                <div>Success: @(contractResult.Success ? "✅" : "❌")</div>
+                                <div>Gas Used: @contractResult.GasUsed</div>
+                                @if (contractResult.ReturnValue != null)
+                                {
+                                    <div>Result: @contractResult.ReturnValue.ToString()</div>
+                                }
+                                @if (!string.IsNullOrEmpty(contractResult.ErrorMessage))
+                                {
+                                    <div class="error">Error: @contractResult.ErrorMessage</div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeTab == "partner")
+        {
+            <div class="partner-section">
+                <div class="section-header">
+                    <h2>🤝 Partner Ecosystem</h2>
+                </div>
+
+                <div class="partner-grid">
+                    <div class="partner-card">
+                        <h3>👨‍💻 Developer Portal</h3>
+                        <div class="portal-stats">
+                            <div class="stat">
+                                <span class="stat-value">@activePartners</span>
+                                <span class="stat-label">Active Partners</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">@developerApplications</span>
+                                <span class="stat-label">Applications</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">@sdkDownloads</span>
+                                <span class="stat-label">SDK Downloads</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-secondary" @onclick="GenerateAPIKey">Generate New API Key</button>
+                        @if (!string.IsNullOrEmpty(newApiKey))
+                        {
+                            <div class="api-key-result">
+                                <div>New API Key Generated:</div>
+                                <code>@newApiKey</code>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="partner-card">
+                        <h3>📚 Integration Guides</h3>
+                        <div class="guide-list">
+                            <div class="guide-item">
+                                <span class="guide-icon">📄</span>
+                                <span class="guide-title">REST API Documentation</span>
+                                <span class="guide-status">✅</span>
+                            </div>
+                            <div class="guide-item">
+                                <span class="guide-icon">📱</span>
+                                <span class="guide-title">Mobile SDK Guide</span>
+                                <span class="guide-status">✅</span>
+                            </div>
+                            <div class="guide-item">
+                                <span class="guide-icon">⚡</span>
+                                <span class="guide-title">Webhook Integration</span>
+                                <span class="guide-status">✅</span>
+                            </div>
+                            <div class="guide-item">
+                                <span class="guide-icon">🔐</span>
+                                <span class="guide-title">Authentication Guide</span>
+                                <span class="guide-status">✅</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="partner-card">
+                        <h3>🏆 Partner Certification</h3>
+                        <div class="certification-levels">
+                            <div class="cert-level bronze">
+                                <span class="cert-icon">🥉</span>
+                                <span class="cert-name">Bronze Partner</span>
+                                <span class="cert-count">@bronzeCertifications</span>
+                            </div>
+                            <div class="cert-level silver">
+                                <span class="cert-icon">🥈</span>
+                                <span class="cert-name">Silver Partner</span>
+                                <span class="cert-count">@silverCertifications</span>
+                            </div>
+                            <div class="cert-level gold">
+                                <span class="cert-icon">🥇</span>
+                                <span class="cert-name">Gold Partner</span>
+                                <span class="cert-count">@goldCertifications</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+        else if (activeTab == "monitoring")
+        {
+            <div class="monitoring-section">
+                <div class="section-header">
+                    <h2>📈 Enterprise Monitoring</h2>
+                    <button class="btn btn-primary" @onclick="RefreshMonitoring">Refresh Data</button>
+                </div>
+
+                <div class="monitoring-grid">
+                    <div class="monitor-card">
+                        <h3>🌐 Network Health</h3>
+                        @if (networkStatus != null)
+                        {
+                            <div class="network-stats">
+                                <div class="network-stat">
+                                    <span class="stat-label">Network:</span>
+                                    <span class="stat-value">@networkStatus.NetworkName</span>
+                                </div>
+                                <div class="network-stat">
+                                    <span class="stat-label">Block:</span>
+                                    <span class="stat-value">@networkStatus.LatestBlockNumber.ToString("N0")</span>
+                                </div>
+                                <div class="network-stat">
+                                    <span class="stat-label">Peers:</span>
+                                    <span class="stat-value">@networkStatus.PeerCount</span>
+                                </div>
+                                <div class="network-stat">
+                                    <span class="stat-label">Health:</span>
+                                    <span class="stat-value @(networkStatus.IsHealthy ? "healthy" : "unhealthy")">
+                                        @(networkStatus.IsHealthy ? "✅ Healthy" : "❌ Issues")
+                                    </span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="monitor-card">
+                        <h3>⚡ Performance Metrics</h3>
+                        <div class="perf-chart">
+                            <div class="chart-item">
+                                <div class="chart-label">API Response Time</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill" style="width: @(Math.Min(avgResponseTime / 10, 100))%"></div>
+                                    <span class="chart-value">@avgResponseTime ms</span>
+                                </div>
+                            </div>
+                            <div class="chart-item">
+                                <div class="chart-label">Success Rate</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill success" style="width: @successRate%"></div>
+                                    <span class="chart-value">@successRate.ToString("F1")%</span>
+                                </div>
+                            </div>
+                            <div class="chart-item">
+                                <div class="chart-label">Throughput</div>
+                                <div class="chart-bar">
+                                    <div class="chart-fill" style="width: @(Math.Min(throughputRPS / 10, 100))%"></div>
+                                    <span class="chart-value">@throughputRPS RPS</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="monitor-card">
+                        <h3>🚨 System Alerts</h3>
+                        <div class="alerts-list">
+                            @foreach (var alert in systemAlerts)
+                            {
+                                <div class="alert-item @alert.Severity.ToLower()">
+                                    <span class="alert-icon">
+                                        @(alert.Severity == "HIGH" ? "🚨" : alert.Severity == "MEDIUM" ? "⚠️" : "ℹ️")
+                                    </span>
+                                    <span class="alert-message">@alert.Message</span>
+                                    <span class="alert-time">@alert.Timestamp.ToString("HH:mm")</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@code {
+    private string activeTab = "overview";
+
+    // State variables
+    private bool isProcessing = false;
+    
+    // Overview metrics
+    private int totalAPIRequests = 45678;
+    private int activeIntegrations = 12;
+    private int blockchainTransactions = 234;
+    private int activePartners = 28;
+    private double systemHealth = 98.5;
+    private bool apiGatewayHealth = true;
+    private bool integrationsHealth = true;
+    private bool blockchainHealth = true;
+    private int avgResponseTime = 125;
+    private double successRate = 99.2;
+    private int throughputRPS = 450;
+
+    // API Gateway variables
+    private string testApiPath = "/api/products";
+    private string testHttpMethod = "GET";
+    private string testApiKey = "";
+    private string testSecretKey = "";
+    private string routingResult = "";
+    private string authResult = "";
+    private APIAnalytics? apiAnalytics;
+
+    // Integration variables
+    private IntegrationResult? erpStatus;
+    private CRMSyncResult? crmStatus;
+    private ECommerceSync? ecommerceStatus;
+
+    // Blockchain variables
+    private string productIdForTracking = "";
+    private string fromAddress = "";
+    private string toAddress = "";
+    private decimal transferAmount = 0;
+    private string contractAddress = "";
+    private string functionName = "";
+    private VerificationResult? productVerification;
+    private TokenTransaction? tokenTransaction;
+    private SmartContractResult? contractResult;
+
+    // Partner portal variables
+    private int developerApplications = 156;
+    private int sdkDownloads = 2340;
+    private int bronzeCertifications = 15;
+    private int silverCertifications = 8;
+    private int goldCertifications = 5;
+    private string newApiKey = "";
+
+    // Monitoring variables
+    private NetworkStatus? networkStatus;
+    private List<SystemAlert> systemAlerts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await InitializeData();
+    }
+
+    private async Task InitializeData()
+    {
+        systemAlerts = new List<SystemAlert>
+        {
+            new() { Severity = "LOW", Message = "Scheduled maintenance in 2 hours", Timestamp = DateTime.Now.AddMinutes(-30) },
+            new() { Severity = "MEDIUM", Message = "High API usage detected", Timestamp = DateTime.Now.AddMinutes(-15) },
+            new() { Severity = "LOW", Message = "Backup completed successfully", Timestamp = DateTime.Now.AddMinutes(-5) }
+        };
+    }
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        StateHasChanged();
+    }
+
+    private async Task TestAPIGateway()
+    {
+        await LoadAPIAnalytics();
+    }
+
+    private async Task RouteTestRequest()
+    {
+        isProcessing = true;
+        try
+        {
+            var request = new APIRequest
+            {
+                RequestId = Guid.NewGuid().ToString(),
+                Method = testHttpMethod,
+                Path = testApiPath,
+                Headers = new Dictionary<string, string> { ["User-Agent"] = "VHouse-Enterprise-Dashboard" },
+                ClientId = "enterprise-dashboard",
+                IPAddress = "127.0.0.1",
+                Timestamp = DateTime.UtcNow
+            };
+
+            var config = new RoutingConfig
+            {
+                RouteId = "test-route",
+                PathPattern = testApiPath,
+                TargetServiceUrl = "http://localhost:5000",
+                Methods = new List<string> { testHttpMethod }
+            };
+
+            var response = await ApiGatewayService.RouteRequestAsync(request, config);
+            routingResult = $"Status: {response.StatusCode}\nProcessing Time: {response.ProcessingTime.TotalMilliseconds:F0}ms\nTarget: {response.TargetService}\nSuccess: {response.Success}";
+        }
+        catch (Exception ex)
+        {
+            routingResult = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TestAuthentication()
+    {
+        isProcessing = true;
+        try
+        {
+            var credentials = new APICredentials
+            {
+                ApiKey = testApiKey,
+                SecretKey = testSecretKey,
+                ClientId = "test-client",
+                ExpiresAt = DateTime.UtcNow.AddHours(24)
+            };
+
+            var result = await ApiGatewayService.AuthenticateAPIRequestAsync(credentials);
+            authResult = $"Success: {result.Success}\nUser ID: {result.UserId}\nRoles: {string.Join(", ", result.Roles)}\nToken Expires: {result.ExpiresAt:yyyy-MM-dd HH:mm}";
+        }
+        catch (Exception ex)
+        {
+            authResult = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task LoadAPIAnalytics()
+    {
+        isProcessing = true;
+        try
+        {
+            var query = new AnalyticsQuery
+            {
+                ApiId = "global",
+                FromDate = DateTime.UtcNow.AddDays(-1),
+                ToDate = DateTime.UtcNow,
+                Metrics = new List<string> { "requests", "response_time", "errors" }
+            };
+
+            apiAnalytics = await ApiGatewayService.GetAPIUsageAnalyticsAsync(query);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RefreshIntegrations()
+    {
+        isProcessing = true;
+        try
+        {
+            // Test ERP
+            await TestERPSync();
+            // Test CRM
+            await TestCRMSync();
+            // Test E-commerce
+            await TestECommerceSync();
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TestERPSync()
+    {
+        isProcessing = true;
+        try
+        {
+            var request = new ERPSyncRequest
+            {
+                ERPSystem = "SAP",
+                SyncType = "Financial",
+                FromDate = DateTime.UtcNow.AddDays(-1),
+                ToDate = DateTime.UtcNow,
+                DataTypes = new List<string> { "customers", "orders", "products" }
+            };
+
+            erpStatus = await IntegrationService.SyncWithERPAsync(request);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TestCRMSync()
+    {
+        isProcessing = true;
+        try
+        {
+            var data = new CRMData
+            {
+                CRMSystem = "Salesforce",
+                Contacts = new List<Contact>(),
+                Leads = new List<Lead>(),
+                Opportunities = new List<Opportunity>(),
+                SyncTimestamp = DateTime.UtcNow
+            };
+
+            crmStatus = await IntegrationService.SyncWithCRMAsync(data);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TestECommerceSync()
+    {
+        isProcessing = true;
+        try
+        {
+            var request = new ECommerceSyncRequest
+            {
+                Platform = "Shopify",
+                FromDate = DateTime.UtcNow.AddDays(-1),
+                ToDate = DateTime.UtcNow,
+                DataTypes = new List<string> { "products", "orders", "customers" }
+            };
+
+            ecommerceStatus = await IntegrationService.SyncWithECommerceAsync(request);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RefreshBlockchain()
+    {
+        isProcessing = true;
+        try
+        {
+            networkStatus = await BlockchainService.GetNetworkStatusAsync();
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TrackProduct()
+    {
+        if (string.IsNullOrEmpty(productIdForTracking)) return;
+
+        isProcessing = true;
+        try
+        {
+            productVerification = await BlockchainService.VerifyProductAuthenticityAsync(productIdForTracking);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task TransferTokens()
+    {
+        if (string.IsNullOrEmpty(fromAddress) || string.IsNullOrEmpty(toAddress) || transferAmount <= 0) return;
+
+        isProcessing = true;
+        try
+        {
+            var request = new TokenTransferRequest
+            {
+                FromAddress = fromAddress,
+                ToAddress = toAddress,
+                Amount = transferAmount,
+                TokenContract = "0x1234567890abcdef"
+            };
+
+            tokenTransaction = await BlockchainService.TransferTokensAsync(request);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task ExecuteSmartContract()
+    {
+        if (string.IsNullOrEmpty(contractAddress) || string.IsNullOrEmpty(functionName)) return;
+
+        isProcessing = true;
+        try
+        {
+            var execution = new ContractExecution
+            {
+                ContractAddress = contractAddress,
+                FunctionName = functionName,
+                CallerAddress = "0x1111111111111111",
+                Parameters = new List<object>(),
+                GasLimit = 100000,
+                DryRun = false
+            };
+
+            contractResult = await BlockchainService.ExecuteSmartContractAsync(execution);
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task GenerateAPIKey()
+    {
+        isProcessing = true;
+        try
+        {
+            var request = new APIKeyRequest
+            {
+                ClientId = Guid.NewGuid().ToString(),
+                ClientName = "New Partner",
+                Permissions = new List<string> { "read", "write" },
+                ExpiresAt = DateTime.UtcNow.AddYears(1)
+            };
+
+            var apiKey = await ApiGatewayService.GenerateAPIKeyAsync(request);
+            newApiKey = apiKey.ApiKey;
+        }
+        catch (Exception ex)
+        {
+            // Handle error
+        }
+        finally
+        {
+            isProcessing = false;
+        }
+    }
+
+    private async Task RefreshMonitoring()
+    {
+        await RefreshBlockchain();
+        await LoadAPIAnalytics();
+        
+        // Update other metrics
+        var random = new Random();
+        avgResponseTime = random.Next(80, 200);
+        successRate = 95 + (random.NextDouble() * 5);
+        throughputRPS = random.Next(300, 600);
+        systemHealth = 90 + (random.NextDouble() * 10);
+    }
+
+    public class SystemAlert
+    {
+        public string Severity { get; set; } = "";
+        public string Message { get; set; } = "";
+        public DateTime Timestamp { get; set; }
+    }
+}

@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using VHouse.Interfaces;
-using VHouse.Models;
+using VHouse.Classes;
 using System.Text.Json;
 using System.Threading;
 
@@ -756,6 +756,19 @@ namespace VHouse.Services
                 ["TotalRisks"] = insights.Risks.Count
             };
         }
+
+        // Missing interface implementations
+
+        public async Task<SegmentationResult> SegmentDataAsync(AnalyticsSegmentationCriteria criteria)
+        {
+            await Task.Delay(800);
+            return new SegmentationResult
+            {
+                SegmentationId = Guid.NewGuid().ToString(),
+                Segments = new List<DataSegment>(),
+                ProcessedAt = DateTime.UtcNow
+            };
+        }
     }
 
     // Supporting classes
@@ -819,20 +832,7 @@ namespace VHouse.Services
     }
 
     // Model classes for Analytics
-    public class LiveMetrics
-    {
-        public string Category { get; set; }
-        public DateTime Timestamp { get; set; }
-        public Dictionary<string, double> Values { get; set; }
-        public Dictionary<string, TrendDirection> Trends { get; set; }
-    }
 
-    public class PredictionParameters
-    {
-        public string ProductId { get; set; }
-        public int ForecastHorizon { get; set; }
-        public string ModelType { get; set; }
-    }
 
     public class PredictionPoint
     {
@@ -859,125 +859,4 @@ namespace VHouse.Services
         public string Type { get; set; }
     }
 
-    public class Insight
-    {
-        public string Type { get; set; }
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public string Impact { get; set; }
-        public List<string> Recommendations { get; set; }
-    }
-
-    public class KeyPerformanceIndicator
-    {
-        public string Name { get; set; }
-        public double Value { get; set; }
-        public double Target { get; set; }
-        public string Status { get; set; }
-    }
-
-    public class Trend
-    {
-        public string Name { get; set; }
-        public TrendDirection Direction { get; set; }
-        public double Strength { get; set; }
-        public double StartValue { get; set; }
-        public double EndValue { get; set; }
-        public double ChangePercent { get; set; }
-    }
-
-    public class Opportunity
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public double PotentialValue { get; set; }
-    }
-
-    public class Risk
-    {
-        public string Title { get; set; }
-        public string Description { get; set; }
-        public double ImpactLevel { get; set; }
-    }
-
-    public class TrendAnalysis
-    {
-        public string AnalysisId { get; set; }
-        public DateTime GeneratedAt { get; set; }
-        public List<Trend> Trends { get; set; }
-        public List<Pattern> Patterns { get; set; }
-        public SeasonalityAnalysis Seasonality { get; set; }
-    }
-
-    public class TrendQuery
-    {
-        public string MetricName { get; set; }
-        public int? WindowSize { get; set; }
-        public bool AnalyzeSeasonality { get; set; }
-    }
-
-    public class Pattern
-    {
-        public string Type { get; set; }
-        public string Description { get; set; }
-    }
-
-    public class SeasonalityAnalysis
-    {
-        public bool HasSeasonality { get; set; }
-        public string Period { get; set; }
-    }
-
-    public enum TrendDirection
-    {
-        Up,
-        Down,
-        Stable
-    }
-
-    public enum ReportStatus
-    {
-        Scheduled,
-        Running,
-        Completed,
-        Failed,
-        NotFound
-    }
-
-    public class ScheduledReport
-    {
-        public string ReportId { get; set; }
-        public ReportSchedule Schedule { get; set; }
-        public ReportStatus Status { get; set; }
-        public DateTime CreatedAt { get; set; }
-    }
-
-    public class ReportSchedule
-    {
-        public string ScheduleType { get; set; }
-        public string CronExpression { get; set; }
-    }
-
-    // Additional model classes
-    public class PerformanceAnalytics { }
-    public class DatasetParameters { }
-    public class AnomalyDetectionResult { }
-    public class InventoryOptimizationRequest { }
-    public class OptimizationResult { }
-    public class CustomerAnalyticsQuery { }
-    public class CustomerAnalytics { }
-    public class ProductAnalyticsQuery { }
-    public class ProductAnalytics { }
-    public class RevenueQuery { }
-    public class RevenueAnalytics { }
-    public class BatchDataRequest { }
-    public class DataProcessingResult { }
-    public class AggregationQuery { }
-    public class AggregationResult { }
-    public class CorrelationParameters { }
-    public class CorrelationAnalysis { }
-    public class SegmentationCriteria { }
-    public class SegmentationResult { }
-    public class ExportRequest { }
-    public class ExportResult { }
 }

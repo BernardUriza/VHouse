@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Configuration;
 using VHouse.Interfaces;
+using VHouse.Classes;
 using System.Text.Json;
 using System.Net.Http;
 

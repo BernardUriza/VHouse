@@ -1,0 +1,566 @@
+@page "/ai"
+@using VHouse.Interfaces
+@inject IJSRuntime JSRuntime
+
+<link href="~/css/ai-dashboard.css" rel="stylesheet" />
+
+<div class="ai-dashboard">
+    <div class="dashboard-container">
+        <div class="dashboard-header">
+            <h1 class="dashboard-title">🧠 VHouse AI Platform</h1>
+            <p class="dashboard-subtitle">Advanced Machine Learning & Artificial Intelligence Dashboard</p>
+        </div>
+
+        <!-- Navigation Tabs -->
+        <ul class="nav nav-tabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"overview\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"overview\")">
+                    <i class="fas fa-chart-line"></i> Overview
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"models\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"models\")">
+                    <i class="fas fa-brain"></i> Models
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"inference\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"inference\")">
+                    <i class="fas fa-rocket"></i> Inference
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"nlp\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"nlp\")">
+                    <i class="fas fa-comments"></i> NLP
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"recommendations\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"recommendations\")">
+                    <i class="fas fa-magic"></i> Recommendations
+                </button>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link @(activeTab == \"monitoring\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"monitoring\")">
+                    <i class="fas fa-chart-bar"></i> Monitoring
+                </button>
+            </li>
+        </ul>
+
+        <!-- Tab Content -->
+        <div class="tab-content">
+            @if (activeTab == "overview")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row stats-row">
+                        <div class="col-md-3">
+                            <div class="stat-card stat-models">
+                                <div class="stat-number">@totalModels</div>
+                                <div class="stat-label">Active Models</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card stat-predictions">
+                                <div class="stat-number">@dailyPredictions.ToString("N0")</div>
+                                <div class="stat-label">Daily Predictions</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card stat-accuracy">
+                                <div class="stat-number">@averageAccuracy.ToString("P1")</div>
+                                <div class="stat-label">Avg Accuracy</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3">
+                            <div class="stat-card stat-uptime">
+                                <div class="stat-number">@uptime.ToString("P2")</div>
+                                <div class="stat-label">System Uptime</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-chart-line"></i>
+                                        Performance Trends
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="performance-chart">
+                                        <div class="chart-container">
+                                            <div class="chart-placeholder">
+                                                <i class="fas fa-chart-line fa-3x"></i>
+                                                <p>Performance metrics visualization would appear here</p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (activeTab == "models")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-brain"></i>
+                                        ML Models
+                                    </h4>
+                                    <button class="btn btn-primary">
+                                        <i class="fas fa-plus"></i> Deploy New Model
+                                    </button>
+                                </div>
+                                <div class="card-body">
+                                    @foreach (var model in GetActiveModels())
+                                    {
+                                        <div class="model-card">
+                                            <div class="model-header">
+                                                <div>
+                                                    <h5 class="model-name">@model.Name</h5>
+                                                    <span class="model-type">@model.Type</span>
+                                                </div>
+                                                <div class="model-status status-@model.Status.ToLower()">
+                                                    <i class="fas fa-circle"></i>
+                                                    @model.Status
+                                                </div>
+                                            </div>
+                                            <div class="model-metrics">
+                                                <div class="metric">
+                                                    <div class="metric-value">@model.Accuracy.ToString("P1")</div>
+                                                    <div class="metric-label">Accuracy</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-value">@model.Version</div>
+                                                    <div class="metric-label">Version</div>
+                                                </div>
+                                                <div class="metric">
+                                                    <div class="metric-value">@model.DeployedAt.ToString("MMM dd")</div>
+                                                    <div class="metric-label">Deployed</div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (activeTab == "inference")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-rocket"></i>
+                                        Real-time Inference Testing
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="inference-section">
+                                        <div class="inference-form">
+                                            <div class="form-group">
+                                                <label>Select Model:</label>
+                                                <select @bind="selectedModel" class="form-control">
+                                                    <option value="customer-churn">Customer Churn Predictor</option>
+                                                    <option value="price-optimizer">Price Optimizer</option>
+                                                    <option value="fraud-detection">Fraud Detection</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Test Data (JSON):</label>
+                                                <textarea @bind="testInputData" class="form-control" rows="4" placeholder='{"age": 35, "income": 50000, "location": "NY"}'></textarea>
+                                            </div>
+                                            <button class="btn btn-primary" @onclick="RunInference">
+                                                <i class="fas fa-play"></i>
+                                                Run Inference
+                                            </button>
+                                        </div>
+
+                                        @if (inferenceResult != null)
+                                        {
+                                            <div class="inference-results">
+                                                <h4>Prediction Results</h4>
+                                                <div class="prediction-result">
+                                                    Result: <strong>@inferenceResult.Prediction</strong>
+                                                </div>
+                                                <div class="confidence-score">
+                                                    Confidence: <strong>@inferenceResult.Confidence.ToString("P1")</strong>
+                                                </div>
+                                                <div class="prediction-details">
+                                                    @foreach (var prob in inferenceResult.Probabilities)
+                                                    {
+                                                        <div class="prediction-detail">
+                                                            <div>@prob.Key</div>
+                                                            <div>@prob.Value.ToString("P2")</div>
+                                                        </div>
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (activeTab == "nlp")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-comments"></i>
+                                        Text Analysis
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="form-group">
+                                        <label>Enter text to analyze:</label>
+                                        <textarea @bind="nlpInputText" class="form-control" rows="4" placeholder="Enter your text here..."></textarea>
+                                    </div>
+                                    <div class="btn-group">
+                                        <button class="btn btn-info" @onclick="AnalyzeSentiment">
+                                            <i class="fas fa-heart"></i> Sentiment Analysis
+                                        </button>
+                                        <button class="btn btn-success" @onclick="ExtractEntities">
+                                            <i class="fas fa-tags"></i> Extract Entities
+                                        </button>
+                                        <button class="btn btn-warning" @onclick="SummarizeText">
+                                            <i class="fas fa-compress"></i> Summarize
+                                        </button>
+                                    </div>
+
+                                    @if (sentimentResult != null)
+                                    {
+                                        <div class="sentiment-result">
+                                            <h5>Sentiment Analysis</h5>
+                                            <div class="sentiment-score sentiment-@sentimentResult.Sentiment.ToLower()">
+                                                <i class="fas fa-@(GetSentimentIcon(sentimentResult.Sentiment))"></i>
+                                                @sentimentResult.Sentiment (@sentimentResult.Score.ToString("P1"))
+                                            </div>
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-robot"></i>
+                                        AI Chat Assistant
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="chat-container">
+                                        <div class="chat-messages">
+                                            @foreach (var msg in chatMessages)
+                                            {
+                                                <div class="chat-message @msg.Type">
+                                                    @msg.Text
+                                                </div>
+                                            }
+                                        </div>
+                                        <div class="chat-input-container">
+                                            <input @bind="chatInput" @onkeypress="HandleChatKeyPress" class="form-control chat-input" placeholder="Type your message..." />
+                                            <button class="btn btn-primary" @onclick="SendChatMessage">
+                                                <i class="fas fa-paper-plane"></i>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (activeTab == "recommendations")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-magic"></i>
+                                        Product Recommendations
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="inference-form">
+                                        <div class="form-group">
+                                            <label>Customer ID:</label>
+                                            <input @bind="customerId" class="form-control" placeholder="Enter customer ID" />
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Recommendation Type:</label>
+                                            <select @bind="recommendationType" class="form-control">
+                                                <option value="personalized">Personalized</option>
+                                                <option value="trending">Trending</option>
+                                                <option value="similar">Similar Items</option>
+                                            </select>
+                                        </div>
+                                        <button class="btn btn-primary" @onclick="GenerateRecommendations">
+                                            <i class="fas fa-magic"></i>
+                                            Generate Recommendations
+                                        </button>
+                                    </div>
+
+                                    @if (recommendations.Any())
+                                    {
+                                        <div class="recommendations-grid">
+                                            @foreach (var rec in recommendations)
+                                            {
+                                                <div class="recommendation-item">
+                                                    <div class="recommendation-title">@rec.Title</div>
+                                                    <div class="recommendation-score">Score: @rec.Score.ToString("P1")</div>
+                                                    <div class="recommendation-reason">@rec.Reason</div>
+                                                </div>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (activeTab == "monitoring")
+            {
+                <div class="tab-pane fade show active">
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h4 class="card-title">
+                                        <i class="fas fa-chart-bar"></i>
+                                        Model Monitoring & Performance
+                                    </h4>
+                                </div>
+                                <div class="card-body">
+                                    <div class="monitoring-metrics">
+                                        <div class="monitoring-metric">
+                                            <div class="monitoring-value">150ms</div>
+                                            <div class="monitoring-label">Avg Latency</div>
+                                            <div class="monitoring-status status-healthy">Healthy</div>
+                                        </div>
+                                        <div class="monitoring-metric">
+                                            <div class="monitoring-value">99.8%</div>
+                                            <div class="monitoring-label">Availability</div>
+                                            <div class="monitoring-status status-healthy">Healthy</div>
+                                        </div>
+                                        <div class="monitoring-metric">
+                                            <div class="monitoring-value">0.02%</div>
+                                            <div class="monitoring-label">Error Rate</div>
+                                            <div class="monitoring-status status-healthy">Healthy</div>
+                                        </div>
+                                        <div class="monitoring-metric">
+                                            <div class="monitoring-value">0.15</div>
+                                            <div class="monitoring-label">Data Drift</div>
+                                            <div class="monitoring-status status-warning">Monitor</div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    private string activeTab = "overview";
+    private string selectedModel = "customer-churn";
+    private string testInputData = "";
+    private string nlpInputText = "";
+    private string chatInput = "";
+    private string customerId = "";
+    private string recommendationType = "personalized";
+
+    // Mock data
+    private int totalModels = 12;
+    private int dailyPredictions = 25847;
+    private double averageAccuracy = 0.923;
+    private double uptime = 0.998;
+
+    private InferenceResult? inferenceResult;
+    private SentimentResult? sentimentResult;
+    private List<ChatMessage> chatMessages = new();
+    private List<RecommendationItem> recommendations = new();
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+    }
+
+    private async Task RunInference()
+    {
+        // Simulate inference
+        await Task.Delay(500);
+        
+        var random = new Random();
+        inferenceResult = new InferenceResult
+        {
+            Prediction = "High Risk",
+            Confidence = 0.87,
+            Probabilities = new Dictionary<string, double>
+            {
+                ["High Risk"] = 0.87,
+                ["Medium Risk"] = 0.11,
+                ["Low Risk"] = 0.02
+            }
+        };
+    }
+
+    private async Task AnalyzeSentiment()
+    {
+        if (string.IsNullOrWhiteSpace(nlpInputText)) return;
+        
+        await Task.Delay(300);
+        
+        // Simple sentiment analysis simulation
+        var positive = nlpInputText.ToLower().Contains("good") || nlpInputText.ToLower().Contains("great") || nlpInputText.ToLower().Contains("excellent");
+        var negative = nlpInputText.ToLower().Contains("bad") || nlpInputText.ToLower().Contains("terrible") || nlpInputText.ToLower().Contains("awful");
+        
+        sentimentResult = new SentimentResult
+        {
+            Sentiment = positive ? "Positive" : negative ? "Negative" : "Neutral",
+            Score = positive ? 0.85 : negative ? 0.15 : 0.50
+        };
+    }
+
+    private async Task SendChatMessage()
+    {
+        if (string.IsNullOrWhiteSpace(chatInput)) return;
+        
+        chatMessages.Add(new ChatMessage { Text = chatInput, Type = "user" });
+        var userInput = chatInput;
+        chatInput = "";
+        
+        await Task.Delay(500);
+        
+        // Simple bot response
+        var responses = new[]
+        {
+            "I understand your request. How can I help you further?",
+            "That's an interesting question. Let me analyze that for you.",
+            "Based on our AI analysis, I can provide you with more information.",
+            "I'm here to help with your VHouse AI platform questions."
+        };
+        
+        chatMessages.Add(new ChatMessage 
+        { 
+            Text = responses[new Random().Next(responses.Length)], 
+            Type = "bot" 
+        });
+    }
+
+    private async Task GenerateRecommendations()
+    {
+        await Task.Delay(800);
+        
+        recommendations = new List<RecommendationItem>
+        {
+            new() { Title = "Smart Home Hub", Score = 0.94, Reason = "Based on purchase history" },
+            new() { Title = "Wireless Earbuds", Score = 0.87, Reason = "Frequently bought together" },
+            new() { Title = "Bluetooth Speaker", Score = 0.82, Reason = "Similar customers liked" },
+            new() { Title = "Smart Watch", Score = 0.78, Reason = "Trending in your area" }
+        };
+    }
+
+    private async Task HandleChatKeyPress(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await SendChatMessage();
+        }
+    }
+
+    private async Task ExtractEntities()
+    {
+        // Placeholder for entity extraction
+        await Task.Delay(300);
+    }
+
+    private async Task SummarizeText()
+    {
+        // Placeholder for text summarization
+        await Task.Delay(500);
+    }
+
+    private string GetSentimentIcon(string sentiment)
+    {
+        return sentiment.ToLower() switch
+        {
+            "positive" => "smile",
+            "negative" => "frown",
+            _ => "meh"
+        };
+    }
+
+    private List<ModelInfo> GetActiveModels()
+    {
+        return new List<ModelInfo>
+        {
+            new() { Name = "Customer Churn Predictor", Type = "Classification", Status = "Active", Accuracy = 0.924, Version = "v2.1", DeployedAt = DateTime.Now.AddDays(-10) },
+            new() { Name = "Price Optimizer", Type = "Regression", Status = "Active", Accuracy = 0.891, Version = "v1.3", DeployedAt = DateTime.Now.AddDays(-5) },
+            new() { Name = "Fraud Detection", Type = "Classification", Status = "Staging", Accuracy = 0.967, Version = "v3.0", DeployedAt = DateTime.Now.AddDays(-2) },
+        };
+    }
+
+    // Simple model classes for demo
+    public class InferenceResult
+    {
+        public string Prediction { get; set; } = "";
+        public double Confidence { get; set; }
+        public Dictionary<string, double> Probabilities { get; set; } = new();
+    }
+
+    public class SentimentResult
+    {
+        public string Sentiment { get; set; } = "";
+        public double Score { get; set; }
+    }
+
+    public class ChatMessage
+    {
+        public string Text { get; set; } = "";
+        public string Type { get; set; } = "";
+    }
+
+    public class RecommendationItem
+    {
+        public string Title { get; set; } = "";
+        public double Score { get; set; }
+        public string Reason { get; set; } = "";
+    }
+
+    public class ModelInfo
+    {
+        public string Name { get; set; } = "";
+        public string Type { get; set; } = "";
+        public string Status { get; set; } = "";
+        public double Accuracy { get; set; }
+        public string Version { get; set; } = "";
+        public DateTime DeployedAt { get; set; }
+    }
+}

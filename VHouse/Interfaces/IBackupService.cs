@@ -304,19 +304,6 @@ namespace VHouse.Interfaces
         public string Summary { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// Validation result for disaster recovery tests.
-    /// </summary>
-    public class ValidationResult
-    {
-        public string ValidationName { get; set; } = string.Empty;
-        public bool Passed { get; set; }
-        public string Query { get; set; } = string.Empty;
-        public object? ExpectedResult { get; set; }
-        public object? ActualResult { get; set; }
-        public string Message { get; set; } = string.Empty;
-        public TimeSpan Duration { get; set; }
-    }
 
     /// <summary>
     /// Backup cleanup result.

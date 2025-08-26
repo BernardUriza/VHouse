@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VHouse.Interfaces;
+using VHouse.Classes;
 
 namespace VHouse.Services
 {
@@ -74,13 +75,15 @@ namespace VHouse.Services
             return new NextPurchasePrediction();
         }
 
-        public async Task<ProductRecommendations> GetPersonalizedRecommendationsAsync(string customerId, int count)
+        public async Task<PredictiveProductRecommendations> GetPersonalizedRecommendationsAsync(string customerId, int count)
         {
-            return new ProductRecommendations
+            return new PredictiveProductRecommendations
             {
                 CustomerId = customerId,
-                Products = new List<RecommendedProduct>(),
-                RecommendationType = "Collaborative Filtering"
+                Recommendations = new List<ProductRecommendation>(),
+                Algorithm = "Collaborative Filtering",
+                ConfidenceScore = 0.85,
+                GeneratedAt = DateTime.UtcNow
             };
         }
 

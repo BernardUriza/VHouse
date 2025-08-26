@@ -6,7 +6,7 @@ using System.Collections.Concurrent;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using VHouse.Interfaces;
-using VHouse.Models;
+using VHouse.Classes;
 using System.Text.Json;
 
 namespace VHouse.Services

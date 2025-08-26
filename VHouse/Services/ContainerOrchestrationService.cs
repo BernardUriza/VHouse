@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using VHouse.Interfaces;
+using VHouse.Classes;
 using System.Linq;
 
 namespace VHouse.Services
@@ -112,7 +113,7 @@ namespace VHouse.Services
         public async Task<bool> DeleteImageFromRegistryAsync(string imageName, string tag) => true;
         public async Task<ContainerServiceHealth> GetServiceHealthAsync(string serviceId) => new();
         public async Task<ContainerLogs> GetContainerLogsAsync(string containerId, LogQueryOptions options) => new();
-        public async Task<ContainerNetwork> CreateContainerNetworkAsync(NetworkConfiguration config) => new();
+        public async Task<ContainerNetwork> CreateContainerNetworkAsync(VHouse.Classes.ContainerNetworkConfiguration config) => new();
         public async Task<bool> AttachContainerToNetworkAsync(string containerId, string networkId) => true;
         public async Task<List<ContainerNetwork>> GetContainerNetworksAsync() => new();
         public async Task<bool> DeleteContainerNetworkAsync(string networkId) => true;

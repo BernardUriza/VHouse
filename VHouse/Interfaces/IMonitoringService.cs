@@ -115,8 +115,8 @@ namespace VHouse.Interfaces
     /// </summary>
     public class SystemHealthStatus
     {
-        public HealthStatus OverallStatus { get; set; } = HealthStatus.Healthy;
-        public Dictionary<string, ComponentHealth> Components { get; set; } = new();
+        public MonitoringHealthStatus OverallStatus { get; set; } = MonitoringHealthStatus.Healthy;
+        public Dictionary<string, MonitoringComponentHealth> Components { get; set; } = new();
         public SystemResources Resources { get; set; } = new();
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public TimeSpan Uptime { get; set; }
@@ -127,7 +127,7 @@ namespace VHouse.Interfaces
     /// <summary>
     /// Health status levels.
     /// </summary>
-    public enum HealthStatus
+    public enum MonitoringHealthStatus
     {
         Healthy,
         Degraded,
@@ -138,10 +138,10 @@ namespace VHouse.Interfaces
     /// <summary>
     /// Component health information.
     /// </summary>
-    public class ComponentHealth
+    public class MonitoringComponentHealth
     {
         public string Name { get; set; } = string.Empty;
-        public HealthStatus Status { get; set; } = HealthStatus.Healthy;
+        public MonitoringHealthStatus Status { get; set; } = MonitoringHealthStatus.Healthy;
         public string StatusMessage { get; set; } = string.Empty;
         public TimeSpan ResponseTime { get; set; }
         public DateTime LastChecked { get; set; } = DateTime.UtcNow;
@@ -210,16 +210,6 @@ namespace VHouse.Interfaces
         public double ChangePercentage { get; set; }
     }
 
-    /// <summary>
-    /// Trend direction enumeration.
-    /// </summary>
-    public enum TrendDirection
-    {
-        Stable,
-        Increasing,
-        Decreasing,
-        Volatile
-    }
 
     /// <summary>
     /// Monitoring alert information.
@@ -228,7 +218,7 @@ namespace VHouse.Interfaces
     {
         public string AlertId { get; set; } = Guid.NewGuid().ToString();
         public string AlertName { get; set; } = string.Empty;
-        public AlertSeverity Severity { get; set; }
+        public MonitoringAlertSeverity Severity { get; set; }
         public AlertType Type { get; set; }
         public string Description { get; set; } = string.Empty;
         public string Condition { get; set; } = string.Empty;
@@ -246,7 +236,7 @@ namespace VHouse.Interfaces
     /// <summary>
     /// Alert severity levels.
     /// </summary>
-    public enum AlertSeverity
+    public enum MonitoringAlertSeverity
     {
         Info,
         Warning,

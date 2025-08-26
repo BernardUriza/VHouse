@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using VHouse.Models;
+using VHouse.Classes;
 
 namespace VHouse.Interfaces
 {
