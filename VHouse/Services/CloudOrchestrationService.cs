@@ -41,19 +41,22 @@ namespace VHouse.Services
 
         #region Multi-Cloud Deployment
 
-        public async Task<DeploymentResult> DeployToCloudAsync(CloudProvider provider, DeploymentConfig config)
+        public async Task<DeploymentResult> DeployToCloudAsync(VHouse.Interfaces.CloudProvider provider, DeploymentConfig config)
         {
             var deploymentId = Guid.NewGuid().ToString();
             var deployment = new DeploymentResult
             {
                 DeploymentId = deploymentId,
-                Status = DeploymentStatus.Pending,
-                Provider = provider,
-                Region = config.Network?.SubnetId?.Split('-').FirstOrDefault() ?? "us-east-1",
-                StartTime = DateTime.UtcNow,
-                Resources = new List<DeployedResource>(),
+                Status = "Pending",
+                StartedAt = DateTime.UtcNow,
                 Errors = new List<string>(),
-                Outputs = new Dictionary<string, string>()
+                Metadata = new Dictionary<string, object>
+                {
+                    ["Provider"] = provider.ToString(),
+                    ["Region"] = "us-east-1",
+                    ["Resources"] = new List<object>(),
+                    ["Outputs"] = new Dictionary<string, string>()
+                }
             };
 
             _deployments[deploymentId] = deployment;
@@ -61,47 +64,46 @@ namespace VHouse.Services
             try
             {
                 _logger.LogInformation($"Starting deployment {deploymentId} to {provider}");
-                deployment.Status = DeploymentStatus.InProgress;
+                deployment.Status = "InProgress";
 
                 // Deploy based on provider
                 switch (provider)
                 {
-                    case CloudProvider.AWS:
+                    case VHouse.Interfaces.CloudProvider.AWS:
                         await DeployToAWSAsync(deployment, config);
                         break;
-                    case CloudProvider.Azure:
+                    case VHouse.Interfaces.CloudProvider.Azure:
                         await DeployToAzureAsync(deployment, config);
                         break;
-                    case CloudProvider.GCP:
+                    case VHouse.Interfaces.CloudProvider.GCP:
                         await DeployToGCPAsync(deployment, config);
                         break;
-                    case CloudProvider.DigitalOcean:
+                    case VHouse.Interfaces.CloudProvider.DigitalOcean:
                         await DeployToDigitalOceanAsync(deployment, config);
                         break;
-                    case CloudProvider.OnPremise:
+                    case VHouse.Interfaces.CloudProvider.OnPremise:
+                    default:
                         await DeployOnPremiseAsync(deployment, config);
                         break;
-                    default:
-                        throw new NotSupportedException($"Provider {provider} not supported");
                 }
 
-                deployment.Status = DeploymentStatus.Completed;
-                deployment.EndTime = DateTime.UtcNow;
+                deployment.Status = "Completed";
+                deployment.CompletedAt = DateTime.UtcNow;
 
                 await _monitoringService.RecordMetricAsync("cloud.deployment.success", 1,
-                    new Dictionary<string, object> { ["provider"] = provider.ToString() });
+                    new Dictionary<string, object> { ["provider"] = provider });
 
                 _logger.LogInformation($"Deployment {deploymentId} completed successfully");
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Deployment {deploymentId} failed");
-                deployment.Status = DeploymentStatus.Failed;
-                deployment.EndTime = DateTime.UtcNow;
+                deployment.Status = "Failed";
+                deployment.CompletedAt = DateTime.UtcNow;
                 deployment.Errors.Add(ex.Message);
 
                 await _monitoringService.RecordMetricAsync("cloud.deployment.failure", 1,
-                    new Dictionary<string, object> { ["provider"] = provider.ToString() });
+                    new Dictionary<string, object> { ["provider"] = provider });
             }
 
             return deployment;
@@ -123,25 +125,27 @@ namespace VHouse.Services
             primaryResult.DeploymentId = multiDeploymentId;
 
             // Aggregate results
-            var allResources = results.SelectMany(r => r.Resources).ToList();
+            var allResources = results.SelectMany(r => 
+                r.Metadata.ContainsKey("Resources") ? (r.Metadata["Resources"] as List<object> ?? new List<object>()) : new List<object>()
+            ).ToList();
             var allErrors = results.SelectMany(r => r.Errors).ToList();
 
-            primaryResult.Resources = allResources;
+            primaryResult.Metadata["Resources"] = allResources;
             primaryResult.Errors = allErrors;
-            primaryResult.Status = allErrors.Any() ? DeploymentStatus.Failed : DeploymentStatus.Completed;
+            primaryResult.Status = allErrors.Any() ? "Failed" : "Completed";
 
-            _logger.LogInformation($"Multi-cloud deployment {multiDeploymentId} completed with {results.Count(r => r.Status == DeploymentStatus.Completed)} successful deployments");
+            _logger.LogInformation($"Multi-cloud deployment {multiDeploymentId} completed with {results.Count(r => r.Status == "Completed")} successful deployments");
 
             return primaryResult;
         }
 
-        public async Task<DeploymentStatus> GetDeploymentStatusAsync(string deploymentId)
+        public async Task<VHouse.Classes.DeploymentStatus> GetDeploymentStatusAsync(string deploymentId)
         {
             if (_deployments.TryGetValue(deploymentId, out var deployment))
             {
-                return deployment.Status;
+                return new VHouse.Classes.DeploymentStatus { Status = deployment.Status };
             }
-            return DeploymentStatus.Failed;
+            return new VHouse.Classes.DeploymentStatus { Status = "Failed" };
         }
 
         public async Task<bool> RollbackDeploymentAsync(string deploymentId)
@@ -185,13 +189,16 @@ namespace VHouse.Services
         public async Task<ScalingResult> AutoScaleResourcesAsync(ScalingPolicy policy)
         {
             var scalingEventId = Guid.NewGuid().ToString();
-            var metrics = await GetScalingMetricsAsync(policy.ResourceId);
+            var metrics = await GetScalingMetricsAsync(policy.PolicyId);
             
             var result = new ScalingResult
             {
-                ScalingEventId = scalingEventId,
-                ExecutedAt = DateTime.UtcNow,
-                PreviousCapacity = metrics.CurrentInstances
+                ResourceId = policy.PolicyId,
+                Success = false,
+                OldInstanceCount = metrics.CurrentInstanceCount,
+                NewInstanceCount = metrics.CurrentInstanceCount,
+                Reason = "Scaling evaluation in progress",
+                ScaledAt = DateTime.UtcNow
             };
 
             try
@@ -200,46 +207,38 @@ namespace VHouse.Services
                 var shouldScaleUp = ShouldScaleUp(metrics, policy);
                 var shouldScaleDown = ShouldScaleDown(metrics, policy);
 
-                if (shouldScaleUp && metrics.CurrentInstances < policy.MaxInstances)
+                if (shouldScaleUp && result.OldInstanceCount < policy.MaxInstances)
                 {
                     var newCapacity = Math.Min(
-                        metrics.CurrentInstances + policy.ScaleUpAction.Amount,
+                        result.OldInstanceCount + 1, // Scale up by 1 instance
                         policy.MaxInstances);
                     
-                    await ScaleResource(policy.ResourceId, newCapacity);
+                    await ScaleResource(policy.PolicyId, newCapacity);
                     
                     result.Success = true;
-                    result.Direction = ScalingDirection.Up;
-                    result.NewCapacity = newCapacity;
-                    result.Reason = $"CPU utilization ({metrics.CpuUtilization:F1}%) exceeded threshold ({policy.ScaleUpThreshold}%)";
+                    result.NewInstanceCount = newCapacity;
+                    result.Reason = $"CPU utilization exceeded threshold ({policy.ScaleUpThreshold}%) - scaled up";
                 }
-                else if (shouldScaleDown && metrics.CurrentInstances > policy.MinInstances)
+                else if (shouldScaleDown && result.OldInstanceCount > policy.MinInstances)
                 {
                     var newCapacity = Math.Max(
-                        metrics.CurrentInstances - policy.ScaleDownAction.Amount,
+                        result.OldInstanceCount - 1, // Scale down by 1 instance
                         policy.MinInstances);
                     
-                    await ScaleResource(policy.ResourceId, newCapacity);
+                    await ScaleResource(policy.PolicyId, newCapacity);
                     
                     result.Success = true;
-                    result.Direction = ScalingDirection.Down;
-                    result.NewCapacity = newCapacity;
-                    result.Reason = $"CPU utilization ({metrics.CpuUtilization:F1}%) below threshold ({policy.ScaleDownThreshold}%)";
+                    result.NewInstanceCount = newCapacity;
+                    result.Reason = $"CPU utilization below threshold ({policy.ScaleDownThreshold}%) - scaled down";
                 }
                 else
                 {
                     result.Success = true;
-                    result.Direction = ScalingDirection.Stable;
-                    result.NewCapacity = metrics.CurrentInstances;
+                    result.NewInstanceCount = result.OldInstanceCount; // No change
                     result.Reason = "No scaling required - metrics within thresholds";
                 }
 
-                await _monitoringService.RecordMetricAsync("cloud.autoscaling.event", 1,
-                    new Dictionary<string, object>
-                    {
-                        ["direction"] = result.Direction.ToString(),
-                        ["resource"] = policy.ResourceId
-                    });
+                await _monitoringService.RecordMetricAsync("cloud.autoscaling.event", 1);
 
                 return result;
             }
@@ -261,11 +260,9 @@ namespace VHouse.Services
             return new ScalingMetrics
             {
                 ResourceId = resourceId,
-                CurrentInstances = random.Next(2, 10),
-                CpuUtilization = 50 + (random.NextDouble() * 40), // 50-90%
-                MemoryUtilization = 40 + (random.NextDouble() * 40), // 40-80%
-                NetworkUtilization = 20 + (random.NextDouble() * 60), // 20-80%
-                RequestsPerSecond = random.Next(100, 1000),
+                CurrentInstanceCount = random.Next(2, 10),
+                CurrentCPUUtilization = 50 + (random.NextDouble() * 40), // 50-90%
+                CurrentMemoryUtilization = 40 + (random.NextDouble() * 40), // 40-80%
                 LastScalingEvent = DateTime.UtcNow.AddMinutes(-random.Next(5, 120))
             };
         }
@@ -801,22 +798,31 @@ namespace VHouse.Services
             await Task.Delay(2000); // Simulate deployment time
 
             // Create resources
-            deployment.Resources.Add(new DeployedResource
+            var resources = deployment.Metadata["Resources"] as List<object> ?? new List<object>();
+            var outputs = deployment.Metadata["Outputs"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+            
+            var resourceId = $"i-{Guid.NewGuid().ToString()[..8]}";
+            var appName = config.Environment ?? "app";
+            
+            resources.Add(new Dictionary<string, object>
             {
-                ResourceId = $"i-{Guid.NewGuid().ToString()[..8]}",
-                Type = ResourceType.ComputeInstance,
-                Name = config.ApplicationName,
-                Status = "Running",
-                Endpoint = $"https://{config.ApplicationName}.amazonaws.com",
-                Properties = new Dictionary<string, string>
+                ["ResourceId"] = resourceId,
+                ["Type"] = "ComputeInstance",
+                ["Name"] = appName,
+                ["Status"] = "Running",
+                ["Endpoint"] = $"https://{appName}.amazonaws.com",
+                ["Properties"] = new Dictionary<string, object>
                 {
-                    ["InstanceType"] = config.Resources?.InstanceType ?? "t3.micro",
-                    ["Region"] = deployment.Region
+                    ["InstanceType"] = "t3.micro",
+                    ["Region"] = "us-east-1"
                 }
             });
-
-            deployment.Outputs["endpoint"] = $"https://{config.ApplicationName}.amazonaws.com";
-            deployment.Outputs["instance_id"] = deployment.Resources.First().ResourceId;
+            
+            outputs["endpoint"] = $"https://{appName}.amazonaws.com";
+            outputs["instance_id"] = resourceId;
+            
+            deployment.Metadata["Resources"] = resources;
+            deployment.Metadata["Outputs"] = outputs;
         }
 
         private async Task DeployToAzureAsync(DeploymentResult deployment, DeploymentConfig config)
@@ -825,22 +831,31 @@ namespace VHouse.Services
             _logger.LogInformation("Deploying to Azure");
             await Task.Delay(2000);
 
-            deployment.Resources.Add(new DeployedResource
+            var resources = deployment.Metadata["Resources"] as List<object> ?? new List<object>();
+            var outputs = deployment.Metadata["Outputs"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+            
+            var resourceId = $"vm-{Guid.NewGuid().ToString()[..8]}";
+            var appName = config.Environment ?? "app";
+            
+            resources.Add(new Dictionary<string, object>
             {
-                ResourceId = $"vm-{Guid.NewGuid().ToString()[..8]}",
-                Type = ResourceType.ComputeInstance,
-                Name = config.ApplicationName,
-                Status = "Running",
-                Endpoint = $"https://{config.ApplicationName}.azurewebsites.net",
-                Properties = new Dictionary<string, string>
+                ["ResourceId"] = resourceId,
+                ["Type"] = "ComputeInstance",
+                ["Name"] = appName,
+                ["Status"] = "Running",
+                ["Endpoint"] = $"https://{appName}.azurewebsites.net",
+                ["Properties"] = new Dictionary<string, object>
                 {
-                    ["VMSize"] = config.Resources?.InstanceType ?? "Standard_B1s",
-                    ["Location"] = deployment.Region
+                    ["VMSize"] = "Standard_B1s",
+                    ["Location"] = "eastus"
                 }
             });
-
-            deployment.Outputs["endpoint"] = $"https://{config.ApplicationName}.azurewebsites.net";
-            deployment.Outputs["vm_id"] = deployment.Resources.First().ResourceId;
+            
+            outputs["endpoint"] = $"https://{appName}.azurewebsites.net";
+            outputs["vm_id"] = resourceId;
+            
+            deployment.Metadata["Resources"] = resources;
+            deployment.Metadata["Outputs"] = outputs;
         }
 
         private async Task DeployToGCPAsync(DeploymentResult deployment, DeploymentConfig config)
@@ -849,22 +864,32 @@ namespace VHouse.Services
             _logger.LogInformation("Deploying to GCP");
             await Task.Delay(2000);
 
-            deployment.Resources.Add(new DeployedResource
+            // Store resource information in metadata
+            var resources = deployment.Metadata["Resources"] as List<object> ?? new List<object>();
+            var outputs = deployment.Metadata["Outputs"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+            
+            var resourceId = $"instance-{Guid.NewGuid().ToString()[..8]}";
+            var appName = config.Environment ?? "app";
+            
+            resources.Add(new Dictionary<string, object>
             {
-                ResourceId = $"instance-{Guid.NewGuid().ToString()[..8]}",
-                Type = ResourceType.ComputeInstance,
-                Name = config.ApplicationName,
-                Status = "Running",
-                Endpoint = $"https://{config.ApplicationName}.appspot.com",
-                Properties = new Dictionary<string, string>
+                ["ResourceId"] = resourceId,
+                ["Type"] = "ComputeInstance",
+                ["Name"] = appName,
+                ["Status"] = "Running",
+                ["Endpoint"] = $"https://{appName}.appspot.com",
+                ["Properties"] = new Dictionary<string, object>
                 {
-                    ["MachineType"] = config.Resources?.InstanceType ?? "e2-micro",
-                    ["Zone"] = deployment.Region
+                    ["MachineType"] = "e2-micro",
+                    ["Zone"] = "us-central1"
                 }
             });
-
-            deployment.Outputs["endpoint"] = $"https://{config.ApplicationName}.appspot.com";
-            deployment.Outputs["instance_id"] = deployment.Resources.First().ResourceId;
+            
+            outputs["endpoint"] = $"https://{appName}.appspot.com";
+            outputs["instance_id"] = resourceId;
+            
+            deployment.Metadata["Resources"] = resources;
+            deployment.Metadata["Outputs"] = outputs;
         }
 
         private async Task DeployToDigitalOceanAsync(DeploymentResult deployment, DeploymentConfig config)
@@ -873,22 +898,32 @@ namespace VHouse.Services
             _logger.LogInformation("Deploying to DigitalOcean");
             await Task.Delay(1500);
 
-            deployment.Resources.Add(new DeployedResource
+            var resources = deployment.Metadata["Resources"] as List<object> ?? new List<object>();
+            var outputs = deployment.Metadata["Outputs"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+            
+            var resourceId = $"droplet-{Guid.NewGuid().ToString()[..8]}";
+            var appName = config.Environment ?? "app";
+            var endpoint = $"https://{GenerateRandomIP()}";
+            
+            resources.Add(new Dictionary<string, object>
             {
-                ResourceId = $"droplet-{Guid.NewGuid().ToString()[..8]}",
-                Type = ResourceType.ComputeInstance,
-                Name = config.ApplicationName,
-                Status = "Active",
-                Endpoint = $"https://{GenerateRandomIP()}",
-                Properties = new Dictionary<string, string>
+                ["ResourceId"] = resourceId,
+                ["Type"] = "ComputeInstance",
+                ["Name"] = appName,
+                ["Status"] = "Active",
+                ["Endpoint"] = endpoint,
+                ["Properties"] = new Dictionary<string, object>
                 {
-                    ["Size"] = config.Resources?.InstanceType ?? "s-1vcpu-1gb",
-                    ["Region"] = deployment.Region
+                    ["Size"] = "s-1vcpu-1gb",
+                    ["Region"] = "nyc1"
                 }
             });
-
-            deployment.Outputs["endpoint"] = deployment.Resources.First().Endpoint;
-            deployment.Outputs["droplet_id"] = deployment.Resources.First().ResourceId;
+            
+            outputs["endpoint"] = endpoint;
+            outputs["droplet_id"] = resourceId;
+            
+            deployment.Metadata["Resources"] = resources;
+            deployment.Metadata["Outputs"] = outputs;
         }
 
         private async Task DeployOnPremiseAsync(DeploymentResult deployment, DeploymentConfig config)
@@ -897,34 +932,44 @@ namespace VHouse.Services
             _logger.LogInformation("Deploying on-premise");
             await Task.Delay(3000);
 
-            deployment.Resources.Add(new DeployedResource
+            var resources = deployment.Metadata["Resources"] as List<object> ?? new List<object>();
+            var outputs = deployment.Metadata["Outputs"] as Dictionary<string, string> ?? new Dictionary<string, string>();
+            
+            var resourceId = $"server-{Guid.NewGuid().ToString()[..8]}";
+            var appName = config.Environment ?? "app";
+            var endpoint = $"https://internal-{appName}.local";
+            
+            resources.Add(new Dictionary<string, object>
             {
-                ResourceId = $"server-{Guid.NewGuid().ToString()[..8]}",
-                Type = ResourceType.ComputeInstance,
-                Name = config.ApplicationName,
-                Status = "Running",
-                Endpoint = $"https://internal-{config.ApplicationName}.local",
-                Properties = new Dictionary<string, string>
+                ["ResourceId"] = resourceId,
+                ["Type"] = "ComputeInstance",
+                ["Name"] = appName,
+                ["Status"] = "Running",
+                ["Endpoint"] = endpoint,
+                ["Properties"] = new Dictionary<string, object>
                 {
                     ["ServerType"] = "Physical",
                     ["Location"] = "Datacenter-A"
                 }
             });
-
-            deployment.Outputs["endpoint"] = deployment.Resources.First().Endpoint;
-            deployment.Outputs["server_id"] = deployment.Resources.First().ResourceId;
+            
+            outputs["endpoint"] = endpoint;
+            outputs["server_id"] = resourceId;
+            
+            deployment.Metadata["Resources"] = resources;
+            deployment.Metadata["Outputs"] = outputs;
         }
 
         private bool ShouldScaleUp(ScalingMetrics metrics, ScalingPolicy policy)
         {
-            return metrics.CpuUtilization > policy.ScaleUpThreshold ||
-                   metrics.MemoryUtilization > policy.ScaleUpThreshold;
+            return metrics.CurrentCPUUtilization > policy.ScaleUpThreshold ||
+                   metrics.CurrentMemoryUtilization > policy.ScaleUpThreshold;
         }
 
         private bool ShouldScaleDown(ScalingMetrics metrics, ScalingPolicy policy)
         {
-            return metrics.CpuUtilization < policy.ScaleDownThreshold &&
-                   metrics.MemoryUtilization < policy.ScaleDownThreshold;
+            return metrics.CurrentCPUUtilization < policy.ScaleDownThreshold &&
+                   metrics.CurrentMemoryUtilization < policy.ScaleDownThreshold;
         }
 
         private async Task ScaleResource(string resourceId, int newCapacity)

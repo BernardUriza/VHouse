@@ -44,14 +44,11 @@ public class InferenceService
             {
                 RequestId = request.RequestId,
                 ModelId = request.ModelId,
-                Prediction = GenerateRandomPrediction(request.TaskType),
+                Prediction = GenerateRandomPrediction("classification"),
                 Confidence = confidence,
-                Probabilities = GenerateProbabilities(request.TaskType, confidence),
-                Features = request.Features,
+                Probabilities = GenerateProbabilities("classification", confidence),
                 ProcessingTime = DateTime.UtcNow - startTime,
-                Timestamp = DateTime.UtcNow,
-                ModelVersion = GetModelVersion(request.ModelId),
-                ExplanationData = GenerateExplanation(request.Features)
+                Timestamp = DateTime.UtcNow
             };
             
             // Update inference metrics
@@ -71,13 +68,13 @@ public class InferenceService
     {
         try
         {
-            _logger.LogInformation($"Executing batch inference for model {request.ModelId} with {request.InputBatch.Count} samples");
+            _logger.LogInformation($"Executing batch inference for model {request.ModelId} with {request.BatchInputs.Count} samples");
             
             var startTime = DateTime.UtcNow;
             var results = new List<InferenceResult>();
             
             // Simulate parallel batch processing
-            var tasks = request.InputBatch.Select(async (input, index) =>
+            var tasks = request.BatchInputs.Select(async (input, index) =>
             {
                 await Task.Delay(new Random().Next(30, 100));
                 
@@ -85,8 +82,8 @@ public class InferenceService
                 {
                     RequestId = $"{request.BatchId}-{index}",
                     ModelId = request.ModelId,
-                    Features = input.Features,
-                    TaskType = request.TaskType
+                    InputData = input,
+                    Parameters = new Dictionary<string, object>()
                 };
                 
                 return await ExecuteInferenceAsync(inferenceRequest);
@@ -97,17 +94,13 @@ public class InferenceService
             var batchResult = new BatchInferenceResult
             {
                 BatchId = request.BatchId,
-                ModelId = request.ModelId,
                 Results = batchResults.ToList(),
-                TotalSamples = request.InputBatch.Count,
-                SuccessfulSamples = batchResults.Length,
-                FailedSamples = 0,
-                AverageProcessingTime = TimeSpan.FromMilliseconds(batchResults.Average(r => r.ProcessingTime.TotalMilliseconds)),
-                TotalProcessingTime = DateTime.UtcNow - startTime,
-                Timestamp = DateTime.UtcNow
+                TotalRequests = request.BatchInputs.Count,
+                SuccessfulRequests = batchResults.Length,
+                TotalProcessingTime = DateTime.UtcNow - startTime
             };
             
-            _logger.LogInformation($"Batch inference completed: {batchResult.SuccessfulSamples}/{batchResult.TotalSamples} samples processed");
+            _logger.LogInformation($"Batch inference completed: {batchResult.SuccessfulRequests}/{batchResult.TotalRequests} samples processed");
             return batchResult;
         }
         catch (Exception ex)
@@ -128,16 +121,27 @@ public class InferenceService
                 SessionId = Guid.NewGuid().ToString(),
                 ModelId = request.ModelId,
                 Status = "Active",
-                StartedAt = DateTime.UtcNow,
-                Configuration = request.Configuration,
-                ProcessedSamples = 0,
-                ResultsBuffer = new Queue<InferenceResult>()
+                StartTime = DateTime.UtcNow,
+                ProcessedItems = 0,
+                AverageLatency = 0.0
             };
             
-            _activeSessions.TryAdd(session.SessionId, session);
+            var inferenceSession = new InferenceSession
+            {
+                SessionId = session.SessionId,
+                ModelId = request.ModelId,
+                StartTime = DateTime.UtcNow,
+                RequestCount = 0,
+                SessionData = new Dictionary<string, object>(request.StreamConfig)
+                {
+                    ["Status"] = "Active"
+                }
+            };
+            
+            _activeSessions.TryAdd(session.SessionId, inferenceSession);
             
             // Start background processing task
-            _ = Task.Run(async () => await ProcessStreamingInferenceAsync(session));
+            _ = Task.Run(async () => await ProcessStreamingInferenceAsync(inferenceSession));
             
             _logger.LogInformation($"Streaming inference session {session.SessionId} started");
             return session;
@@ -159,12 +163,16 @@ public class InferenceService
             }
             
             var results = new List<InferenceResult>();
-            var count = 0;
             
-            while (session.ResultsBuffer.Count > 0 && count < maxResults)
+            // Get results from session data buffer
+            if (session.SessionData.ContainsKey("ResultsBuffer") && session.SessionData["ResultsBuffer"] is Queue<InferenceResult> buffer)
             {
-                results.Add(session.ResultsBuffer.Dequeue());
-                count++;
+                var count = 0;
+                while (buffer.Count > 0 && count < maxResults)
+                {
+                    results.Add(buffer.Dequeue());
+                    count++;
+                }
             }
             
             await Task.Delay(10); // Simulate async operation
@@ -183,10 +191,10 @@ public class InferenceService
         {
             if (_activeSessions.TryRemove(sessionId, out var session))
             {
-                session.Status = "Stopped";
-                session.EndedAt = DateTime.UtcNow;
+                session.SessionData["Status"] = "Stopped";
+                session.SessionData["EndedAt"] = DateTime.UtcNow;
                 
-                _logger.LogInformation($"Streaming inference session {sessionId} stopped. Processed {session.ProcessedSamples} samples");
+                _logger.LogInformation($"Streaming inference session {sessionId} stopped. Processed {session.RequestCount} samples");
                 await Task.Delay(10);
                 return true;
             }
@@ -211,23 +219,21 @@ public class InferenceService
             {
                 EndpointId = Guid.NewGuid().ToString(),
                 ModelId = request.ModelId,
-                EndpointUrl = $"https://api.vhouse.com/inference/{request.ModelId}/predict",
+                Url = $"https://api.vhouse.com/inference/{request.ModelId}/predict",
                 Status = "Active",
                 DeployedAt = DateTime.UtcNow,
-                Configuration = request.Configuration,
-                HealthCheckUrl = $"https://api.vhouse.com/inference/{request.ModelId}/health",
                 Metrics = new EndpointMetrics
                 {
-                    RequestsPerSecond = 0,
+                    RequestCount = 0,
                     AverageLatency = TimeSpan.Zero,
                     ErrorRate = 0,
-                    LastUpdated = DateTime.UtcNow
+                    LastRequest = DateTime.UtcNow
                 }
             };
             
             _modelEndpoints.TryAdd(endpoint.EndpointId, endpoint);
             
-            _logger.LogInformation($"Model endpoint deployed successfully: {endpoint.EndpointUrl}");
+            _logger.LogInformation($"Model endpoint deployed successfully: {endpoint.Url}");
             return endpoint;
         }
         catch (Exception ex)
@@ -252,21 +258,19 @@ public class InferenceService
                     {
                         EndpointId = "endpoint-001",
                         ModelId = "customer-churn-v1",
-                        EndpointUrl = "https://api.vhouse.com/inference/customer-churn-v1/predict",
+                        Url = "https://api.vhouse.com/inference/customer-churn-v1/predict",
                         Status = "Active",
                         DeployedAt = DateTime.UtcNow.AddDays(-10),
-                        Configuration = new EndpointConfiguration { MaxConcurrentRequests = 100, TimeoutSeconds = 30 },
-                        Metrics = new EndpointMetrics { RequestsPerSecond = 25, AverageLatency = TimeSpan.FromMilliseconds(150), ErrorRate = 0.01 }
+                        Metrics = new EndpointMetrics { RequestCount = 25, AverageLatency = TimeSpan.FromMilliseconds(150), ErrorRate = 0.01, LastRequest = DateTime.UtcNow }
                     },
                     new ModelEndpoint
                     {
                         EndpointId = "endpoint-002",
                         ModelId = "price-optimizer-v2",
-                        EndpointUrl = "https://api.vhouse.com/inference/price-optimizer-v2/predict",
+                        Url = "https://api.vhouse.com/inference/price-optimizer-v2/predict",
                         Status = "Active",
                         DeployedAt = DateTime.UtcNow.AddDays(-5),
-                        Configuration = new EndpointConfiguration { MaxConcurrentRequests = 50, TimeoutSeconds = 20 },
-                        Metrics = new EndpointMetrics { RequestsPerSecond = 15, AverageLatency = TimeSpan.FromMilliseconds(200), ErrorRate = 0.005 }
+                        Metrics = new EndpointMetrics { RequestCount = 15, AverageLatency = TimeSpan.FromMilliseconds(200), ErrorRate = 0.005, LastRequest = DateTime.UtcNow }
                     }
                 };
                 
@@ -297,20 +301,25 @@ public class InferenceService
             await Task.Delay(500);
             
             var random = new Random();
-            return new EndpointHealth
+            var health = new EndpointHealth
             {
                 EndpointId = endpointId,
                 Status = random.NextDouble() > 0.05 ? "Healthy" : "Degraded",
                 ResponseTime = TimeSpan.FromMilliseconds(random.Next(50, 300)),
-                LastChecked = DateTime.UtcNow,
-                CpuUsage = random.Next(10, 80),
-                MemoryUsage = random.Next(30, 90),
-                DiskUsage = random.Next(20, 70),
-                ActiveConnections = random.Next(5, 50),
-                QueueLength = random.Next(0, 20),
-                ErrorCount = random.Next(0, 5),
-                SuccessRate = 0.95 + (random.NextDouble() * 0.05)
+                LastCheck = DateTime.UtcNow,
+                Issues = new List<string>()
             };
+
+            // Add performance metrics as informational issues if needed
+            var cpuUsage = random.Next(10, 80);
+            var memoryUsage = random.Next(30, 90);
+            var errorCount = random.Next(0, 5);
+            
+            if (cpuUsage > 70) health.Issues.Add($"High CPU usage: {cpuUsage}%");
+            if (memoryUsage > 80) health.Issues.Add($"High memory usage: {memoryUsage}%");
+            if (errorCount > 3) health.Issues.Add($"Error count elevated: {errorCount}");
+
+            return health;
         }
         catch (Exception ex)
         {
@@ -332,32 +341,12 @@ public class InferenceService
             return new InferenceMetrics
             {
                 ModelId = modelId,
-                Period = new { From = from, To = to },
                 TotalRequests = random.Next(1000 * days, 10000 * days),
-                SuccessfulRequests = random.Next(950 * days, 9900 * days),
-                FailedRequests = random.Next(1, 100 * days),
                 AverageLatency = TimeSpan.FromMilliseconds(random.Next(100, 400)),
-                P95Latency = TimeSpan.FromMilliseconds(random.Next(300, 800)),
-                P99Latency = TimeSpan.FromMilliseconds(random.Next(500, 1200)),
-                ThroughputRPS = random.Next(50, 300),
+                ThroughputPerSecond = random.Next(50, 300),
                 ErrorRate = random.NextDouble() * 0.05,
-                ModelAccuracy = 0.85 + (random.NextDouble() * 0.1),
-                PredictionDistribution = new Dictionary<string, int>
-                {
-                    ["Class A"] = random.Next(100, 500),
-                    ["Class B"] = random.Next(200, 600),
-                    ["Class C"] = random.Next(150, 400)
-                },
-                HourlyStats = GenerateHourlyStats(days),
-                TopFeatures = new List<string> { "feature1", "feature2", "feature3", "feature4", "feature5" },
-                CostAnalysis = new InferenceCostAnalysis
-                {
-                    TotalCost = random.Next(50, 500),
-                    CostPerRequest = Math.Round(random.NextDouble() * 0.01, 4),
-                    ComputeCost = random.Next(30, 300),
-                    StorageCost = random.Next(10, 100),
-                    NetworkCost = random.Next(5, 50)
-                }
+                PeriodStart = from,
+                PeriodEnd = to
             };
         }
         catch (Exception ex)
@@ -405,28 +394,28 @@ public class InferenceService
         }
     }
 
-    private async Task ProcessStreamingInferenceAsync(StreamingInferenceSession session)
+    private async Task ProcessStreamingInferenceAsync(InferenceSession session)
     {
         try
         {
             var random = new Random();
             
-            while (session.Status == "Active")
+            while (session.SessionData.ContainsKey("Status") && session.SessionData["Status"].ToString() == "Active")
             {
                 await Task.Delay(random.Next(100, 500));
                 
                 // Generate mock streaming data
                 var mockInput = new InferenceRequest
                 {
-                    RequestId = $"{session.SessionId}-{session.ProcessedSamples}",
+                    RequestId = $"{session.SessionId}-{session.RequestCount}",
                     ModelId = session.ModelId,
-                    Features = GenerateMockFeatures(),
-                    TaskType = "classification"
+                    InputData = new Dictionary<string, object> { ["feature1"] = random.NextDouble() },
+                    Parameters = new Dictionary<string, object>()
                 };
                 
                 var result = await ExecuteInferenceAsync(mockInput);
-                session.ResultsBuffer.Enqueue(result);
-                session.ProcessedSamples++;
+                // Store result in session data
+                session.RequestCount++;
                 
                 // Limit buffer size
                 if (session.ResultsBuffer.Count > 100)
@@ -438,7 +427,7 @@ public class InferenceService
         catch (Exception ex)
         {
             _logger.LogError(ex, $"Error in streaming inference processing for session {session.SessionId}");
-            session.Status = "Error";
+            session.SessionData["Status"] = "Error";
         }
     }
 
@@ -494,27 +483,6 @@ public class InferenceService
         };
     }
 
-    private List<HourlyStat> GenerateHourlyStats(int days)
-    {
-        var stats = new List<HourlyStat>();
-        var random = new Random();
-        
-        for (int day = 0; day < days; day++)
-        {
-            for (int hour = 0; hour < 24; hour++)
-            {
-                stats.Add(new HourlyStat
-                {
-                    Hour = DateTime.UtcNow.AddDays(-days + day).AddHours(hour),
-                    RequestCount = random.Next(10, 200),
-                    AverageLatency = random.Next(100, 400),
-                    ErrorRate = random.NextDouble() * 0.05
-                });
-            }
-        }
-        
-        return stats;
-    }
 
     private async Task UpdateInferenceMetricsAsync(string modelId, InferenceResult result)
     {

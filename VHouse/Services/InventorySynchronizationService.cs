@@ -342,7 +342,7 @@ namespace VHouse.Services
                 await _cachingService.SetAsync(cacheKey, movements, TimeSpan.FromMinutes(10));
 
                 _logger.LogInformation("Retrieved {MovementCount} inventory movements for tenant {TenantId} from {FromDate} to {ToDate}",
-                    movements.Items.Count, tenantId, fromDate, toDate);
+                    movements.Items.Count, tenantId, fromDate.ToString(), toDate.ToString());
 
                 return movements;
             }

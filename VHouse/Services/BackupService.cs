@@ -5,6 +5,7 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 using VHouse.Interfaces;
+using VHouse.Classes;
 
 namespace VHouse.Services
 {

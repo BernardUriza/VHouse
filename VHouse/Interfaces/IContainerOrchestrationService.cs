@@ -33,5 +33,9 @@ namespace VHouse.Interfaces
         Task<bool> AttachContainerToNetworkAsync(string containerId, string networkId);
         Task<List<ContainerNetwork>> GetContainerNetworksAsync();
         Task<bool> DeleteContainerNetworkAsync(string networkId);
+        
+        // Additional methods for Infrastructure Dashboard
+        Task<List<ContainerService>> GetContainerServicesAsync();
+        Task<bool> RestartContainerServiceAsync(string serviceId);
     }
 }

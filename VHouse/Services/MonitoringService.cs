@@ -217,13 +217,13 @@ namespace VHouse.Services
                 // Determine overall status
                 var componentStatuses = healthStatus.Components.Values.Select(c => c.Status).ToList();
                 if (componentStatuses.Any(s => s == HealthStatus.Critical))
-                    healthStatus.OverallStatus = HealthStatus.Critical;
-                else if (componentStatuses.Any(s => s == HealthStatus.Unhealthy))
-                    healthStatus.OverallStatus = HealthStatus.Unhealthy;
-                else if (componentStatuses.Any(s => s == HealthStatus.Degraded))
-                    healthStatus.OverallStatus = HealthStatus.Degraded;
+                    healthStatus.OverallStatus = "Critical";
+                else if (componentStatuses.Any(s => s == "Unhealthy"))
+                    healthStatus.OverallStatus = "Unhealthy";
+                else if (componentStatuses.Any(s => s == "Degraded"))
+                    healthStatus.OverallStatus = "Degraded";
                 else
-                    healthStatus.OverallStatus = HealthStatus.Healthy;
+                    healthStatus.OverallStatus = "Healthy";
 
                 return healthStatus;
             }
@@ -232,11 +232,11 @@ namespace VHouse.Services
                 _logger.LogError(ex, "Error getting system health");
                 return new SystemHealthStatus
                 {
-                    OverallStatus = HealthStatus.Critical,
+                    OverallStatus = "Critical",
                     Components = { ["System"] = new ComponentHealth 
                     { 
                         Name = "System", 
-                        Status = HealthStatus.Critical, 
+                        Status = "Critical", 
                         StatusMessage = "Health check failed: " + ex.Message 
                     }}
                 };
@@ -449,7 +449,7 @@ namespace VHouse.Services
                     await TriggerAlertAsync(new MonitoringAlert
                     {
                         AlertName = "Critical Application Error",
-                        Severity = AlertSeverity.Critical,
+                        Severity = MonitoringAlertSeverity.Critical,
                         Type = AlertType.Error,
                         Description = $"Critical error in {error.Source}: {error.Message}",
                         Source = error.Source,
@@ -674,7 +674,7 @@ namespace VHouse.Services
                     await TriggerAlertAsync(new MonitoringAlert
                     {
                         AlertName = $"Critical {metricName}",
-                        Severity = AlertSeverity.Critical,
+                        Severity = MonitoringAlertSeverity.Critical,
                         Type = AlertType.Performance,
                         Description = $"{metricName} has reached critical level",
                         Condition = $"{metricName} >= {threshold.critical}",
@@ -688,7 +688,7 @@ namespace VHouse.Services
                     await TriggerAlertAsync(new MonitoringAlert
                     {
                         AlertName = $"Warning {metricName}",
-                        Severity = AlertSeverity.Warning,
+                        Severity = MonitoringAlertSeverity.Warning,
                         Type = AlertType.Performance,
                         Description = $"{metricName} has reached warning level",
                         Condition = $"{metricName} >= {threshold.warning}",
@@ -711,19 +711,26 @@ namespace VHouse.Services
 
                 return new ComponentHealth
                 {
+                    ComponentId = Guid.NewGuid().ToString(),
                     Name = "Database",
-                    Status = HealthStatus.Healthy,
-                    StatusMessage = "Database is responding normally",
-                    ResponseTime = stopwatch.Elapsed
+                    Type = "Database",
+                    Status = "Healthy",
+                    HealthScore = 1.0,
+                    Metrics = new List<HealthMetric>(),
+                    LastChecked = DateTime.UtcNow
                 };
             }
             catch (Exception ex)
             {
                 return new ComponentHealth
                 {
+                    ComponentId = Guid.NewGuid().ToString(),
                     Name = "Database",
-                    Status = HealthStatus.Unhealthy,
-                    StatusMessage = $"Database check failed: {ex.Message}"
+                    Type = "Database",
+                    Status = "Unhealthy",
+                    HealthScore = 0.0,
+                    Metrics = new List<HealthMetric>(),
+                    LastChecked = DateTime.UtcNow
                 };
             }
         }
@@ -739,19 +746,26 @@ namespace VHouse.Services
 
                 return new ComponentHealth
                 {
+                    ComponentId = Guid.NewGuid().ToString(),
                     Name = "Cache",
-                    Status = result == "test" ? HealthStatus.Healthy : HealthStatus.Degraded,
-                    StatusMessage = result == "test" ? "Cache is working properly" : "Cache is not responding correctly",
-                    ResponseTime = stopwatch.Elapsed
+                    Type = "Cache",
+                    Status = result == "test" ? "Healthy" : "Degraded",
+                    HealthScore = result == "test" ? 1.0 : 0.5,
+                    Metrics = new List<HealthMetric>(),
+                    LastChecked = DateTime.UtcNow
                 };
             }
             catch (Exception ex)
             {
                 return new ComponentHealth
                 {
+                    ComponentId = Guid.NewGuid().ToString(),
                     Name = "Cache",
-                    Status = HealthStatus.Unhealthy,
-                    StatusMessage = $"Cache check failed: {ex.Message}"
+                    Type = "Cache",
+                    Status = "Unhealthy",
+                    HealthScore = 0.0,
+                    Metrics = new List<HealthMetric>(),
+                    LastChecked = DateTime.UtcNow
                 };
             }
         }
@@ -761,9 +775,13 @@ namespace VHouse.Services
             // Placeholder for external service health checks
             return await Task.FromResult(new ComponentHealth
             {
+                ComponentId = Guid.NewGuid().ToString(),
                 Name = "ExternalServices",
-                Status = HealthStatus.Healthy,
-                StatusMessage = "All external services are healthy"
+                Type = "ExternalService",
+                Status = "Healthy",
+                HealthScore = 1.0,
+                Metrics = new List<HealthMetric>(),
+                LastChecked = DateTime.UtcNow
             });
         }
 

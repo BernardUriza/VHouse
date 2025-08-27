@@ -21,11 +21,11 @@
         </div>
         <div class="price-type-buttons">
             <button type="button" class="price-btn @(selectedPriceType == "public" ? "active" : "")" 
-                    @onclick="() => SetPriceType(\"public\")">PÚBLICO</button>
+                    @onclick='() => SetPriceType("public")'>PÚBLICO</button>
             <button type="button" class="price-btn @(selectedPriceType == "retail" ? "active" : "")" 
-                    @onclick="() => SetPriceType(\"retail\")">POS</button>
+                    @onclick='() => SetPriceType("retail")'>POS</button>
             <button type="button" class="price-btn @(selectedPriceType == "cost" ? "active" : "")" 
-                    @onclick="() => SetPriceType(\"cost\")">COSTO</button>
+                    @onclick='() => SetPriceType("cost")'>COSTO</button>
         </div>
     </div>
 </div>

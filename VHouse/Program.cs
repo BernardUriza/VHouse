@@ -117,7 +117,7 @@ builder.Services.AddResponseCompression(options =>
 
 // Register repositories and unit of work
 builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
+builder.Services.AddScoped<VHouse.Repositories.IUnitOfWork, VHouse.Repositories.UnitOfWork>();
 
 // Add FluentValidation
 builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();

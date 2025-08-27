@@ -8,6 +8,9 @@ public class LiveMetrics
     public string MetricCategory { get; set; } = string.Empty;
     public Dictionary<string, double> Metrics { get; set; } = new();
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    
+    public string Category { get; set; } = string.Empty;
+    public Dictionary<string, double> Values { get; set; } = new();
 }
 
 public class PerformanceAnalytics
@@ -32,6 +35,10 @@ public class TrendQuery
     public DateTime FromDate { get; set; }
     public DateTime ToDate { get; set; }
     public string Granularity { get; set; } = "daily";
+    
+    public string MetricName { get; set; } = string.Empty;
+    public TimeSpan WindowSize { get; set; } = TimeSpan.FromDays(30);
+    public bool AnalyzeSeasonality { get; set; } = false;
 }
 
 public class TrendAnalysis
@@ -188,6 +195,8 @@ public class SegmentationResult
     public string SegmentationId { get; set; } = string.Empty;
     public List<DataSegment> Segments { get; set; } = new();
     public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+    
+    public DateTime ProcessedAt { get; set; } = DateTime.UtcNow;
 }
 
 public class DataSegment
@@ -231,6 +240,8 @@ public class ScheduledReport
     public string ScheduleId { get; set; } = string.Empty;
     public string Status { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+    
+    public ReportSchedule Schedule { get; set; } = new();
 }
 
 public class ReportStatus
@@ -239,6 +250,9 @@ public class ReportStatus
     public string Status { get; set; } = string.Empty;
     public int Progress { get; set; }
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    
+    public static string Scheduled { get; set; } = "Scheduled";
+    public static string NotFound { get; set; } = "NotFound";
 }
 
 public class KeyPerformanceIndicator
@@ -282,6 +296,10 @@ public class Insight
     public string Category { get; set; } = string.Empty;
     public double Confidence { get; set; }
     public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
+    
+    public string Type { get; set; } = string.Empty;
+    public string Impact { get; set; } = string.Empty;
+    public List<string> Recommendations { get; set; } = new();
 }
 
 public class Series
@@ -296,6 +314,9 @@ public class DataPoint
     public DateTime Timestamp { get; set; }
     public double Value { get; set; }
     public Dictionary<string, object> Context { get; set; } = new();
+    
+    public DateTime X { get; set; }
+    public double Y { get; set; }
 }
 
 public class AxisConfiguration
@@ -312,9 +333,12 @@ public class AnalyticsQuery
     public string QueryType { get; set; } = string.Empty;
     public DateTime FromDate { get; set; }
     public DateTime ToDate { get; set; }
+    public DateTime StartDate { get; set; }
+    public DateTime EndDate { get; set; }
     public List<string> Metrics { get; set; } = new();
     public Dictionary<string, object> Filters { get; set; } = new();
     public string Granularity { get; set; } = "hourly";
+    public string ApiId { get; set; } = string.Empty;
 }
 
 public class RealtimeReport
@@ -441,6 +465,7 @@ public class BusinessEvent
     public DateTime Timestamp { get; set; }
     public Dictionary<string, object> Data { get; set; } = new();
     public string Source { get; set; } = string.Empty;
+    public Dictionary<string, object> Payload { get; set; } = new();
 }
 
 public class ForecastResult

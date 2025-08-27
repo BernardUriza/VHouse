@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using VHouse.Interfaces;
 using VHouse.Classes;
+using VHouse.Repositories;
 using System.Text.Json;
 using System.Threading;
 
@@ -16,7 +17,7 @@ namespace VHouse.Services
     {
         private readonly ILogger<AnalyticsService> _logger;
         private readonly IDistributedCache _cache;
-        private readonly IUnitOfWork _unitOfWork;
+        private readonly VHouse.Repositories.IUnitOfWork _unitOfWork;
         private readonly IMonitoringService _monitoringService;
         private readonly ConcurrentDictionary<string, StreamProcessor> _activeStreams;
         private readonly ConcurrentDictionary<string, ScheduledReport> _scheduledReports;
@@ -26,7 +27,7 @@ namespace VHouse.Services
         public AnalyticsService(
             ILogger<AnalyticsService> logger,
             IDistributedCache cache,
-            IUnitOfWork unitOfWork,
+            VHouse.Repositories.IUnitOfWork unitOfWork,
             IMonitoringService monitoringService)
         {
             _logger = logger;
@@ -130,16 +131,14 @@ namespace VHouse.Services
                 if (await IsAnomalousEvent(businessEvent))
                 {
                     result.TriggeredAlerts.Add($"Anomaly detected in {businessEvent.EventType}");
-                    await _monitoringService.RecordAlertAsync(
+                    await _monitoringService.RecordMetricAsync(
                         $"analytics.anomaly.{businessEvent.EventType}",
-                        AlertLevel.Warning,
-                        $"Anomalous event detected: {businessEvent.EventId}",
-                        businessEvent.Payload);
+                        1);
                 }
                 
-                // Calculate processing metrics
-                result.ProcessingLatency = DateTime.UtcNow - startTime;
-                result.Processed = true;
+                // Store processing time in results
+                result.Results["ProcessingTime"] = DateTime.UtcNow - startTime;
+                result.Results["Processed"] = true;
                 
                 // Store event for batch processing
                 await StoreEventForBatchProcessing(businessEvent);
@@ -151,7 +150,7 @@ namespace VHouse.Services
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Error processing event stream for event {businessEvent.EventId}");
-                result.Processed = false;
+                result.Results["Processed"] = false;
                 throw;
             }
         }
@@ -160,10 +159,9 @@ namespace VHouse.Services
         {
             var metrics = new LiveMetrics
             {
-                Category = metricCategory,
+                MetricCategory = metricCategory,
                 Timestamp = DateTime.UtcNow,
-                Values = new Dictionary<string, double>(),
-                Trends = new Dictionary<string, TrendDirection>()
+                Metrics = new Dictionary<string, double>()
             };
 
             try
@@ -209,12 +207,17 @@ namespace VHouse.Services
                 
                 var forecast = new ForecastResult
                 {
-                    ForecastId = forecastId,
-                    ModelType = "ARIMA_SEASONAL",
+                    PredictionId = forecastId,
+                    Confidence = 0.85,
+                    ForecastData = new Dictionary<string, object>
+                    {
+                        ["ModelType"] = "ARIMA_SEASONAL",
+                        ["Predictions"] = new List<object>(),
+                        ["ModelMetrics"] = new Dictionary<string, double>(),
+                        ["Recommendations"] = new List<string>()
+                    },
                     GeneratedAt = DateTime.UtcNow,
-                    Predictions = new List<ForecastPoint>(),
-                    ModelMetrics = new Dictionary<string, double>(),
-                    Recommendations = new List<string>()
+                    Points = new List<VHouse.Classes.PredictionPoint>()
                 };
 
                 // Retrieve historical data
@@ -222,31 +225,38 @@ namespace VHouse.Services
                 
                 // Apply time series analysis
                 var model = new TimeSeriesModel(historicalData);
-                var predictions = model.Forecast(parameters.ForecastHorizon);
+                var forecastDays = 30; // Default forecast horizon
+                if (parameters.Features.ContainsKey("ForecastHorizon"))
+                {
+                    int.TryParse(parameters.Features["ForecastHorizon"]?.ToString(), out forecastDays);
+                }
+                var predictions = model.Forecast(forecastDays);
                 
                 // Calculate confidence intervals
                 foreach (var prediction in predictions)
                 {
-                    var forecastPoint = new ForecastPoint
+                    var forecastPoint = new VHouse.Classes.PredictionPoint
                     {
                         Date = prediction.Date,
                         Value = prediction.Value,
-                        LowerBound = prediction.Value * 0.85, // 15% lower bound
-                        UpperBound = prediction.Value * 1.15, // 15% upper bound
-                        Confidence = CalculateConfidence(prediction, historicalData)
+                        Confidence = CalculateConfidence(prediction, historicalData),
+                        LowerBound = prediction.Value * 0.85,
+                        UpperBound = prediction.Value * 1.15
                     };
-                    forecast.Predictions.Add(forecastPoint);
+                    forecast.Points.Add(forecastPoint);
                 }
                 
                 // Calculate model metrics
-                forecast.ModelMetrics["MAPE"] = model.MeanAbsolutePercentageError;
-                forecast.ModelMetrics["RMSE"] = model.RootMeanSquareError;
-                forecast.ModelMetrics["R2"] = model.RSquared;
-                forecast.ConfidenceLevel = model.OverallConfidence;
-                forecast.MeanAbsoluteError = model.MeanAbsoluteError;
+                var modelMetrics = (Dictionary<string, double>)forecast.ForecastData["ModelMetrics"];
+                modelMetrics["MAPE"] = model.MeanAbsolutePercentageError;
+                modelMetrics["RMSE"] = model.RootMeanSquareError;
+                modelMetrics["R2"] = model.RSquared;
+                modelMetrics["OverallConfidence"] = model.OverallConfidence;
+                modelMetrics["MeanAbsoluteError"] = model.MeanAbsoluteError;
                 
                 // Generate recommendations
-                forecast.Recommendations = GenerateDemandRecommendations(forecast, parameters);
+                var recommendations = GenerateDemandRecommendations(forecast, parameters);
+                forecast.ForecastData["Recommendations"] = recommendations;
                 
                 await _monitoringService.RecordMetricAsync("analytics.forecast.generated", 1);
                 
@@ -267,35 +277,34 @@ namespace VHouse.Services
                 {
                     AnalysisId = Guid.NewGuid().ToString(),
                     GeneratedAt = DateTime.UtcNow,
-                    Trends = new List<Trend>(),
-                    Patterns = new List<Pattern>(),
-                    Seasonality = new SeasonalityAnalysis()
+                    TrendPoints = new List<TrendPoint>(),
+                    TrendDirection = "Unknown"
                 };
 
                 // Retrieve time series data
                 var data = await GetTimeSeriesData(query);
                 
                 // Identify trends using moving averages
-                var movingAverage = CalculateMovingAverage(data, query.WindowSize ?? 7);
+                var windowSize = 7; // Default window size
+                var movingAverage = CalculateMovingAverage(data, windowSize);
                 var trendDirection = DetermineTrendDirection(movingAverage);
                 
-                analysis.Trends.Add(new Trend
-                {
-                    Name = query.MetricName,
-                    Direction = trendDirection,
-                    Strength = CalculateTrendStrength(data),
-                    StartValue = data.FirstOrDefault()?.Value ?? 0,
-                    EndValue = data.LastOrDefault()?.Value ?? 0,
-                    ChangePercent = CalculateChangePercent(data)
-                });
+                analysis.TrendDirection = trendDirection.ToString();
                 
-                // Detect patterns
-                analysis.Patterns = DetectPatterns(data);
-                
-                // Analyze seasonality
-                if (query.AnalyzeSeasonality)
+                // Convert data to TrendPoints
+                foreach (var dataPoint in data)
                 {
-                    analysis.Seasonality = await AnalyzeSeasonalityAsync(data);
+                    analysis.TrendPoints.Add(new TrendPoint
+                    {
+                        Timestamp = dataPoint.Timestamp,
+                        Value = dataPoint.Value,
+                        Context = new Dictionary<string, object>
+                        {
+                            ["MovingAverage"] = movingAverage.FirstOrDefault(ma => ma.Timestamp == dataPoint.Timestamp)?.Value ?? dataPoint.Value,
+                            ["TrendStrength"] = CalculateTrendStrength(data),
+                            ["ChangePercent"] = CalculateChangePercent(data)
+                        }
+                    });
                 }
                 
                 return analysis;
@@ -316,7 +325,7 @@ namespace VHouse.Services
                 {
                     KPIs = new List<KeyPerformanceIndicator>(),
                     Trends = new List<Trend>(),
-                    Opportunities = new List<Opportunity>(),
+                    Opportunities = new List<BusinessOpportunity>(),
                     Risks = new List<Risk>(),
                     ExecutiveSummary = new Dictionary<string, object>()
                 };
@@ -352,12 +361,12 @@ namespace VHouse.Services
         {
             var salesData = await _unitOfWork.Orders.GetAllAsync();
             var filteredSales = salesData.Where(o => 
-                o.OrderDate >= query.StartDate && 
-                o.OrderDate <= query.EndDate);
+                o.OrderDate >= query.FromDate && 
+                o.OrderDate <= query.ToDate);
 
             // Calculate metrics
-            report.Summary["TotalRevenue"] = filteredSales.Sum(o => o.TotalAmount);
-            report.Summary["AverageOrderValue"] = filteredSales.Any() ? filteredSales.Average(o => o.TotalAmount) : 0;
+            report.Summary["TotalRevenue"] = (double)filteredSales.Sum(o => o.TotalAmount);
+            report.Summary["AverageOrderValue"] = filteredSales.Any() ? (double)filteredSales.Average(o => o.TotalAmount) : 0;
             report.Summary["OrderCount"] = filteredSales.Count();
             
             // Generate sales chart
@@ -374,8 +383,8 @@ namespace VHouse.Services
                             .GroupBy(o => o.OrderDate.Date)
                             .Select(g => new DataPoint
                             {
-                                X = g.Key.ToString("yyyy-MM-dd"),
-                                Y = g.Sum(o => o.TotalAmount)
+                                Timestamp = g.Key,
+                                Value = (double)g.Sum(o => o.TotalAmount)
                             })
                             .ToList()
                     }
@@ -396,7 +405,7 @@ namespace VHouse.Services
 
         private async Task ProcessInventoryAnalytics(AnalyticsQuery query, AnalyticsReport report)
         {
-            var inventory = await _unitOfWork.Inventory.GetAllAsync();
+            var inventory = await _unitOfWork.Products.GetAllAsync();
             
             report.Summary["TotalProducts"] = inventory.Count();
             report.Summary["TotalValue"] = inventory.Sum(i => i.Price * i.Quantity);
@@ -485,7 +494,7 @@ namespace VHouse.Services
             }
             
             var orders = await _unitOfWork.Orders.GetAllAsync();
-            var avg = orders.Any() ? orders.Average(o => o.TotalAmount) : 0;
+            var avg = orders.Any() ? (double)orders.Average(o => o.TotalAmount) : 0;
             
             await _cache.SetStringAsync(cacheKey, avg.ToString(),
                 new DistributedCacheEntryOptions
@@ -617,9 +626,21 @@ namespace VHouse.Services
         {
             if (_scheduledReports.TryGetValue(reportId, out var report))
             {
-                return report.Status;
+                return new ReportStatus
+                {
+                    ReportId = reportId,
+                    Status = report.Status,
+                    Progress = 100,
+                    LastUpdated = DateTime.UtcNow
+                };
             }
-            return ReportStatus.NotFound;
+            return new ReportStatus
+            {
+                ReportId = reportId,
+                Status = ReportStatus.NotFound,
+                Progress = 0,
+                LastUpdated = DateTime.UtcNow
+            };
         }
 
         public async Task<bool> CancelScheduledReportAsync(string reportId)
@@ -737,9 +758,9 @@ namespace VHouse.Services
             return new List<Trend>();
         }
 
-        private async Task<List<Opportunity>> IdentifyOpportunitiesAsync(List<KeyPerformanceIndicator> kpis, List<Trend> trends)
+        private async Task<List<BusinessOpportunity>> IdentifyOpportunitiesAsync(List<KeyPerformanceIndicator> kpis, List<Trend> trends)
         {
-            return new List<Opportunity>();
+            return new List<BusinessOpportunity>();
         }
 
         private async Task<List<Risk>> AssessBusinessRisksAsync(List<KeyPerformanceIndicator> kpis, List<Trend> trends)
@@ -816,15 +837,18 @@ namespace VHouse.Services
             MeanAbsoluteError = 8.5;
         }
 
-        public List<PredictionPoint> Forecast(int horizon)
+        public List<VHouse.Classes.PredictionPoint> Forecast(int horizon)
         {
-            var predictions = new List<PredictionPoint>();
+            var predictions = new List<VHouse.Classes.PredictionPoint>();
             for (int i = 0; i < horizon; i++)
             {
-                predictions.Add(new PredictionPoint
+                predictions.Add(new VHouse.Classes.PredictionPoint
                 {
                     Date = DateTime.UtcNow.AddDays(i + 1),
-                    Value = 1000 + (i * 50)
+                    Value = 1000 + (i * 50),
+                    Confidence = 0.85,
+                    LowerBound = 800 + (i * 40),
+                    UpperBound = 1200 + (i * 60)
                 });
             }
             return predictions;
@@ -834,29 +858,5 @@ namespace VHouse.Services
     // Model classes for Analytics
 
 
-    public class PredictionPoint
-    {
-        public DateTime Date { get; set; }
-        public double Value { get; set; }
-    }
-
-    public class DataPoint
-    {
-        public string X { get; set; }
-        public double Y { get; set; }
-        public double Value { get; set; }
-    }
-
-    public class Series
-    {
-        public string Name { get; set; }
-        public List<DataPoint> Data { get; set; }
-    }
-
-    public class AxisConfiguration
-    {
-        public string Label { get; set; }
-        public string Type { get; set; }
-    }
 
 }

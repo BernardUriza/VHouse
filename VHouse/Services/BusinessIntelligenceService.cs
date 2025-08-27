@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Caching.Distributed;
 using VHouse.Interfaces;
 using VHouse.Classes;
+using VHouse.Repositories;
 using System.Text.Json;
 
 namespace VHouse.Services
@@ -415,7 +416,7 @@ namespace VHouse.Services
             {
                 case "revenue":
                     var orders = await _unitOfWork.Orders.GetAllAsync();
-                    value = orders.Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
+                    value = (double)orders.Where(o => o.OrderDate >= startDate && o.OrderDate <= endDate)
                         .Sum(o => o.TotalAmount);
                     target = 100000;
                     break;

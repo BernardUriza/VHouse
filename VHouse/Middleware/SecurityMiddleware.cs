@@ -128,7 +128,7 @@ namespace VHouse.Middleware
             else if (validationResult.IsRateLimited)
             {
                 context.Response.StatusCode = (int)HttpStatusCode.TooManyRequests;
-                context.Response.Headers.Add("Retry-After", validationResult.RetryAfter?.TotalSeconds.ToString());
+                context.Response.Headers.Append("Retry-After", validationResult.RetryAfter?.TotalSeconds.ToString());
                 await context.Response.WriteAsync("Rate limit exceeded. Please try again later.");
                 
                 _logger.LogWarning("Rate limited request from {IpAddress} on {Path}: {Message}",

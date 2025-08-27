@@ -11,7 +11,8 @@ namespace VHouse.Interfaces
         Azure,
         GCP,
         DigitalOcean,
-        Hybrid
+        Hybrid,
+        OnPremise
     }
     
     public interface ICloudOrchestrationService

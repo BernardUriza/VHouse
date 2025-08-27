@@ -108,6 +108,7 @@ namespace VHouse.Interfaces
         public string Name { get; set; }
         public string Type { get; set; }
         public string Status { get; set; }
+        public string StatusMessage { get; set; } = string.Empty;
         public double HealthScore { get; set; }
         public List<HealthMetric> Metrics { get; set; }
         public DateTime LastChecked { get; set; }

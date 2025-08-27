@@ -115,8 +115,8 @@ namespace VHouse.Interfaces
     /// </summary>
     public class SystemHealthStatus
     {
-        public MonitoringHealthStatus OverallStatus { get; set; } = MonitoringHealthStatus.Healthy;
-        public Dictionary<string, MonitoringComponentHealth> Components { get; set; } = new();
+        public string OverallStatus { get; set; } = "Healthy";
+        public Dictionary<string, ComponentHealth> Components { get; set; } = new();
         public SystemResources Resources { get; set; } = new();
         public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
         public TimeSpan Uptime { get; set; }
@@ -124,30 +124,9 @@ namespace VHouse.Interfaces
         public string Environment { get; set; } = string.Empty;
     }
 
-    /// <summary>
-    /// Health status levels.
-    /// </summary>
-    public enum MonitoringHealthStatus
-    {
-        Healthy,
-        Degraded,
-        Unhealthy,
-        Critical
-    }
 
-    /// <summary>
-    /// Component health information.
-    /// </summary>
-    public class MonitoringComponentHealth
-    {
-        public string Name { get; set; } = string.Empty;
-        public MonitoringHealthStatus Status { get; set; } = MonitoringHealthStatus.Healthy;
-        public string StatusMessage { get; set; } = string.Empty;
-        public TimeSpan ResponseTime { get; set; }
-        public DateTime LastChecked { get; set; } = DateTime.UtcNow;
-        public Dictionary<string, object> Details { get; set; } = new();
-        public List<string> Dependencies { get; set; } = new();
-    }
+
+
 
     /// <summary>
     /// System resource utilization.

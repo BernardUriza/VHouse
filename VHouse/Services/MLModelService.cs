@@ -28,51 +28,39 @@ public class MLModelService
         {
             await Task.Delay(300);
             
-            return new List<ModelRegistry>
+            var registry = new ModelRegistry
             {
-                new ModelRegistry
+                RegistryId = "main-registry",
+                Name = "VHouse Model Registry",
+                Description = "Main ML model registry",
+                CreatedAt = DateTime.UtcNow.AddDays(-60),
+                Models = new List<RegisteredModel>
                 {
-                    Id = "model-001",
-                    Name = "Customer Churn Predictor",
-                    Version = "2.1.0",
-                    Type = "Classification",
-                    Framework = "XGBoost",
-                    Status = "Production",
-                    Accuracy = 0.94,
-                    CreatedAt = DateTime.UtcNow.AddDays(-30),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-5),
-                    Tags = new List<string> { "churn", "customer", "classification" },
-                    Description = "Predicts customer churn likelihood based on behavior patterns"
-                },
-                new ModelRegistry
-                {
-                    Id = "model-002",
-                    Name = "Price Optimization Engine",
-                    Version = "1.5.2",
-                    Type = "Regression",
-                    Framework = "TensorFlow",
-                    Status = "Staging",
-                    Accuracy = 0.89,
-                    CreatedAt = DateTime.UtcNow.AddDays(-20),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-3),
-                    Tags = new List<string> { "pricing", "optimization", "regression" },
-                    Description = "Optimizes product pricing based on demand and competition"
-                },
-                new ModelRegistry
-                {
-                    Id = "model-003",
-                    Name = "Fraud Detection System",
-                    Version = "3.0.1",
-                    Type = "Classification",
-                    Framework = "PyTorch",
-                    Status = "Production",
-                    Accuracy = 0.97,
-                    CreatedAt = DateTime.UtcNow.AddDays(-45),
-                    UpdatedAt = DateTime.UtcNow.AddDays(-2),
-                    Tags = new List<string> { "fraud", "security", "classification" },
-                    Description = "Detects fraudulent transactions in real-time"
+                    new RegisteredModel
+                    {
+                        ModelId = "model-001",
+                        Name = "Customer Churn Predictor",
+                        Version = "2.1.0",
+                        RegisteredAt = DateTime.UtcNow.AddDays(-30)
+                    },
+                    new RegisteredModel
+                    {
+                        ModelId = "model-002",
+                        Name = "Price Optimization Engine",
+                        Version = "1.5.2",
+                        RegisteredAt = DateTime.UtcNow.AddDays(-20)
+                    },
+                    new RegisteredModel
+                    {
+                        ModelId = "model-003",
+                        Name = "Fraud Detection System",
+                        Version = "3.0.1",
+                        RegisteredAt = DateTime.UtcNow.AddDays(-45)
+                    }
                 }
             };
+            
+            return new List<ModelRegistry> { registry };
         }
         catch (Exception ex)
         {
@@ -88,22 +76,21 @@ public class MLModelService
             _logger.LogInformation($"Registering model: {registration.Name}");
             await Task.Delay(1000);
             
-            return new ModelRegistry
+            var registeredModel = new RegisteredModel
             {
-                Id = Guid.NewGuid().ToString(),
+                ModelId = registration.ModelId,
                 Name = registration.Name,
                 Version = registration.Version,
-                Type = registration.Type,
-                Framework = registration.Framework,
-                Status = "Development",
-                Accuracy = registration.Accuracy,
-                CreatedAt = DateTime.UtcNow,
-                UpdatedAt = DateTime.UtcNow,
-                Tags = registration.Tags,
+                RegisteredAt = DateTime.UtcNow
+            };
+            
+            return new ModelRegistry
+            {
+                RegistryId = Guid.NewGuid().ToString(),
+                Name = $"{registration.Name} Registry",
                 Description = registration.Description,
-                ModelPath = $"/models/{registration.Name.ToLower().Replace(" ", "-")}/{registration.Version}",
-                ConfigPath = $"/configs/{registration.Name.ToLower().Replace(" ", "-")}/{registration.Version}",
-                ChecksumMD5 = GenerateChecksum()
+                Models = new List<RegisteredModel> { registeredModel },
+                CreatedAt = DateTime.UtcNow
             };
         }
         catch (Exception ex)
@@ -124,20 +111,18 @@ public class MLModelService
             {
                 VersionId = request.Version,
                 ModelId = modelId,
-                ModelName = request.ModelName,
+                ModelName = $"Model-{modelId}",
                 CreatedAt = DateTime.UtcNow,
-                Accuracy = request.Accuracy,
+                Accuracy = 0.85, // Default accuracy
                 Status = "Development",
-                Changes = request.Changes,
-                TrainingDataset = request.TrainingDataset,
+                Changes = request.Description,
+                TrainingDataset = "training-dataset",
                 TrainingMetrics = new Dictionary<string, double>
                 {
-                    ["precision"] = request.Accuracy * 0.95,
-                    ["recall"] = request.Accuracy * 0.92,
-                    ["f1_score"] = request.Accuracy * 0.93
-                },
-                ModelSize = request.ModelSizeBytes,
-                Dependencies = request.Dependencies
+                    ["precision"] = 0.85,
+                    ["recall"] = 0.82,
+                    ["f1_score"] = 0.83
+                }
             };
         }
         catch (Exception ex)

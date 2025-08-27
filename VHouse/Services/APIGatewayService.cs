@@ -193,7 +193,7 @@ public class APIGatewayService : IAPIGatewayService
             
             var analytics = new APIAnalytics
             {
-                ApiId = query.ApiId ?? "global",
+                ApiId = query.Filters.ContainsKey("ApiId") ? query.Filters["ApiId"].ToString() : "global",
                 Period = DateTime.UtcNow,
                 TotalRequests = totalRequests,
                 SuccessfulRequests = successfulRequests,
@@ -355,14 +355,14 @@ public class APIGatewayService : IAPIGatewayService
     {
         try
         {
-            _logger.LogInformation($"Validating API request {request.RequestId}");
+            _logger.LogInformation($"Validating API request for {request.APIEndpoint}");
             await Task.Delay(80);
             
             var issues = new List<string>();
             var isValid = true;
             
             // Mock validation logic
-            if (string.IsNullOrEmpty(request.ApiKey))
+            if (request.Headers.ContainsKey("ApiKey") && string.IsNullOrEmpty(request.Headers["ApiKey"]?.ToString()))
             {
                 issues.Add("API key is required");
                 isValid = false;
@@ -376,16 +376,21 @@ public class APIGatewayService : IAPIGatewayService
             
             return new VHouse.Classes.ValidationResult
             {
+                ValidationId = Guid.NewGuid().ToString(),
                 IsValid = isValid,
-                RequestId = request.RequestId,
-                Issues = issues,
-                ValidationScore = isValid ? 1.0 : 0.5,
-                RecommendedAction = isValid ? "ALLOW" : "REJECT"
+                Errors = issues.Select(issue => new ValidationError { ErrorMessage = issue, Severity = "Error" }).ToList(),
+                ValidatedAt = DateTime.UtcNow,
+                ValidationMetadata = new Dictionary<string, object>
+                {
+                    ["ValidationScore"] = isValid ? 1.0 : 0.5,
+                    ["RecommendedAction"] = isValid ? "ALLOW" : "REJECT",
+                    ["APIEndpoint"] = request.APIEndpoint
+                }
             };
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, $"Error validating API request {request.RequestId}");
+            _logger.LogError(ex, $"Error validating API request for {request.APIEndpoint}");
             throw;
         }
     }

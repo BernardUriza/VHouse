@@ -118,7 +118,7 @@
                                 </div>
                                 <div class="detail-item">
                                     <span>Cost:</span>
-                                    <span>$@resource.Cost?.MonthlyCost.ToString("N2")/month</span>
+                                    <span>$@resource.MonthlyCost.ToString("N2")/month</span>
                                 </div>
                                 <div class="detail-item">
                                     <span>Created:</span>
@@ -188,11 +188,11 @@
                             {
                                 <tr>
                                     <td>
-                                        <strong>@service.Name</strong>
+                                        <strong>@service.ServiceName</strong>
                                         <br><small class="text-muted">@service.ServiceId</small>
                                     </td>
-                                    <td>@service.ImageName:@service.ImageTag</td>
-                                    <td>@service.RunningReplicas/@service.DesiredReplicas</td>
+                                    <td>@service.ImageName</td>
+                                    <td>@service.Replicas</td>
                                     <td>
                                         <span class="badge @GetServiceStatusBadge(service.Status)">
                                             @service.Status
@@ -390,7 +390,7 @@
             {
                 totalResources = cloudResources.Count;
                 healthyResources = cloudResources.Count(r => r.Status == "Running");
-                monthlyCost = cloudResources.Sum(r => r.Cost?.MonthlyCost ?? 0);
+                monthlyCost = (double)cloudResources.Sum(r => r.Cost?.MonthlyCost ?? 0);
             }
             
             if (containerServices.Any())
@@ -440,17 +440,17 @@
         }
     }
 
-    private string GetResourceIcon(ResourceType type)
+    private string GetResourceIcon(string type)
     {
-        return type switch
+        return type?.ToLower() switch
         {
-            ResourceType.ComputeInstance => "fas fa-server",
-            ResourceType.Database => "fas fa-database",
-            ResourceType.LoadBalancer => "fas fa-balance-scale",
-            ResourceType.Storage => "fas fa-hdd",
-            ResourceType.Network => "fas fa-network-wired",
-            ResourceType.Container => "fas fa-cube",
-            ResourceType.Function => "fas fa-bolt",
+            "computeinstance" or "compute" => "fas fa-server",
+            "database" => "fas fa-database",
+            "loadbalancer" => "fas fa-balance-scale",
+            "storage" => "fas fa-hdd",
+            "network" => "fas fa-network-wired",
+            "container" => "fas fa-cube",
+            "function" => "fas fa-bolt",
             _ => "fas fa-box"
         };
     }

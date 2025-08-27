@@ -1268,6 +1268,10 @@ public class ModelRestore
     public string BackupId { get; set; } = string.Empty;
     public string ModelId { get; set; } = string.Empty;
     public DateTime RestoreTime { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime CompletedAt { get; set; }
+    public List<string> RestoredFiles { get; set; } = new();
+    public ModelValidationResults ValidationResults { get; set; } = new();
     public string Status { get; set; } = string.Empty;
 }
 
@@ -1276,6 +1280,7 @@ public class ModelExportConfig
     public string ModelId { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
     public string TargetPlatform { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
     public Dictionary<string, object> ExportOptions { get; set; } = new();
 }
 
@@ -1285,14 +1290,20 @@ public class ModelExport
     public string ModelId { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
     public string ExportPath { get; set; } = string.Empty;
+    public string ExportLocation { get; set; } = string.Empty;
     public long FileSize { get; set; }
     public DateTime ExportTime { get; set; }
+    public DateTime CreatedAt { get; set; }
+    public DateTime ExpiresAt { get; set; }
+    public string DownloadUrl { get; set; } = string.Empty;
+    public Dictionary<string, object> Metadata { get; set; } = new();
     public string Status { get; set; } = string.Empty;
 }
 
 public class ModelImportConfig
 {
     public string SourcePath { get; set; } = string.Empty;
+    public string SourceLocation { get; set; } = string.Empty;
     public string Format { get; set; } = string.Empty;
     public string ModelName { get; set; } = string.Empty;
     public Dictionary<string, object> ImportOptions { get; set; } = new();
@@ -1301,15 +1312,45 @@ public class ModelImportConfig
 public class ModelImport
 {
     public string ImportId { get; set; } = string.Empty;
+    public string ImportedModelId { get; set; } = string.Empty;
     public string ModelId { get; set; } = string.Empty;
     public string SourcePath { get; set; } = string.Empty;
+    public string SourceLocation { get; set; } = string.Empty;
+    public string ModelName { get; set; } = string.Empty;
+    public string Framework { get; set; } = string.Empty;
     public DateTime ImportTime { get; set; }
+    public DateTime StartedAt { get; set; }
+    public DateTime CompletedAt { get; set; }
     public string Status { get; set; } = string.Empty;
+    public List<string> ImportedFiles { get; set; } = new();
+    public ModelValidationResults ValidationResults { get; set; } = new();
+    public bool ConversionRequired { get; set; }
+    public double EstimatedAccuracy { get; set; }
+}
+
+public class ModelValidationResults
+{
+    public bool Passed { get; set; }
+    public bool ChecksumMatch { get; set; }
+    public double IntegrityScore { get; set; }
+    public List<string> Issues { get; set; } = new();
+}
+
+public class DriftAnalysis
+{
+    public string AnalysisId { get; set; } = string.Empty;
+    public double DriftScore { get; set; }
+    public bool HasDrift { get; set; }
+    public string DriftType { get; set; } = string.Empty;
+    public Dictionary<string, object> DriftMetrics { get; set; } = new();
+    public DateTime AnalyzedAt { get; set; } = DateTime.UtcNow;
+    public List<string> RecommendedActions { get; set; } = new();
 }
 
 public class AccuracyDataPoint
 {
     public DateTime Timestamp { get; set; }
+    public DateTime Date { get; set; }
     public double Accuracy { get; set; }
     public string DatasetUsed { get; set; } = string.Empty;
 }
@@ -1317,7 +1358,9 @@ public class AccuracyDataPoint
 public class LatencyDataPoint
 {
     public DateTime Timestamp { get; set; }
+    public DateTime Date { get; set; }
     public TimeSpan Latency { get; set; }
+    public double LatencyMs { get; set; }
     public int RequestCount { get; set; }
 }
 
@@ -1713,6 +1756,16 @@ public class IntentModel
 // Additional ML Model classes
 public class ModelMetrics
 {
+    public string ModelId { get; set; } = string.Empty;
+    public DateTime Period { get; set; }
+    public int PredictionCount { get; set; }
+    public TimeSpan AverageLatency { get; set; }
+    public double ThroughputRPS { get; set; }
+    public double ErrorRate { get; set; }
+    public List<AccuracyDataPoint> AccuracyTrend { get; set; } = new();
+    public List<LatencyDataPoint> LatencyTrend { get; set; } = new();
+    public Dictionary<string, object> UsagePatterns { get; set; } = new();
+    public DriftAnalysis DriftAnalysis { get; set; } = new();
     public double Accuracy { get; set; }
     public double Precision { get; set; }
     public double Recall { get; set; }
@@ -1735,6 +1788,18 @@ public class PredictiveProductRecommendations
     public double Confidence { get; set; }
     public DateTime GeneratedAt { get; set; } = DateTime.UtcNow;
     public Dictionary<string, object> PersonalizationFactors { get; set; } = new();
+    
+    // Instance properties for backwards compatibility
+    public string CustomerId { get; set; } = string.Empty;
+    public List<RecommendedItem> Recommendations { get; set; } = new();
+    
+    public static string Algorithm { get; set; } = string.Empty;
+    public static double ConfidenceScore { get; set; }
+}
+
+// Alias for backwards compatibility
+public class ProductRecommendation : RecommendedItem
+{
 }
 
 public class ResourceRequirements

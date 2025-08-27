@@ -301,6 +301,7 @@ public class ERPConnection
 // General Integration models
 public class IntegrationValidationRequest
 {
+    public string RequestId { get; set; } = string.Empty;
     public string IntegrationType { get; set; } = string.Empty;
     public Dictionary<string, object> Data { get; set; } = new();
     public List<string> ValidationRules { get; set; } = new();
@@ -310,11 +311,16 @@ public class IntegrationValidationRequest
 public class ValidationResult
 {
     public string ValidationId { get; set; } = string.Empty;
+    public string RequestId { get; set; } = string.Empty;
     public bool IsValid { get; set; }
     public List<ValidationError> Errors { get; set; } = new();
     public List<ValidationWarning> Warnings { get; set; } = new();
+    public List<string> Issues { get; set; } = new();
+    public double ValidationScore { get; set; }
+    public string RecommendedAction { get; set; } = string.Empty;
     public DateTime ValidatedAt { get; set; } = DateTime.UtcNow;
     public Dictionary<string, object> ValidationMetadata { get; set; } = new();
+    public bool Passed { get; set; }
 }
 
 public class ValidationError

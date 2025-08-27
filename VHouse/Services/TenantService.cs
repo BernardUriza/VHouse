@@ -34,8 +34,8 @@ namespace VHouse.Services
 
                 var pagedResult = await query.ToPagedResultAsync(page, pageSize);
                 
-                _logger.LogInformation("Retrieved {Count} active tenants for page {Page}", 
-                    pagedResult.Items.Count, page);
+                var count = pagedResult.Items?.Count() ?? 0;
+                _logger.LogInformation($"Retrieved {count} active tenants for page {page}");
                 
                 return pagedResult;
             }
@@ -343,7 +343,7 @@ namespace VHouse.Services
                     .Where(d => d.DeliveryRoute!.TenantId == tenantId && 
                                d.Status == "Delivered" && 
                                d.ActualDeliveryDate.HasValue)
-                    .Select(d => EF.Functions.DateDiffMinute(d.ScheduledDate, d.ActualDeliveryDate!.Value))
+                    .Select(d => (d.ActualDeliveryDate!.Value - d.ScheduledDate).TotalMinutes)
                     .DefaultIfEmpty(0)
                     .AverageAsync();
 

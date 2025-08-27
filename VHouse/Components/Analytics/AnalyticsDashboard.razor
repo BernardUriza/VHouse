@@ -96,9 +96,9 @@
                 @foreach (var opportunity in businessInsights.Opportunities)
                 {
                     <div class="insight-card opportunity">
-                        <h5>@opportunity.Title</h5>
+                        <h5>@opportunity.Name</h5>
                         <p>@opportunity.Description</p>
-                        <span class="potential-value">Potential Value: $@opportunity.PotentialValue.ToString("N0")</span>
+                        <span class="potential-value">Potential Impact: @opportunity.PotentialImpact.ToString("N2")</span>
                     </div>
                 }
             </div>
@@ -111,9 +111,9 @@
                 @foreach (var risk in businessInsights.Risks)
                 {
                     <div class="insight-card risk">
-                        <h5>@risk.Title</h5>
+                        <h5>@risk.Name</h5>
                         <p>@risk.Description</p>
-                        <span class="impact-level">Impact Level: @risk.ImpactLevel.ToString("N1")</span>
+                        <span class="impact-level">Impact Level: @risk.Impact.ToString("N1")</span>
                     </div>
                 }
             </div>
@@ -307,11 +307,11 @@
 
         var chartData = new
         {
-            labels = Widget.Data.Series.First().Data.Select(d => d.X).ToArray(),
+            labels = Widget.Data.Series.First().Data.Select(d => d.Timestamp.ToString("MMM dd")).ToArray(),
             datasets = Widget.Data.Series.Select(s => new
             {
                 label = s.Name,
-                data = s.Data.Select(d => d.Y).ToArray(),
+                data = s.Data.Select(d => d.Value).ToArray(),
                 borderColor = GetChartColor(s.Name),
                 backgroundColor = GetChartColor(s.Name, 0.2)
             }).ToArray()

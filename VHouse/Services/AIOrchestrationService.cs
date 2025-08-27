@@ -545,15 +545,15 @@ public class AIOrchestrationService : IAIOrchestrationService
         await Task.Delay(200);
         return new List<MLModel>
         {
-            new MLModel { ModelId = "model-1", Name = "Fraud Detection", Status = "Active" },
-            new MLModel { ModelId = "model-2", Name = "Customer Segmentation", Status = "Training" }
+            new MLModel { Id = "model-1", Name = "Fraud Detection", Status = "Active" },
+            new MLModel { Id = "model-2", Name = "Customer Segmentation", Status = "Training" }
         };
     }
 
     public async Task<MLModel> GetModelAsync(string modelId)
     {
         await Task.Delay(100);
-        return new MLModel { ModelId = modelId, Name = "Sample Model", Status = "Active" };
+        return new MLModel { Id = modelId, Name = "Sample Model", Status = "Active" };
     }
 
     public async Task<bool> DeleteModelAsync(string modelId)
@@ -570,7 +570,6 @@ public class AIOrchestrationService : IAIOrchestrationService
         { 
             VersionId = Guid.NewGuid().ToString(),
             ModelId = modelId,
-            Version = "v2.0",
             CreatedAt = DateTime.UtcNow
         };
     }
@@ -615,8 +614,19 @@ public class AIOrchestrationService : IAIOrchestrationService
         return new ExperimentResults
         {
             ExperimentId = experimentId,
-            BestScore = 0.92,
-            Results = new Dictionary<string, object> { ["accuracy"] = 0.92, ["f1_score"] = 0.89 }
+            BestRun = new ExperimentRun
+            {
+                RunId = Guid.NewGuid().ToString(),
+                Status = "Completed",
+                Parameters = new ExperimentParameters
+                {
+                    Hyperparameters = new Dictionary<string, object> { ["learning_rate"] = 0.01 }
+                },
+                Metrics = new Dictionary<string, double> { ["accuracy"] = 0.92 },
+                StartTime = DateTime.UtcNow.AddMinutes(-30),
+                EndTime = DateTime.UtcNow
+            },
+            Insights = new Dictionary<string, object> { ["accuracy"] = 0.92, ["f1_score"] = 0.89 }
         };
     }
 
@@ -627,8 +637,8 @@ public class AIOrchestrationService : IAIOrchestrationService
         {
             ModelId = modelId,
             HealthStatus = "Healthy",
-            LastChecked = DateTime.UtcNow,
-            Metrics = new Dictionary<string, double> { ["latency"] = 250.5, ["throughput"] = 1000.0 }
+            LastUpdated = DateTime.UtcNow,
+            Metrics = new Dictionary<string, object> { ["latency"] = 250.5, ["throughput"] = 1000.0 }
         };
     }
 
@@ -638,7 +648,7 @@ public class AIOrchestrationService : IAIOrchestrationService
         return new DataDrift
         {
             ModelId = modelId,
-            DriftDetected = false,
+            Severity = "Low",
             DriftScore = 0.15,
             DetectedAt = DateTime.UtcNow
         };
@@ -650,8 +660,7 @@ public class AIOrchestrationService : IAIOrchestrationService
         return new BiasAnalysis
         {
             ModelId = modelId,
-            BiasDetected = false,
-            BiasScore = 0.02,
+            OverallBiasScore = 0.02,
             AnalyzedAt = DateTime.UtcNow
         };
     }
@@ -679,7 +688,6 @@ public class AIOrchestrationService : IAIOrchestrationService
         await Task.Delay(1500);
         return new PipelineExecution
         {
-            ExecutionId = Guid.NewGuid().ToString(),
             PipelineId = pipelineId,
             Status = "Completed",
             StartTime = DateTime.UtcNow.AddMinutes(-1.5),
@@ -704,7 +712,7 @@ public class AIOrchestrationService : IAIOrchestrationService
         {
             PipelineId = pipelineId,
             Status = "Running",
-            Progress = 75.5,
+            Progress = 75,
             LastUpdated = DateTime.UtcNow
         };
     }

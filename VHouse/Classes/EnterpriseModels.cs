@@ -41,6 +41,8 @@ public class ContainerDeploymentConfig
     public ResourceLimits Resources { get; set; } = new();
     public Dictionary<string, string> Labels { get; set; } = new();
     public HealthCheckConfiguration HealthCheck { get; set; } = new();
+    public string ServiceName { get; set; } = string.Empty;
+    public string ImageTag { get; set; } = string.Empty;
 }
 
 public class KubernetesDeploymentConfig : ContainerDeploymentConfig
@@ -64,6 +66,8 @@ public class ContainerDeploymentResult
     public string Status { get; set; } = string.Empty;
     public DateTime DeployedAt { get; set; }
     public Dictionary<string, object> Metadata { get; set; } = new();
+    
+    public string ServiceEndpoint { get; set; } = string.Empty;
 }
 
 public class ContainerUpdateConfig
@@ -156,6 +160,7 @@ public class LogEntry
     public string Level { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public Dictionary<string, object> Metadata { get; set; } = new();
+    public Dictionary<string, object> Details { get; set; } = new();
 }
 
 public class LogQueryOptions
@@ -187,6 +192,13 @@ public class ContainerService
     public string ImageName { get; set; } = string.Empty;
     public DateTime CreatedAt { get; set; }
     public Dictionary<string, object> Configuration { get; set; } = new();
+    
+    // Instance properties for compatibility
+    public string Name { get; set; } = string.Empty;
+    public int DesiredReplicas { get; set; }
+    public int RunningReplicas { get; set; }
+    public string ImageTag { get; set; } = string.Empty;
+    public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
 }
 
 // Supporting Classes
@@ -1457,6 +1469,10 @@ public class DeploymentResult
     public DateTime? CompletedAt { get; set; }
     public List<string> Errors { get; set; } = new();
     public Dictionary<string, object> Metadata { get; set; } = new();
+    
+    public List<string> Resources { get; set; } = new();
+    public DateTime EndTime { get; set; }
+    public string Provider { get; set; } = string.Empty;
 }
 
 public class MultiCloudConfig
@@ -1465,6 +1481,7 @@ public class MultiCloudConfig
     public List<CloudDeployment> Deployments { get; set; } = new();
     public string Strategy { get; set; } = string.Empty;
     public Dictionary<string, object> GlobalSettings { get; set; } = new();
+    public List<CloudDeployment> Targets { get; set; } = new();
 }
 
 public class CloudDeployment
@@ -1483,6 +1500,18 @@ public class DeploymentStatus
     public string CurrentStep { get; set; } = string.Empty;
     public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
     public List<string> CompletedSteps { get; set; } = new();
+    
+    public static string RollingBack { get; set; } = "RollingBack";
+    public static string RolledBack { get; set; } = "RolledBack";
+    public static string Failed { get; set; } = "Failed";
+}
+
+public enum ScalingDirection
+{
+    Up,
+    Down,
+    None,
+    Stable
 }
 
 public class ScalingResult
@@ -1493,6 +1522,10 @@ public class ScalingResult
     public int NewInstanceCount { get; set; }
     public string Reason { get; set; } = string.Empty;
     public DateTime ScaledAt { get; set; } = DateTime.UtcNow;
+    
+    public ScalingDirection Direction { get; set; }
+    public int NewCapacity { get; set; }
+    public int PreviousCapacity { get; set; }
 }
 
 public class ScalingPolicy
@@ -1506,6 +1539,7 @@ public class ScalingPolicy
     public Dictionary<string, object> Triggers { get; set; } = new();
     public double ScaleUpThreshold { get; set; } = 80.0;
     public double ScaleDownThreshold { get; set; } = 20.0;
+    public string ResourceId { get; set; } = string.Empty;
 }
 
 public class ScalingMetrics
@@ -1537,6 +1571,10 @@ public class ScalingEvent
     public int NewCount { get; set; }
     public string Trigger { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    
+    public ScalingDirection Direction { get; set; }
+    public int InstanceChange { get; set; }
+    public string Reason { get; set; } = string.Empty;
 }
 
 public class FailoverResult
@@ -1645,6 +1683,9 @@ public class CloudResource
     public Dictionary<string, object> Properties { get; set; } = new();
     public DateTime CreatedAt { get; set; }
     public decimal MonthlyCost { get; set; }
+    
+    public decimal Cost { get; set; }
+    public Dictionary<string, string> Tags { get; set; } = new();
 }
 
 public class ResourceUtilization

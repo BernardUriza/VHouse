@@ -14,32 +14,32 @@
         <!-- Navigation Tabs -->
         <ul class="nav nav-tabs" role="tablist">
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"overview\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"overview\")">
+                <button class="nav-link @GetActiveClass("overview")" @onclick="@(() => SetActiveTab("overview"))">
                     <i class="fas fa-chart-line"></i> Overview
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"models\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"models\")">
+                <button class="nav-link @GetActiveClass("models")" @onclick="@(() => SetActiveTab("models"))">
                     <i class="fas fa-brain"></i> Models
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"inference\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"inference\")">
+                <button class="nav-link @GetActiveClass("inference")" @onclick="@(() => SetActiveTab("inference"))">
                     <i class="fas fa-rocket"></i> Inference
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"nlp\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"nlp\")">
+                <button class="nav-link @GetActiveClass("nlp")" @onclick="@(() => SetActiveTab("nlp"))">
                     <i class="fas fa-comments"></i> NLP
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"recommendations\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"recommendations\")">
+                <button class="nav-link @GetActiveClass("recommendations")" @onclick="@(() => SetActiveTab("recommendations"))">
                     <i class="fas fa-magic"></i> Recommendations
                 </button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link @(activeTab == \"monitoring\" ? \"active\" : \"\")" @onclick="() => SetActiveTab(\"monitoring\")">
+                <button class="nav-link @GetActiveClass("monitoring")" @onclick="@(() => SetActiveTab("monitoring"))">
                     <i class="fas fa-chart-bar"></i> Monitoring
                 </button>
             </li>
@@ -410,6 +410,11 @@
     private void SetActiveTab(string tab)
     {
         activeTab = tab;
+    }
+
+    private string GetActiveClass(string tab)
+    {
+        return activeTab == tab ? "active" : "";
     }
 
     private async Task RunInference()
