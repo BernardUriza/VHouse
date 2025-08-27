@@ -216,7 +216,7 @@ public class IntegrationService : IIntegrationService
             {
                 new HealthCheckResult
                 {
-                    ResourceId = endpointId,
+                    ResourceId = connectorId,
                     Status = isHealthy ? "HEALTHY" : "UNHEALTHY",
                     CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Connection established" : "Connection timeout",
@@ -228,7 +228,7 @@ public class IntegrationService : IIntegrationService
                 },
                 new HealthCheckResult
                 {
-                    ResourceId = endpointId,
+                    ResourceId = connectorId,
                     Status = isHealthy ? "HEALTHY" : "UNHEALTHY",
                     CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Authentication successful" : "Invalid credentials",
@@ -240,7 +240,7 @@ public class IntegrationService : IIntegrationService
                 },
                 new HealthCheckResult
                 {
-                    ResourceId = endpointId,
+                    ResourceId = connectorId,
                     Status = isHealthy ? "HEALTHY" : "WARNING",
                     CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Data sync operational" : "Sync lag detected",

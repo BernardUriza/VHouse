@@ -3,79 +3,152 @@
 @using VHouse.Interfaces
 @inject ICustomerService CustomerService
 
-<h2>👥 Gestión de Clientes</h2>
-
-<!-- Toggle for Retail Customers -->
-<div class="mb-3">
-    <label class="form-check-label">
-        <input type="checkbox" class="form-check-input" @bind="showOnlyRetail" @bind:event="onchange" /> Mostrar solo clientes retail
-    </label>
-</div>
-
-<!-- Add New Customer Section -->
-<div class="mb-4">
-    <h5>➕ Agregar Nuevo Cliente</h5>
-    <form>
-        <div class="row">
-            <div class="col-md-3">
-                <label for="fullName" class="form-label">Nombre Completo</label>
-                <input id="fullName" type="text" class="form-control" @bind="newCustomer.FullName" placeholder="Ej. Juan Pérez" />
-            </div>
-            <div class="col-md-3">
-                <label for="email" class="form-label">Correo Electrónico</label>
-                <input id="email" type="email" class="form-control" @bind="newCustomer.Email" placeholder="Ej. juan@example.com" />
-            </div>
-            <div class="col-md-3">
-                <label for="phone" class="form-label">Teléfono</label>
-                <input id="phone" type="tel" class="form-control" @bind="newCustomer.Phone" placeholder="Ej. 555-123-4567" />
-            </div>
-            <div class="col-md-1">
-                <label for="retail" class="form-label">Retail</label>
-                <input id="retail" type="checkbox" class="form-check-input" @bind="newCustomer.IsRetail" />
-            </div>
-            <div class="col-md-3 align-self-end">
-                <button type="button" class="btn btn-success" @onclick="AddCustomer">Guardar Cliente</button>
-            </div>
+<!-- Modern 2025 Customer Management Header -->
+<div class="customer-header">
+    <div class="header-content">
+        <div class="header-title">
+            <h1>👥 Gestión de Clientes</h1>
+            <p class="header-subtitle">Administra tu base de clientes de forma eficiente</p>
         </div>
-    </form>
+        <div class="header-actions">
+            <button class="btn-filter @(showOnlyRetail ? "active" : "")" @onclick="ToggleRetailFilter">
+                <i class="fas fa-filter"></i>
+                @(showOnlyRetail ? "Mostrando Retail" : "Todos los clientes")
+            </button>
+            <button class="btn-add-customer" @onclick="ToggleAddCustomerModal">
+                <i class="fas fa-plus"></i>
+                Nuevo Cliente
+            </button>
+        </div>
+    </div>
 </div>
 
-<h3>📜 Lista de Clientes</h3>
-@if (filteredCustomers.Any())
+<!-- Modern Add Customer Modal/Panel -->
+@if (showAddCustomerModal)
 {
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>Nombre</th>
-                <th>Email</th>
-                <th>Teléfono</th>
-                <th>Retail</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
+    <div class="add-customer-panel">
+        <div class="panel-header">
+            <h3>➕ Agregar Nuevo Cliente</h3>
+            <button class="btn-close" @onclick="ToggleAddCustomerModal">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <form class="customer-form">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label for="fullName" class="form-label">Nombre Completo</label>
+                    <input id="fullName" type="text" class="form-input" @bind="newCustomer.FullName" placeholder="Ej. Juan Pérez" />
+                </div>
+                <div class="form-group">
+                    <label for="email" class="form-label">Correo Electrónico</label>
+                    <input id="email" type="email" class="form-input" @bind="newCustomer.Email" placeholder="juan@example.com" />
+                </div>
+                <div class="form-group">
+                    <label for="phone" class="form-label">Teléfono</label>
+                    <input id="phone" type="tel" class="form-input" @bind="newCustomer.Phone" placeholder="555-123-4567" />
+                </div>
+                <div class="form-group">
+                    <label for="address" class="form-label">Dirección</label>
+                    <input id="address" type="text" class="form-input" @bind="newCustomer.Address" placeholder="Dirección completa" />
+                </div>
+                <div class="form-group checkbox-group">
+                    <label class="checkbox-label">
+                        <input id="retail" type="checkbox" class="form-checkbox" @bind="newCustomer.IsRetail" />
+                        <span class="checkbox-custom"></span>
+                        Cliente Retail
+                    </label>
+                </div>
+                <div class="form-actions">
+                    <button type="button" class="btn-cancel" @onclick="ToggleAddCustomerModal">Cancelar</button>
+                    <button type="button" class="btn-save" @onclick="AddCustomer">
+                        <i class="fas fa-save"></i>
+                        Guardar Cliente
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+}
+
+<!-- Modern Customer Cards Grid -->
+<div class="customers-section">
+    <div class="section-header">
+        <h3>📜 Lista de Clientes</h3>
+        <div class="customers-stats">
+            <span class="stat-badge">Total: @filteredCustomers.Count()</span>
+            <span class="stat-badge retail">Retail: @filteredCustomers.Count(c => c.IsRetail)</span>
+        </div>
+    </div>
+
+    @if (filteredCustomers.Any())
+    {
+        <div class="customers-grid">
             @foreach (var customer in filteredCustomers)
             {
-                <tr>
-                    <td>@customer.CustomerId</td>
-                    <td>@customer.FullName</td>
-                    <td>@customer.Email</td>
-                    <td>@customer.Phone</td>
-                    <td>@(customer.IsRetail ? "✅ Sí" : "❌ No")</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" @onclick="() => ViewInventory(customer)">📦 Inventario</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteCustomer(customer)">🗑 Eliminar</button>
-                    </td>
-                </tr>
+                <div class="customer-card @(customer.IsRetail ? "retail" : "business")">
+                    <div class="card-header">
+                        <div class="customer-avatar">
+                            <i class="fas @(customer.IsRetail ? "fa-user" : "fa-building")"></i>
+                        </div>
+                        <div class="customer-info">
+                            <h4 class="customer-name">@customer.FullName</h4>
+                            <span class="customer-type">
+                                @(customer.IsRetail ? "Cliente Retail" : "Cliente Empresarial")
+                            </span>
+                        </div>
+                        <div class="customer-id">#@customer.CustomerId</div>
+                    </div>
+                    <div class="card-body">
+                        <div class="contact-info">
+                            <div class="contact-item">
+                                <i class="fas fa-envelope"></i>
+                                <span>@customer.Email</span>
+                            </div>
+                            <div class="contact-item">
+                                <i class="fas fa-phone"></i>
+                                <span>@customer.Phone</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(customer.Address))
+                            {
+                                <div class="contact-item">
+                                    <i class="fas fa-map-marker-alt"></i>
+                                    <span>@customer.Address</span>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                    <div class="card-actions">
+                        <button class="action-btn primary" @onclick="() => ViewInventory(customer)">
+                            <i class="fas fa-boxes"></i>
+                            Inventario
+                        </button>
+                        <button class="action-btn secondary" @onclick="() => EditCustomer(customer)">
+                            <i class="fas fa-edit"></i>
+                            Editar
+                        </button>
+                        <button class="action-btn danger" @onclick="() => DeleteCustomer(customer)">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                </div>
             }
-        </tbody>
-    </table>
-}
-else
-{
-    <p class="text-muted">No hay clientes registrados.</p>
-}
+        </div>
+    }
+    else
+    {
+        <div class="empty-state">
+            <div class="empty-icon">
+                <i class="fas fa-users"></i>
+            </div>
+            <h4>No hay clientes registrados</h4>
+            <p>Comienza agregando tu primer cliente para gestionar tu base de datos</p>
+            <button class="btn-add-customer" @onclick="ToggleAddCustomerModal">
+                <i class="fas fa-plus"></i>
+                Agregar Primer Cliente
+            </button>
+        </div>
+    }
+</div>
 
 <!-- Inventory Popup Modal -->
 @if (selectedCustomer != null)
@@ -132,6 +205,7 @@ else
     private Customer? selectedCustomer;
     private Inventory inventory = new() { Items = new List<InventoryItem>() };
     private bool showOnlyRetail = false;
+    private bool showAddCustomerModal = false;
 
     protected override async Task OnInitializedAsync()
     {
@@ -150,10 +224,11 @@ else
             return;
         }
 
-        newCustomer.Address = "No especificada"; // ✅ Default value
+        newCustomer.Address = string.IsNullOrWhiteSpace(newCustomer.Address) ? "No especificada" : newCustomer.Address;
         await CustomerService.AddCustomerAsync(newCustomer);
         await LoadCustomersAsync();
         newCustomer = new Customer();
+        showAddCustomerModal = false;
     }
 
     private async Task DeleteCustomer(Customer customer)
@@ -172,5 +247,34 @@ else
     {
         selectedCustomer = null;
         inventory.Items.Clear();
+    }
+
+    private void ToggleAddCustomerModal()
+    {
+        showAddCustomerModal = !showAddCustomerModal;
+        if (!showAddCustomerModal)
+        {
+            newCustomer = new Customer(); // Reset form when closing
+        }
+    }
+
+    private void ToggleRetailFilter()
+    {
+        showOnlyRetail = !showOnlyRetail;
+    }
+
+    private void EditCustomer(Customer customer)
+    {
+        // TODO: Implement edit functionality
+        newCustomer = new Customer
+        {
+            CustomerId = customer.CustomerId,
+            FullName = customer.FullName,
+            Email = customer.Email,
+            Phone = customer.Phone,
+            Address = customer.Address,
+            IsRetail = customer.IsRetail
+        };
+        showAddCustomerModal = true;
     }
 }

@@ -216,7 +216,7 @@ namespace VHouse.Services
 
                 // Determine overall status
                 var componentStatuses = healthStatus.Components.Values.Select(c => c.Status).ToList();
-                if (componentStatuses.Any(s => s == HealthStatus.Critical))
+                if (componentStatuses.Any(s => s == "Critical"))
                     healthStatus.OverallStatus = "Critical";
                 else if (componentStatuses.Any(s => s == "Unhealthy"))
                     healthStatus.OverallStatus = "Unhealthy";

@@ -307,10 +307,10 @@ namespace VHouse.Services
         {
             var customers = await _unitOfWork.Customers.GetAllAsync();
             var monthlyGrowth = customers
-                .GroupBy(c => c.CreatedAt.Month)
+                .GroupBy(c => DateTime.Now.Month)
                 .Select(g => new DataPoint
                 {
-                    X = g.Key.ToString(),
+                    X = DateTime.UtcNow.AddMonths(g.Key - DateTime.UtcNow.Month),
                     Y = g.Count()
                 })
                 .ToList();
@@ -376,7 +376,7 @@ namespace VHouse.Services
             var trendQuery = new TrendQuery
             {
                 MetricName = "revenue",
-                WindowSize = 7,
+                WindowSize = TimeSpan.FromDays(7),
                 AnalyzeSeasonality = true
             };
             

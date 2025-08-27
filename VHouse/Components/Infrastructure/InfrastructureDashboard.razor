@@ -390,7 +390,7 @@
             {
                 totalResources = cloudResources.Count;
                 healthyResources = cloudResources.Count(r => r.Status == "Running");
-                monthlyCost = (double)cloudResources.Sum(r => r.Cost?.MonthlyCost ?? 0);
+                monthlyCost = (double)cloudResources.Sum(r => r.MonthlyCost);
             }
             
             if (containerServices.Any())

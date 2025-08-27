@@ -955,10 +955,11 @@ namespace VHouse.Services
             {
                 var validation = new ValidationResult
                 {
-                    ValidationName = $"Query Validation",
-                    Query = query,
-                    Passed = true, // Simplified
-                    Message = "Query executed successfully"
+                    ValidationId = Guid.NewGuid().ToString(),
+                    RequestId = Guid.NewGuid().ToString(),
+                    IsValid = true,
+                    ValidationScore = 1.0,
+                    RecommendedAction = "Query executed successfully"
                 };
                 
                 result.ValidationResults.Add(validation);

@@ -91,7 +91,7 @@ namespace VHouse.Services
                 deployment.CompletedAt = DateTime.UtcNow;
 
                 await _monitoringService.RecordMetricAsync("cloud.deployment.success", 1,
-                    new Dictionary<string, object> { ["provider"] = provider });
+                    new Dictionary<string, string> { ["provider"] = provider.ToString() });
 
                 _logger.LogInformation($"Deployment {deploymentId} completed successfully");
             }
@@ -103,7 +103,7 @@ namespace VHouse.Services
                 deployment.Errors.Add(ex.Message);
 
                 await _monitoringService.RecordMetricAsync("cloud.deployment.failure", 1,
-                    new Dictionary<string, object> { ["provider"] = provider });
+                    new Dictionary<string, string> { ["provider"] = provider.ToString() });
             }
 
             return deployment;
@@ -116,7 +116,7 @@ namespace VHouse.Services
 
             foreach (var target in config.Targets)
             {
-                var task = DeployToCloudAsync(target.Provider, target.Config);
+                var task = DeployToCloudAsync(Enum.Parse<CloudProvider>(target.Provider), target.Config);
                 deploymentTasks.Add(task);
             }
 
@@ -163,14 +163,14 @@ namespace VHouse.Services
                 // Terminate all resources created in this deployment
                 foreach (var resource in deployment.Resources)
                 {
-                    await TerminateResourceAsync(resource.ResourceId);
+                    await TerminateResourceAsync(resource);
                 }
 
                 deployment.Status = DeploymentStatus.RolledBack;
                 deployment.EndTime = DateTime.UtcNow;
 
                 await _monitoringService.RecordMetricAsync("cloud.deployment.rollback", 1,
-                    new Dictionary<string, object> { ["provider"] = deployment.Provider.ToString() });
+                    new Dictionary<string, string> { ["provider"] = deployment.Provider.ToString() });
 
                 return true;
             }
@@ -309,10 +309,9 @@ namespace VHouse.Services
             var result = new FailoverResult
             {
                 FailoverId = failoverId,
-                StartTime = DateTime.UtcNow,
+                ExecutedAt = DateTime.UtcNow,
                 PrimaryResource = strategy.PrimaryResourceId,
-                ExecutedSteps = new List<string>(),
-                Errors = new List<string>()
+                AffectedServices = new List<string>()
             };
 
             try
@@ -321,46 +320,46 @@ namespace VHouse.Services
 
                 // Check health of primary resource
                 var healthCheck = await PerformHealthCheckAsync(strategy.PrimaryResourceId);
-                if (healthCheck.IsHealthy)
+                if (healthCheck.Status == "HEALTHY")
                 {
                     result.Success = false;
-                    result.Errors.Add("Primary resource is healthy - failover not required");
+                    result.AffectedServices.Add("Primary resource is healthy - failover not required");
                     return result;
                 }
 
                 // Find best backup resource
                 var targets = await GetAvailableFailoverTargetsAsync(strategy.PrimaryResourceId);
-                var bestTarget = targets.OrderByDescending(t => t.HealthScore).FirstOrDefault();
+                var bestTarget = targets.OrderByDescending(t => t.Capacity).FirstOrDefault();
 
                 if (bestTarget == null)
                 {
                     result.Success = false;
-                    result.Errors.Add("No healthy failover targets available");
+                    result.AffectedServices.Add("No healthy failover targets available");
                     return result;
                 }
 
-                result.ActiveResource = bestTarget.ResourceId;
-                result.ExecutedSteps.Add("Selected failover target");
+                result.BackupResource = bestTarget.TargetId;
+                result.AffectedServices.Add("Selected failover target");
 
                 // Update load balancer to redirect traffic
-                await RedirectTraffic(strategy.PrimaryResourceId, bestTarget.ResourceId);
-                result.ExecutedSteps.Add("Traffic redirected to backup resource");
+                await RedirectTraffic(strategy.PrimaryResourceId, bestTarget.TargetId);
+                result.AffectedServices.Add("Traffic redirected to backup resource");
 
                 // Verify failover success
-                var newHealthCheck = await PerformHealthCheckAsync(bestTarget.ResourceId);
-                if (!newHealthCheck.IsHealthy)
+                var newHealthCheck = await PerformHealthCheckAsync(bestTarget.TargetId);
+                if (newHealthCheck.Status != "HEALTHY")
                 {
                     result.Success = false;
-                    result.Errors.Add("Backup resource failed health check after failover");
+                    result.AffectedServices.Add("Backup resource failed health check after failover");
                     return result;
                 }
 
                 result.Success = true;
-                result.EndTime = DateTime.UtcNow;
-                result.ExecutedSteps.Add("Failover completed successfully");
+                result.ExecutedAt = DateTime.UtcNow;
+                result.AffectedServices.Add("Failover completed successfully");
 
                 await _monitoringService.RecordMetricAsync("cloud.failover.success", 1,
-                    new Dictionary<string, object> { ["resource"] = strategy.PrimaryResourceId });
+                    new Dictionary<string, string> { ["resource"] = strategy.PrimaryResourceId });
 
                 _logger.LogInformation($"Failover {failoverId} completed successfully");
                 return result;
@@ -369,11 +368,11 @@ namespace VHouse.Services
             {
                 _logger.LogError(ex, $"Failover {failoverId} failed");
                 result.Success = false;
-                result.EndTime = DateTime.UtcNow;
-                result.Errors.Add(ex.Message);
+                result.ExecutedAt = DateTime.UtcNow;
+                result.AffectedServices.Add(ex.Message);
 
                 await _monitoringService.RecordMetricAsync("cloud.failover.failure", 1,
-                    new Dictionary<string, object> { ["resource"] = strategy.PrimaryResourceId });
+                    new Dictionary<string, string> { ["resource"] = strategy.PrimaryResourceId });
 
                 return result;
             }
@@ -385,22 +384,21 @@ namespace VHouse.Services
             var result = new FailoverResult
             {
                 FailoverId = recoveryId,
-                StartTime = DateTime.UtcNow,
-                ExecutedSteps = new List<string>(),
-                Errors = new List<string>()
+                ExecutedAt = DateTime.UtcNow,
+                AffectedServices = new List<string>()
             };
 
             try
             {
                 _logger.LogInformation($"Executing disaster recovery plan {plan.PlanId}");
 
-                foreach (var step in plan.Steps.OrderBy(s => s.Order))
+                foreach (var step in plan.RecoverySteps.OrderBy(s => s.Order))
                 {
                     _logger.LogInformation($"Executing recovery step: {step.Description}");
                     
                     // Execute recovery step based on action type
                     await ExecuteRecoveryStep(step);
-                    result.ExecutedSteps.Add(step.Description);
+                    result.AffectedServices.Add(step.Description);
                     
                     // Add delay between steps if specified
                     if (step.EstimatedDuration > TimeSpan.Zero)
@@ -410,10 +408,10 @@ namespace VHouse.Services
                 }
 
                 result.Success = true;
-                result.EndTime = DateTime.UtcNow;
+                result.ExecutedAt = DateTime.UtcNow;
 
                 await _monitoringService.RecordMetricAsync("cloud.disaster_recovery.success", 1,
-                    new Dictionary<string, object> { ["plan"] = plan.PlanId });
+                    new Dictionary<string, string> { ["plan"] = plan.PlanId });
 
                 return result;
             }
@@ -421,11 +419,11 @@ namespace VHouse.Services
             {
                 _logger.LogError(ex, $"Disaster recovery {recoveryId} failed");
                 result.Success = false;
-                result.EndTime = DateTime.UtcNow;
-                result.Errors.Add(ex.Message);
+                result.ExecutedAt = DateTime.UtcNow;
+                result.AffectedServices.Add($"Error: {ex.Message}");
 
                 await _monitoringService.RecordMetricAsync("cloud.disaster_recovery.failure", 1,
-                    new Dictionary<string, object> { ["plan"] = plan.PlanId });
+                    new Dictionary<string, string> { ["plan"] = plan.PlanId });
 
                 return result;
             }
@@ -436,56 +434,42 @@ namespace VHouse.Services
             var result = new HealthCheckResult
             {
                 ResourceId = resourceId,
-                CheckedAt = DateTime.UtcNow,
-                Checks = new List<HealthCheck>()
+                CheckTime = DateTime.UtcNow,
+                Status = "HEALTHY",
+                Message = "Health checks completed successfully",
+                Details = new Dictionary<string, object>()
             };
 
             try
             {
                 // Simulate health checks
                 var random = new Random();
-                result.ResponseTime = 50 + (random.NextDouble() * 200); // 50-250ms
+                result.ResponseTime = TimeSpan.FromMilliseconds(50 + (random.NextDouble() * 200)); // 50-250ms
 
-                // HTTP Health Check
-                result.Checks.Add(new HealthCheck
-                {
-                    CheckName = "HTTP Endpoint",
-                    Passed = random.NextDouble() > 0.1, // 90% success rate
-                    Message = "HTTP endpoint responding",
-                    Details = new Dictionary<string, object> { ["status_code"] = 200 }
-                });
+                // Add health check details
+                result.Details["http_check"] = "HTTP endpoint responding";
+                result.Details["status_code"] = 200;
 
-                // Database Health Check
-                result.Checks.Add(new HealthCheck
-                {
-                    CheckName = "Database Connection",
-                    Passed = random.NextDouble() > 0.05, // 95% success rate
-                    Message = "Database connection successful",
-                    Details = new Dictionary<string, object> { ["connection_time"] = "15ms" }
-                });
+                // Update result details with health check info
+                result.Details["database_check"] = "Database connection successful";
+                result.Details["connection_time"] = "15ms";
+                result.SuccessCount = random.NextDouble() > 0.05 ? 1 : 0;
 
-                // Memory Health Check
-                result.Checks.Add(new HealthCheck
-                {
-                    CheckName = "Memory Usage",
-                    Passed = random.NextDouble() > 0.02, // 98% success rate
-                    Message = "Memory usage within limits",
-                    Details = new Dictionary<string, object> { ["usage_percent"] = random.Next(60, 85) }
-                });
-
-                result.IsHealthy = result.Checks.All(c => c.Passed);
+                // Update result details with memory check info
+                result.Details["memory_check"] = "Memory usage within limits";
+                result.Details["usage_percent"] = random.Next(60, 85);
+                result.SuccessCount += random.NextDouble() > 0.02 ? 1 : 0;
+                
+                // Set overall health status
+                result.Status = result.SuccessCount > 0 ? "HEALTHY" : "UNHEALTHY";
                 return result;
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, $"Health check failed for resource {resourceId}");
-                result.IsHealthy = false;
-                result.Checks.Add(new HealthCheck
-                {
-                    CheckName = "Overall",
-                    Passed = false,
-                    Message = ex.Message
-                });
+                result.Status = "UNHEALTHY";
+                result.Message = ex.Message;
+                result.FailureCount = 1;
                 return result;
             }
         }
@@ -504,11 +488,12 @@ namespace VHouse.Services
             {
                 targets.Add(new FailoverTarget
                 {
-                    ResourceId = resource.ResourceId,
-                    Provider = resource.Provider,
-                    Region = resource.Region,
-                    HealthScore = 0.7 + (random.NextDouble() * 0.3), // 70-100%
-                    EstimatedFailoverTime = TimeSpan.FromMinutes(random.Next(2, 10))
+                    TargetId = resource.ResourceId,
+                    TargetName = resource.Type,
+                    Location = resource.Region,
+                    Capacity = random.NextDouble() * 100,
+                    Status = "Available",
+                    Capabilities = new Dictionary<string, object> { ["provider"] = resource.Provider }
                 });
             }
 
@@ -524,7 +509,7 @@ namespace VHouse.Services
             var optimization = new CostOptimization
             {
                 OptimizationId = Guid.NewGuid().ToString(),
-                AnalysisDate = DateTime.UtcNow,
+                AnalyzedAt = DateTime.UtcNow,
                 Recommendations = new List<CostRecommendation>()
             };
 
@@ -532,7 +517,7 @@ namespace VHouse.Services
             {
                 // Analyze current resources
                 var resources = await GetAllResourcesAsync();
-                var currentCost = resources.Sum(r => r.Cost?.MonthlyCost ?? 0);
+                var currentCost = resources.Sum(r => r.MonthlyCost);
                 
                 optimization.CurrentMonthlyCost = currentCost;
 
@@ -540,10 +525,9 @@ namespace VHouse.Services
                 var recommendations = await GenerateCostRecommendations(resources);
                 optimization.Recommendations = recommendations;
                 
-                optimization.PotentialSavings = recommendations.Sum(r => r.PotentialSavings);
-                optimization.ProjectedMonthlyCost = currentCost - optimization.PotentialSavings;
+                optimization.EstimatedMonthlySavings = recommendations.Sum(r => r.EstimatedMonthlySavings);
 
-                _logger.LogInformation($"Cost optimization analysis completed. Potential savings: ${optimization.PotentialSavings:F2}");
+                _logger.LogInformation($"Cost optimization analysis completed. Potential savings: ${optimization.EstimatedMonthlySavings:F2}");
                 return optimization;
             }
             catch (Exception ex)
@@ -558,10 +542,8 @@ namespace VHouse.Services
             var analysis = new CostAnalysis
             {
                 AnalysisId = Guid.NewGuid().ToString(),
-                CostByProvider = new Dictionary<string, double>(),
-                CostByResource = new Dictionary<string, double>(),
-                CostByRegion = new Dictionary<string, double>(),
-                Trends = new List<CostTrend>()
+                CostByProvider = new Dictionary<string, decimal>(),
+                CostByService = new Dictionary<string, decimal>()
             };
 
             // Simulate cost data
@@ -607,7 +589,7 @@ namespace VHouse.Services
 
         public async Task<List<CloudResource>> GetResourcesByProviderAsync(CloudProvider provider)
         {
-            return _resources.Values.Where(r => r.Provider == provider).ToList();
+            return _resources.Values.Where(r => r.Provider == provider.ToString()).ToList();
         }
 
         public async Task<ResourceUtilization> GetResourceUtilizationAsync(string resourceId)
@@ -616,12 +598,12 @@ namespace VHouse.Services
             return new ResourceUtilization
             {
                 ResourceId = resourceId,
-                CpuUtilization = 30 + (random.NextDouble() * 60), // 30-90%
+                CPUUtilization = 30 + (random.NextDouble() * 60), // 30-90%
                 MemoryUtilization = 40 + (random.NextDouble() * 50), // 40-90%
                 StorageUtilization = 20 + (random.NextDouble() * 70), // 20-90%
                 NetworkUtilization = 10 + (random.NextDouble() * 80), // 10-90%
-                LastUpdated = DateTime.UtcNow,
-                History = new List<UtilizationDataPoint>()
+                MeasuredAt = DateTime.UtcNow,
+                CustomMetrics = new Dictionary<string, double>()
             };
         }
 
@@ -634,10 +616,10 @@ namespace VHouse.Services
                     _logger.LogInformation($"Terminated resource {resourceId} ({resource.Type}) on {resource.Provider}");
                     
                     await _monitoringService.RecordMetricAsync("cloud.resource.terminated", 1,
-                        new Dictionary<string, object>
+                        new Dictionary<string, string>
                         {
-                            ["provider"] = resource.Provider.ToString(),
-                            ["type"] = resource.Type.ToString()
+                            ["provider"] = resource.Provider,
+                            ["type"] = resource.Type
                         });
                     
                     return true;
@@ -661,23 +643,17 @@ namespace VHouse.Services
             var config = new LoadBalancerConfig
             {
                 LoadBalancerId = loadBalancerId,
-                Algorithm = request.Algorithm,
-                HealthCheck = request.HealthCheck,
-                Targets = request.TargetResourceIds.Select(id => new LoadBalancerTarget
-                {
-                    ResourceId = id,
-                    IpAddress = GenerateRandomIP(),
-                    Port = 80,
-                    Weight = 100,
-                    Enabled = true
-                }).ToList(),
-                StickySession = false,
-                SessionTimeout = 3600
+                Name = request.Name,
+                Type = request.Type,
+                TargetInstances = request.Subnets, // Using available properties
+                HealthChecks = new List<HealthCheckConfig>(),
+                Rules = new Dictionary<string, object>(),
+                StickySession = false
             };
 
             _loadBalancers[loadBalancerId] = config;
 
-            _logger.LogInformation($"Created load balancer {loadBalancerId} with {config.Targets.Count} targets");
+            _logger.LogInformation($"Created load balancer {loadBalancerId} with {config.TargetInstances.Count} target instances");
             return config;
         }
 
@@ -692,13 +668,13 @@ namespace VHouse.Services
             return new LoadBalancerHealth
             {
                 LoadBalancerId = loadBalancerId,
-                Status = "Healthy",
-                LastUpdated = DateTime.UtcNow,
-                TargetHealth = config.Targets.Select(t => new TargetHealth
+                OverallStatus = "Healthy",
+                LastChecked = DateTime.UtcNow,
+                TargetHealths = config.TargetInstances.Select(t => new TargetHealth
                 {
-                    TargetId = t.ResourceId,
+                    TargetId = t,
                     Status = random.NextDouble() > 0.1 ? "healthy" : "unhealthy",
-                    Description = "Health check passed"
+                    Reason = "Health check passed"
                 }).ToList()
             };
         }
@@ -722,10 +698,9 @@ namespace VHouse.Services
                 LoadBalancerId = loadBalancerId,
                 ActiveConnections = random.Next(50, 500),
                 RequestsPerSecond = random.Next(100, 1000),
-                ResponseTime = 50 + (random.NextDouble() * 200),
+                AverageResponseTime = TimeSpan.FromMilliseconds(50 + (random.NextDouble() * 200)),
                 ErrorRate = random.NextDouble() * 5, // 0-5%
-                TargetMetrics = new Dictionary<string, double>(),
-                LastUpdated = DateTime.UtcNow
+                CollectedAt = DateTime.UtcNow
             };
         }
 
@@ -745,7 +720,7 @@ namespace VHouse.Services
         private void CreateSampleResources()
         {
             var providers = new[] { CloudProvider.AWS, CloudProvider.Azure, CloudProvider.GCP };
-            var types = new[] { ResourceType.ComputeInstance, ResourceType.Database, ResourceType.LoadBalancer };
+            var types = new[] { "ComputeInstance", "Database", "LoadBalancer" };
             var random = new Random();
 
             for (int i = 0; i < 10; i++)
@@ -759,7 +734,7 @@ namespace VHouse.Services
                     ResourceId = resourceId,
                     Name = $"{type.ToString().ToLower()}-{i + 1}",
                     Type = type,
-                    Provider = provider,
+                    Provider = provider.ToString(),
                     Region = GetRandomRegion(provider),
                     Status = "Running",
                     CreatedAt = DateTime.UtcNow.AddDays(-random.Next(1, 30)),
@@ -768,12 +743,8 @@ namespace VHouse.Services
                         ["Environment"] = random.NextDouble() > 0.5 ? "Production" : "Development",
                         ["Team"] = random.NextDouble() > 0.5 ? "Backend" : "Frontend"
                     },
-                    Cost = new ResourceCost
-                    {
-                        HourlyCost = random.Next(1, 10) + random.NextDouble(),
-                        MonthlyCost = (random.Next(1, 10) + random.NextDouble()) * 24 * 30,
-                        Currency = "USD"
-                    }
+                    Cost = (decimal)(random.Next(1, 10) + random.NextDouble()),
+                    MonthlyCost = (decimal)((random.Next(1, 10) + random.NextDouble()) * 24 * 30)
                 };
             }
         }

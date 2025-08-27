@@ -341,8 +341,8 @@ namespace VHouse.Services
                 // Cache for 10 minutes
                 await _cachingService.SetAsync(cacheKey, movements, TimeSpan.FromMinutes(10));
 
-                _logger.LogInformation("Retrieved {MovementCount} inventory movements for tenant {TenantId} from {FromDate} to {ToDate}",
-                    movements.Items.Count, tenantId, fromDate.ToString(), toDate.ToString());
+                var movementCount = movements.Items.Count();
+                _logger.LogInformation($"Retrieved {movementCount} inventory movements for tenant {tenantId} from {fromDate.Value:yyyy-MM-dd} to {toDate.Value:yyyy-MM-dd}");
 
                 return movements;
             }

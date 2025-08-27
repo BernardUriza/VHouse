@@ -33,8 +33,8 @@ namespace VHouse.Services
 
                 var pagedResult = await query.ToPagedResultAsync(page, pageSize);
                 
-                _logger.LogInformation("Retrieved {Count} distribution centers for tenant {TenantId}, page {Page}", 
-                    pagedResult.Items.Count, tenantId, page);
+                var itemCount = pagedResult.Items.Count();
+                _logger.LogInformation($"Retrieved {itemCount} distribution centers for tenant {tenantId}, page {page}");
                 
                 return pagedResult;
             }
@@ -65,8 +65,7 @@ namespace VHouse.Services
                     .OrderBy(dc => CalculateDistance(latitude, longitude, dc.Latitude!.Value, dc.Longitude!.Value))
                     .ToList();
 
-                _logger.LogInformation("Found {Count} distribution centers within {RadiusKm}km of coordinates ({Latitude}, {Longitude})", 
-                    centersInRadius.Count, radiusKm, latitude, longitude);
+                _logger.LogInformation("Found {Count} distribution centers within {RadiusKm}km of coordinates ({Latitude}, {Longitude})", centersInRadius.Count, radiusKm, latitude, longitude);
 
                 return centersInRadius;
             }
@@ -100,8 +99,7 @@ namespace VHouse.Services
 
                 if (distributionCenter != null)
                 {
-                    _logger.LogInformation("Retrieved distribution center {DistributionCenterId} - {CenterName}", 
-                        distributionCenter.DistributionCenterId, distributionCenter.Name);
+                    _logger.LogInformation("Retrieved distribution center {DistributionCenterId} - {CenterName}", distributionCenter.DistributionCenterId, distributionCenter.Name);
                 }
                 else
                 {
@@ -138,8 +136,7 @@ namespace VHouse.Services
                 _context.DistributionCenters.Add(distributionCenter);
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Created new distribution center {CenterCode} - {CenterName} with ID {DistributionCenterId}", 
-                    distributionCenter.CenterCode, distributionCenter.Name, distributionCenter.DistributionCenterId);
+                _logger.LogInformation("Created new distribution center {CenterCode} - {CenterName} with ID {DistributionCenterId}", distributionCenter.CenterCode, distributionCenter.Name, distributionCenter.DistributionCenterId);
 
                 return distributionCenter;
             }
@@ -191,8 +188,7 @@ namespace VHouse.Services
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Updated distribution center {CenterCode} - {CenterName}", 
-                    distributionCenter.CenterCode, distributionCenter.Name);
+                _logger.LogInformation("Updated distribution center {CenterCode} - {CenterName}", distributionCenter.CenterCode, distributionCenter.Name);
 
                 return true;
             }
@@ -230,8 +226,7 @@ namespace VHouse.Services
 
                 await _context.SaveChangesAsync();
 
-                _logger.LogInformation("Deactivated distribution center {CenterCode} and all its delivery routes", 
-                    distributionCenter.CenterCode);
+                _logger.LogInformation("Deactivated distribution center {CenterCode} and all its delivery routes", distributionCenter.CenterCode);
 
                 return true;
             }
@@ -280,8 +275,7 @@ namespace VHouse.Services
                     IsOverCapacity = currentLoad > distributionCenter.Capacity
                 };
 
-                _logger.LogInformation("Retrieved capacity for distribution center {DistributionCenterId}: {UtilizationPercentage}% utilized", 
-                    distributionCenterId, capacity.UtilizationPercentage);
+                _logger.LogInformation("Retrieved capacity for distribution center {DistributionCenterId}: {UtilizationPercentage}% utilized", distributionCenterId, capacity.UtilizationPercentage);
 
                 return capacity;
             }
@@ -332,8 +326,7 @@ namespace VHouse.Services
                     // Return first center with available capacity
                     if (!capacity.IsOverCapacity)
                     {
-                        _logger.LogInformation("Selected distribution center {DistributionCenterId} for delivery at ({Latitude}, {Longitude}), distance: {Distance}km", 
-                            centerDistance.Center.DistributionCenterId, deliveryLatitude, deliveryLongitude, Math.Round(centerDistance.Distance, 2));
+                        _logger.LogInformation("Selected distribution center {DistributionCenterId} for delivery at ({Latitude}, {Longitude}), distance: {Distance}km", centerDistance.Center.DistributionCenterId, deliveryLatitude, deliveryLongitude, Math.Round(centerDistance.Distance, 2));
                         
                         return centerDistance.Center;
                     }
@@ -342,15 +335,13 @@ namespace VHouse.Services
                 // If all centers are over capacity, return the closest one
                 var closestCenter = centerDistances.First().Center;
                 
-                _logger.LogWarning("All distribution centers are over capacity, returning closest center {DistributionCenterId}", 
-                    closestCenter.DistributionCenterId);
+                _logger.LogWarning("All distribution centers are over capacity, returning closest center {DistributionCenterId}", closestCenter.DistributionCenterId);
                 
                 return closestCenter;
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error finding optimal distribution center for delivery location ({Latitude}, {Longitude})", 
-                    deliveryLatitude, deliveryLongitude);
+                _logger.LogError(ex, "Error finding optimal distribution center for delivery location ({Latitude}, {Longitude})", deliveryLatitude, deliveryLongitude);
                 throw;
             }
         }
@@ -419,8 +410,7 @@ namespace VHouse.Services
                     PeriodEnd = toDate.Value
                 };
 
-                _logger.LogInformation("Retrieved metrics for distribution center {DistributionCenterId} from {FromDate} to {ToDate}", 
-                    distributionCenterId, fromDate, toDate);
+                _logger.LogInformation("Retrieved metrics for distribution center {DistributionCenterId} from {FromDate} to {ToDate}", distributionCenterId, fromDate, toDate);
 
                 return metrics;
             }

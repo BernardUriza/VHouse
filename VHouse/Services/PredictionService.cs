@@ -80,9 +80,9 @@ namespace VHouse.Services
             return new PredictiveProductRecommendations
             {
                 CustomerId = customerId,
-                Recommendations = new List<ProductRecommendation>(),
-                Algorithm = "Collaborative Filtering",
-                ConfidenceScore = 0.85,
+                Recommendations = new List<RecommendedItem>(),
+                RecommendationAlgorithm = "Collaborative Filtering",
+                Confidence = 0.85,
                 GeneratedAt = DateTime.UtcNow
             };
         }

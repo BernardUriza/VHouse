@@ -4,7 +4,14 @@
       "Bash(rm:*)",
       "Bash(git push:*)",
       "Bash(git add:*)",
-      "Bash(dotnet build:*)"
+      "Bash(dotnet build:*)",
+      "Bash(powershell.exe:*)",
+      "Bash(dotnet restore:*)",
+      "Bash(dotnet ef database:*)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(taskkill:*)",
+      "WebSearch",
+      "Bash(git log:*)"
     ],
     "deny": [],
     "ask": [],

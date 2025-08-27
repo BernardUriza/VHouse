@@ -1,10 +1,16 @@
 ﻿@page "/counter"
 @rendermode InteractiveServer
-@inject ProductService ProductService
+@using VHouse.Interfaces
+@inject IProductService ProductService
 
-<PageTitle>Gestión de Pedidos Inteligentes</PageTitle>
+<link href="~/css/counter.css" rel="stylesheet" />
 
-<h1 class="text-primary">Gestión de Tickets</h1>
+<PageTitle>Punto de Venta Vegano</PageTitle>
+
+<!-- Modern 2025 Tickets Header -->
+<div class="tickets-header">
+    <h1>🎫 Punto de Venta Vegano</h1>
+</div>
 
 <section class="container-fluid">
     <div class="row">

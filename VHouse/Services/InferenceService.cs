@@ -361,30 +361,21 @@ public class InferenceService
         try
         {
             _logger.LogInformation($"Running load test for endpoint {config.EndpointId}");
-            await Task.Delay(config.TestDuration);
+            await Task.Delay(config.Duration);
             
             var random = new Random();
-            var totalRequests = config.ConcurrentUsers * config.RequestsPerUser;
+            var totalRequests = config.ConcurrentUsers * config.RequestsPerSecond;
             
             return new LoadTestResult
             {
                 TestId = Guid.NewGuid().ToString(),
                 EndpointId = config.EndpointId,
-                TestDuration = config.TestDuration,
-                ConcurrentUsers = config.ConcurrentUsers,
                 TotalRequests = totalRequests,
                 SuccessfulRequests = totalRequests - random.Next(0, totalRequests / 50),
-                FailedRequests = random.Next(0, totalRequests / 50),
                 AverageLatency = TimeSpan.FromMilliseconds(random.Next(150, 400)),
-                MinLatency = TimeSpan.FromMilliseconds(random.Next(50, 150)),
                 MaxLatency = TimeSpan.FromMilliseconds(random.Next(500, 1500)),
-                P95Latency = TimeSpan.FromMilliseconds(random.Next(300, 700)),
-                P99Latency = TimeSpan.FromMilliseconds(random.Next(600, 1200)),
-                ThroughputRPS = totalRequests / (config.TestDuration.TotalSeconds),
-                ErrorRate = random.NextDouble() * 0.03,
-                CpuUtilization = random.Next(40, 95),
-                MemoryUtilization = random.Next(50, 90),
-                CompletedAt = DateTime.UtcNow
+                RequestsPerSecond = totalRequests / config.Duration.TotalSeconds,
+                ResponseCodes = new Dictionary<int, int> { [200] = totalRequests - random.Next(0, totalRequests / 50), [500] = random.Next(0, totalRequests / 50) }
             };
         }
         catch (Exception ex)
@@ -416,12 +407,6 @@ public class InferenceService
                 var result = await ExecuteInferenceAsync(mockInput);
                 // Store result in session data
                 session.RequestCount++;
-                
-                // Limit buffer size
-                if (session.ResultsBuffer.Count > 100)
-                {
-                    session.ResultsBuffer.Dequeue();
-                }
             }
         }
         catch (Exception ex)
@@ -490,9 +475,9 @@ public class InferenceService
         var endpoint = _modelEndpoints.Values.FirstOrDefault(e => e.ModelId == modelId);
         if (endpoint != null)
         {
-            endpoint.Metrics.RequestsPerSecond++;
+            endpoint.Metrics.RequestCount++;
             endpoint.Metrics.AverageLatency = result.ProcessingTime;
-            endpoint.Metrics.LastUpdated = DateTime.UtcNow;
+            endpoint.Metrics.LastRequest = DateTime.UtcNow;
         }
         
         await Task.Delay(1); // Simulate async operation

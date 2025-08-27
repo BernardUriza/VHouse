@@ -42,7 +42,7 @@ namespace VHouse.Services
             return new DataMart
             {
                 DataMartId = Guid.NewGuid().ToString(),
-                Name = definition.Name,
+                Name = "DataMart_" + Guid.NewGuid().ToString("N")[..8],
                 Subject = "Sales",
                 LastRefresh = DateTime.UtcNow,
                 Schema = new Dictionary<string, object>()

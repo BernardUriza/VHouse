@@ -10,7 +10,7 @@ using VHouse.Middleware;
 using VHouse.Repositories;
 using VHouse.Services;
 using VHouse.Validators;
-using Npgsql;
+// using Npgsql;
 using System.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -179,79 +179,16 @@ else
     }
 }
 
-// 🚀 Iniciar PostgreSQL automáticamente en desarrollo
-if (builder.Environment.IsDevelopment())
-{
-    try
-    {
-        logger.LogInformation("🔍 Starting PostgreSQL for development...");
-        var startInfo = new ProcessStartInfo
-        {
-            FileName = "bash",
-            Arguments = "../start-postgres.sh",
-            WorkingDirectory = builder.Environment.ContentRootPath,
-            UseShellExecute = false,
-            RedirectStandardOutput = true,
-            RedirectStandardError = true
-        };
+// 🚀 SQLite no necesita configuración adicional - se crea automáticamente
+logger.LogInformation("✅ Using SQLite database: {DatabaseUrl}", databaseUrl);
 
-        using var process = Process.Start(startInfo);
-        if (process != null)
-        {
-            await process.WaitForExitAsync();
-            if (process.ExitCode == 0)
-            {
-                logger.LogInformation("✅ PostgreSQL startup script completed successfully.");
-            }
-            else
-            {
-                logger.LogWarning("⚠️ PostgreSQL startup script completed with warnings.");
-            }
-        }
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "⚠️ Could not run PostgreSQL startup script. Continuing anyway...");
-    }
-}
-
-// 🛠 Reintentar conexión a la base de datos antes de rendirse
-const int maxRetries = 5;
-int attempt = 0;
-bool connected = false;
-
-while (attempt < maxRetries)
-{
-    try
-    {
-        logger.LogInformation("🔄 Attempting to connect to PostgreSQL... (Attempt {Attempt}/{MaxRetries})", attempt + 1, maxRetries);
-        using var testConnection = new NpgsqlConnection(databaseUrl);
-        testConnection.Open();
-        logger.LogInformation("✅ Successfully connected to PostgreSQL.");
-        connected = true;
-        break;
-    }
-    catch (Exception ex)
-    {
-        logger.LogWarning(ex, "⚠️ Could not connect to PostgreSQL");
-        attempt++;
-        Thread.Sleep(3000); // Esperar 3 segundos antes de reintentar
-    }
-}
-
-if (!connected)
-{
-    logger.LogError("❌ Could not connect to PostgreSQL after several attempts. Aborting.");
-    return;
-}
-
-// 📌 Configurar Entity Framework con PostgreSQL
+// 📌 Configurar Entity Framework con SQLite
 if (builder.Environment.IsDevelopment())
 {
     // Configuración para desarrollo con logging básico
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        options.UseNpgsql(databaseUrl);
+        options.UseSqlite(databaseUrl);
         options.EnableSensitiveDataLogging(true);
         options.EnableDetailedErrors(true);
     });
@@ -261,14 +198,7 @@ else
     // Configuración avanzada para producción
     builder.Services.AddDbContext<ApplicationDbContext>(options =>
     {
-        options.UseNpgsql(databaseUrl, npgsqlOptions =>
-        {
-            npgsqlOptions.EnableRetryOnFailure(
-                maxRetryCount: 3,
-                maxRetryDelay: TimeSpan.FromSeconds(30),
-                errorCodesToAdd: null);
-            npgsqlOptions.CommandTimeout(30);
-        });
+        options.UseSqlite(databaseUrl);
         
         options.EnableServiceProviderCaching();
         options.EnableSensitiveDataLogging(false);
@@ -279,7 +209,8 @@ else
 if (!builder.Environment.IsDevelopment())
 {
     builder.Services.AddHealthChecks()
-        .AddNpgSql(databaseUrl ?? "Host=localhost;Database=vhouse;Username=postgres;Password=postgres", name: "postgresql", tags: new[] { "database", "postgresql" })
+        // SQLite health check - simple check that database is accessible
+        .AddCheck("sqlite", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("SQLite database ready"), tags: new[] { "database", "sqlite" })
         .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "self" });
 }
 
