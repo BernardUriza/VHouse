@@ -3,49 +3,117 @@
 @using VHouse.Interfaces
 @inject IOrderService OrderService
 
-<h2>📋 Gestión de Pedidos</h2>
+<link href="~/css/orders.css" rel="stylesheet" />
 
-<h3>📜 Lista de Pedidos</h3>
-@if (orders.Any())
-{
-    <table class="table table-striped">
-        <thead class="table-dark">
-            <tr>
-                <th>ID</th>
-                <th>📅 Fecha</th>
-                <th>🏪 Tipo de Precio</th>
-                <th>💰 Total</th>
-                <th>📦 Fecha de Entrega</th>
-                <th>⚙️ Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var order in orders)
-            {
+<!-- Modern 2025 Orders Header -->
+<div class="orders-header">
+    <h1>📋 Gestión de Órdenes Veganas</h1>
+</div>
+
+<div class="orders-section">
+    <h3>📜 Lista de Pedidos</h3>
+    @if (orders.Any())
+    {
+        <table class="table">
+            <thead>
                 <tr>
-                    <td>@order.OrderId</td>
-                    <td>@order.OrderDate.ToString("dd/MM/yyyy")</td>
-                    <td>@(order.PriceType == "retail" ? "Punto de Venta" : order.PriceType == "cost" ? "Costo" : "Público")</td>
-                    <td>@order.TotalAmount.ToString("C")</td>
-                    <td>@order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</td>
-                    <td>
-                        <button class="btn btn-info btn-sm" @onclick="() => ViewOrderDetails(order)">👀 Ver Detalles</button>
-                        <button class="btn btn-danger btn-sm" @onclick="() => DeleteOrder(order)">🗑 Eliminar</button>
-                    </td>
+                    <th>ID</th>
+                    <th>📅 Fecha</th>
+                    <th>🏪 Tipo de Precio</th>
+                    <th>💰 Total</th>
+                    <th>📦 Fecha de Entrega</th>
+                    <th>⚙️ Acciones</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-}
-else
-{
-    <p>No hay pedidos registrados.</p>
-}
+            </thead>
+            <tbody>
+                @foreach (var order in orders)
+                {
+                    <tr>
+                        <td><strong>#@order.OrderId</strong></td>
+                        <td><strong>@order.OrderDate.ToString("dd/MM/yyyy")</strong></td>
+                        <td><strong>@(order.PriceType == "retail" ? "Punto de Venta" : order.PriceType == "cost" ? "Costo" : "Público")</strong></td>
+                        <td><strong>@order.TotalAmount.ToString("C")</strong></td>
+                        <td><strong>@order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</strong></td>
+                        <td>
+                            <button class="btn btn-info btn-sm" @onclick="() => ViewOrderDetails(order)">👀 Ver Detalles</button>
+                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteOrder(order)">🗑 Eliminar</button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+    else
+    {
+        <div class="empty-orders">
+            📋 No hay pedidos registrados en el sistema vegano
+        </div>
+    }
+</div>
 
-<!-- Order Details Modal Component -->
+<!-- Order Details Modal -->
 @if (selectedOrder != null)
 {
-    <OrderDetailsModal Order="selectedOrder" OnClose="CloseModal"></OrderDetailsModal>
+    <div class="modal fade show d-block" tabindex="-1" style="background: rgba(0, 0, 0, 0.5);">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">📋 Detalles del Pedido #@selectedOrder.OrderId</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <strong>Fecha del Pedido:</strong> @selectedOrder.OrderDate.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Tipo de Precio:</strong> @(selectedOrder.PriceType == "retail" ? "Punto de Venta" : selectedOrder.PriceType == "cost" ? "Costo" : "Público")
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-md-6">
+                            <strong>Total:</strong> @selectedOrder.TotalAmount.ToString("C")
+                        </div>
+                        <div class="col-md-6">
+                            <strong>Fecha de Entrega:</strong> @selectedOrder.DeliveryDate.ToString("dd/MM/yyyy HH:mm")
+                        </div>
+                    </div>
+                    @if (selectedOrder.OrderItems?.Any() == true)
+                    {
+                        <h6 class="mt-4">Items del Pedido:</h6>
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Producto</th>
+                                    <th>Cantidad</th>
+                                    <th>Precio</th>
+                                    <th>Subtotal</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in selectedOrder.OrderItems)
+                                {
+                                    <tr>
+                                        <td>@item.Product?.ProductName</td>
+                                        <td>@item.Quantity</td>
+                                        <td>@item.Price.ToString("C")</td>
+                                        <td>@((item.Quantity * item.Price).ToString("C"))</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else
+                    {
+                        <p class="text-muted mt-3">No hay items en este pedido.</p>
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" @onclick="CloseModal">Cerrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
 }
 
 @code {

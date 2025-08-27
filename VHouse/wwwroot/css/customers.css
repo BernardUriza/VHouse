@@ -3,6 +3,17 @@
    Diseñado para dependientas de tienda - Solo blancos y negros
    ============================================================ */
 
+/* Ensure high contrast on main content area */
+.content {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Override any default text colors */
+.content * {
+    color: inherit;
+}
+
 /* Customer Header - Alto contraste */
 .customer-header {
     background: #ffffff;
