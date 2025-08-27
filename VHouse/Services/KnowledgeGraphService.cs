@@ -145,7 +145,7 @@ public class KnowledgeGraphService
             var graph = new KnowledgeGraph
             {
                 GraphId = Guid.NewGuid().ToString(),
-                Name = request.GraphName ?? "Knowledge Graph",
+                Name = (request.Parameters.ContainsKey("GraphName") ? request.Parameters["GraphName"]?.ToString() : null) ?? "Knowledge Graph",
                 Entities = mergedEntities,
                 Relationships = mergedRelationships,
                 Metadata = new Dictionary<string, object>

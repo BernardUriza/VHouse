@@ -216,30 +216,39 @@ public class IntegrationService : IIntegrationService
             {
                 new HealthCheckResult
                 {
-                    CheckName = "Connection",
-                    Passed = isHealthy,
+                    ResourceId = endpointId,
                     Status = isHealthy ? "HEALTHY" : "UNHEALTHY",
-                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(10, 100)),
+                    CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Connection established" : "Connection timeout",
-                    CheckedAt = DateTime.UtcNow
+                    Details = new Dictionary<string, object> { ["CheckName"] = "Connection", ["Passed"] = isHealthy },
+                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(10, 100)),
+                    SuccessCount = isHealthy ? 1 : 0,
+                    FailureCount = isHealthy ? 0 : 1,
+                    HealthScore = isHealthy ? 1.0 : 0.0
                 },
                 new HealthCheckResult
                 {
-                    CheckName = "Authentication",
-                    Passed = isHealthy,
+                    ResourceId = endpointId,
                     Status = isHealthy ? "HEALTHY" : "UNHEALTHY",
-                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(5, 50)),
+                    CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Authentication successful" : "Invalid credentials",
-                    CheckedAt = DateTime.UtcNow
+                    Details = new Dictionary<string, object> { ["CheckName"] = "Authentication", ["Passed"] = isHealthy },
+                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(5, 50)),
+                    SuccessCount = isHealthy ? 1 : 0,
+                    FailureCount = isHealthy ? 0 : 1,
+                    HealthScore = isHealthy ? 1.0 : 0.0
                 },
                 new HealthCheckResult
                 {
-                    CheckName = "Data_Sync",
-                    Passed = isHealthy,
+                    ResourceId = endpointId,
                     Status = isHealthy ? "HEALTHY" : "WARNING",
-                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(100, 300)),
+                    CheckTime = DateTime.UtcNow,
                     Message = isHealthy ? "Data sync operational" : "Sync lag detected",
-                    CheckedAt = DateTime.UtcNow
+                    Details = new Dictionary<string, object> { ["CheckName"] = "Data_Sync", ["Passed"] = isHealthy },
+                    ResponseTime = TimeSpan.FromMilliseconds(random.Next(100, 300)),
+                    SuccessCount = isHealthy ? 1 : 0,
+                    FailureCount = isHealthy ? 0 : 1,
+                    HealthScore = isHealthy ? 1.0 : 0.5
                 }
             };
             

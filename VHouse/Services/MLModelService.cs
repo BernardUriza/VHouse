@@ -142,32 +142,33 @@ public class MLModelService
             var random = new Random();
             return new ModelComparison
             {
-                ModelA = new ModelComparisonInfo
+                ComparisonId = Guid.NewGuid().ToString(),
+                ModelIds = new List<string> { modelId1, modelId2 },
+                Metrics = new Dictionary<string, Dictionary<string, double>>
                 {
-                    ModelId = modelId1,
-                    Name = "Model A",
-                    Accuracy = 0.89 + (random.NextDouble() * 0.08),
-                    Precision = 0.87 + (random.NextDouble() * 0.10),
-                    Recall = 0.85 + (random.NextDouble() * 0.12),
-                    F1Score = 0.86 + (random.NextDouble() * 0.11),
-                    LatencyP95 = TimeSpan.FromMilliseconds(random.Next(100, 300)),
-                    ThroughputRPS = random.Next(100, 500),
-                    ModelSizeMB = random.Next(50, 200)
+                    [modelId1] = new Dictionary<string, double>
+                    {
+                        ["Accuracy"] = 0.89 + (random.NextDouble() * 0.08),
+                        ["Precision"] = 0.87 + (random.NextDouble() * 0.10),
+                        ["Recall"] = 0.85 + (random.NextDouble() * 0.12),
+                        ["F1Score"] = 0.86 + (random.NextDouble() * 0.11),
+                        ["LatencyP95"] = random.Next(100, 300),
+                        ["ThroughputRPS"] = random.Next(100, 500),
+                        ["ModelSizeMB"] = random.Next(50, 200)
+                    },
+                    [modelId2] = new Dictionary<string, double>
+                    {
+                        ["Accuracy"] = 0.91 + (random.NextDouble() * 0.06),
+                        ["Precision"] = 0.89 + (random.NextDouble() * 0.08),
+                        ["Recall"] = 0.87 + (random.NextDouble() * 0.10),
+                        ["F1Score"] = 0.88 + (random.NextDouble() * 0.09),
+                        ["LatencyP95"] = random.Next(80, 250),
+                        ["ThroughputRPS"] = random.Next(120, 450),
+                        ["ModelSizeMB"] = random.Next(40, 180)
+                    }
                 },
-                ModelB = new ModelComparisonInfo
-                {
-                    ModelId = modelId2,
-                    Name = "Model B",
-                    Accuracy = 0.91 + (random.NextDouble() * 0.06),
-                    Precision = 0.89 + (random.NextDouble() * 0.08),
-                    Recall = 0.87 + (random.NextDouble() * 0.10),
-                    F1Score = 0.88 + (random.NextDouble() * 0.09),
-                    LatencyP95 = TimeSpan.FromMilliseconds(random.Next(80, 250)),
-                    ThroughputRPS = random.Next(120, 450),
-                    ModelSizeMB = random.Next(40, 180)
-                },
-                ComparisonSummary = GenerateComparisonSummary(),
-                RecommendedModel = random.NextDouble() > 0.5 ? modelId1 : modelId2
+                BestModel = random.NextDouble() > 0.5 ? modelId1 : modelId2,
+                ComparedAt = DateTime.UtcNow
             };
         }
         catch (Exception ex)
@@ -187,40 +188,44 @@ public class MLModelService
             return new ModelLineage
             {
                 ModelId = modelId,
-                ModelName = "Customer Churn Predictor",
-                Versions = new List<ModelLineageVersion>
+                ParentModelId = "parent-model-" + Guid.NewGuid().ToString().Substring(0, 8),
+                Dependencies = new List<string> { "sklearn", "pandas", "numpy", "xgboost" },
+                Provenance = new Dictionary<string, object>
                 {
-                    new ModelLineageVersion
+                    ["ModelName"] = "Customer Churn Predictor",
+                    ["Algorithm"] = "XGBoost",
+                    ["TrainingDatasets"] = new List<string> { "customer_data_v1", "customer_data_v2", "customer_data_v3" },
+                    ["FeatureSources"] = new List<string> { "transaction_features", "demographic_features", "behavioral_features" },
+                    ["DataQualityChecks"] = new List<string> { "null_checks", "range_validation", "consistency_checks" },
+                    ["Versions"] = new List<Dictionary<string, object>>
                     {
-                        Version = "1.0.0",
-                        CreatedAt = DateTime.UtcNow.AddDays(-90),
-                        ParentVersion = null,
-                        Changes = "Initial model",
-                        Accuracy = 0.82
-                    },
-                    new ModelLineageVersion
-                    {
-                        Version = "1.1.0",
-                        CreatedAt = DateTime.UtcNow.AddDays(-60),
-                        ParentVersion = "1.0.0",
-                        Changes = "Added feature engineering pipeline",
-                        Accuracy = 0.87
-                    },
-                    new ModelLineageVersion
-                    {
-                        Version = "2.0.0",
-                        CreatedAt = DateTime.UtcNow.AddDays(-30),
-                        ParentVersion = "1.1.0",
-                        Changes = "Switched to XGBoost algorithm",
-                        Accuracy = 0.92
+                        new Dictionary<string, object>
+                        {
+                            ["Version"] = "1.0.0",
+                            ["CreatedAt"] = DateTime.UtcNow.AddDays(-90),
+                            ["ParentVersion"] = null,
+                            ["Changes"] = "Initial model",
+                            ["Accuracy"] = 0.82
+                        },
+                        new Dictionary<string, object>
+                        {
+                            ["Version"] = "1.1.0",
+                            ["CreatedAt"] = DateTime.UtcNow.AddDays(-60),
+                            ["ParentVersion"] = "1.0.0",
+                            ["Changes"] = "Added feature engineering pipeline",
+                            ["Accuracy"] = 0.87
+                        },
+                        new Dictionary<string, object>
+                        {
+                            ["Version"] = "2.0.0",
+                            ["CreatedAt"] = DateTime.UtcNow.AddDays(-30),
+                            ["ParentVersion"] = "1.1.0",
+                            ["Changes"] = "Switched to XGBoost algorithm",
+                            ["Accuracy"] = 0.92
+                        }
                     }
                 },
-                DatalineageInfo = new DataLineageInfo
-                {
-                    TrainingDatasets = new List<string> { "customer_data_v1", "customer_data_v2", "customer_data_v3" },
-                    FeatureSources = new List<string> { "transaction_features", "demographic_features", "behavioral_features" },
-                    DataQualityChecks = new List<string> { "null_checks", "range_validation", "consistency_checks" }
-                }
+                CreatedAt = DateTime.UtcNow
             };
         }
         catch (Exception ex)
@@ -242,14 +247,9 @@ public class MLModelService
                 BackupId = Guid.NewGuid().ToString(),
                 ModelId = modelId,
                 BackupLocation = $"{config.BackupLocation}/{modelId}/{DateTime.UtcNow:yyyyMMdd_HHmmss}",
-                BackupSize = new Random().Next(100, 1000),
-                BackupType = config.BackupType,
-                Compression = config.UseCompression,
-                Encryption = config.UseEncryption,
-                CreatedAt = DateTime.UtcNow,
-                ExpiresAt = DateTime.UtcNow.AddDays(config.RetentionDays),
-                Status = "Completed",
-                Checksum = GenerateChecksum()
+                BackupSize = new Random().Next(100000, 1000000),
+                BackupTime = DateTime.UtcNow,
+                Status = "Completed"
             };
         }
         catch (Exception ex)
@@ -270,8 +270,8 @@ public class MLModelService
             {
                 RestoreId = Guid.NewGuid().ToString(),
                 BackupId = backupId,
-                RestoredModelId = Guid.NewGuid().ToString(),
-                RestoreLocation = config.RestoreLocation,
+                ModelId = Guid.NewGuid().ToString(),
+                RestoreTime = DateTime.UtcNow,
                 Status = "Completed",
                 StartedAt = DateTime.UtcNow.AddMinutes(-4),
                 CompletedAt = DateTime.UtcNow,
@@ -311,11 +311,12 @@ public class MLModelService
             return new ModelMetrics
             {
                 ModelId = modelId,
-                Period = new { From = from, To = to },
+                Period = from,
                 PredictionCount = random.Next(1000 * days, 10000 * days),
                 AverageLatency = TimeSpan.FromMilliseconds(random.Next(50, 200)),
                 ThroughputRPS = random.Next(50, 300),
                 ErrorRate = random.NextDouble() * 0.05,
+                Accuracy = 0.85 + (random.NextDouble() * 0.1),
                 AccuracyTrend = GenerateAccuracyTrend(days),
                 LatencyTrend = GenerateLatencyTrend(days),
                 UsagePatterns = new Dictionary<string, object>
@@ -326,14 +327,18 @@ public class MLModelService
                 },
                 DriftAnalysis = new DriftAnalysis
                 {
-                    OverallDriftScore = random.NextDouble() * 0.3,
-                    FeatureDrift = new Dictionary<string, double>
+                    AnalysisId = Guid.NewGuid().ToString(),
+                    DriftScore = random.NextDouble() * 0.3,
+                    HasDrift = random.NextDouble() > 0.7,
+                    DriftType = random.NextDouble() > 0.5 ? "Feature Drift" : "Data Drift",
+                    DriftMetrics = new Dictionary<string, object>
                     {
                         ["age"] = random.NextDouble() * 0.2,
                         ["income"] = random.NextDouble() * 0.25,
                         ["location"] = random.NextDouble() * 0.15
                     },
-                    DriftAlerts = new List<string>()
+                    AnalyzedAt = DateTime.UtcNow,
+                    RecommendedActions = new List<string>()
                 }
             };
         }
