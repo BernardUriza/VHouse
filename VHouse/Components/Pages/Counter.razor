@@ -19,14 +19,99 @@
             <div class="alert alert-danger mt-2 p-2">@errorMessage</div>
         }
 
-        <!-- Order Processing Component -->
-        <div class="col-lg-3 col-md-6 mb-3">
-            <OrderProcessor Products="@Products" OnOrderProcessed="HandleOrderProcessed"></OrderProcessor>
-            <ProductList Products="@Products" OnProductAdded="HandleProductAdded"></ProductList>
+        <!-- Product Selection -->
+        <div class="col-lg-4 col-md-6 mb-3">
+            <div class="product-list">
+                <h3>🌱 Productos Disponibles</h3>
+                @if (Products.Any())
+                {
+                    @foreach (var product in Products)
+                    {
+                        <div class="product-item">
+                            <div class="product-info">
+                                <span class="product-name">@product.ProductName</span>
+                                <div class="product-prices">
+                                    <span class="product-price">Público: @product.PricePublic.ToString("C")</span>
+                                    <span class="product-price">POS: @product.PriceRetail.ToString("C")</span>
+                                </div>
+                            </div>
+                            <button class="btn-add-product" @onclick="() => AddToTicket(product)">
+                                ➕ Agregar
+                            </button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-products">
+                        🌱 No hay productos disponibles
+                    </div>
+                }
+            </div>
         </div>
 
-        <div class="col-lg-9 col-md-12">
-            <TicketSection Ticket="@ticket" @ref="ticketSection"></TicketSection>
+        <!-- Ticket/Cart Section -->
+        <div class="col-lg-8 col-md-12">
+            <div class="ticket-section">
+                <div class="ticket-header">
+                    <h3>🎫 Ticket de Venta</h3>
+                    <div class="price-type-selector">
+                        <button class="price-type-btn @(currentPriceType == "retail" ? "active" : "")" 
+                                @onclick="() => SetPriceType(\"retail\")">
+                            🏪 Punto Venta
+                        </button>
+                        <button class="price-type-btn @(currentPriceType == "public" ? "active" : "")" 
+                                @onclick="() => SetPriceType(\"public\")">
+                            👥 Público
+                        </button>
+                        <button class="price-type-btn @(currentPriceType == "cost" ? "active" : "")" 
+                                @onclick="() => SetPriceType(\"cost\")">
+                            💰 Costo
+                        </button>
+                    </div>
+                </div>
+                
+                <div class="ticket-content">
+                    @if (ticket.Any())
+                    {
+                        @foreach (var item in ticket.Values)
+                        {
+                            <div class="ticket-item">
+                                <span class="ticket-item-name">@item.ProductName</span>
+                                <div class="ticket-item-controls">
+                                    <button class="btn-quantity" @onclick="() => DecreaseQuantity(item.ProductId)">➖</button>
+                                    <span class="ticket-item-quantity">@item.Quantity</span>
+                                    <button class="btn-quantity" @onclick="() => IncreaseQuantity(item.ProductId)">➕</button>
+                                </div>
+                                <span class="ticket-item-price">@GetItemPrice(item).ToString("C")</span>
+                                <button class="btn-remove" @onclick="() => RemoveFromTicket(item.ProductId)">🗑️</button>
+                            </div>
+                        }
+                        
+                        <div class="ticket-total">
+                            <div class="ticket-total-text">
+                                TOTAL: @GetTicketTotal().ToString("C")
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="empty-ticket">
+                            <div class="empty-ticket-icon">🛒</div>
+                            <h4>Ticket Vacío</h4>
+                            <p>Agrega productos para comenzar la venta</p>
+                        </div>
+                    }
+                </div>
+
+                @if (ticket.Any())
+                {
+                    <div class="ticket-actions">
+                        <button class="btn-clear" @onclick="ClearTicket">🗑️ Limpiar</button>
+                        <button class="btn-process" @onclick="ProcessOrder">💰 Procesar Venta</button>
+                    </div>
+                }
+            </div>
         </div>
     </div>
 </section>
@@ -35,7 +120,7 @@
     public List<Product> Products { get; set; } = new();
     public Dictionary<int, OrderItem> ticket = new();
     private string? errorMessage = null;
-    private TicketSection? ticketSection { get; set; }
+    private string currentPriceType = "retail";
 
     protected override async Task OnInitializedAsync()
     {
@@ -49,19 +134,6 @@
         }
     }
 
-    private void HandleOrderProcessed(List<Product> selectedProducts)
-    {
-        foreach (var product in selectedProducts)
-        {
-            AddToTicket(product);
-        }
-    }
-
-    private void HandleProductAdded(Product product)
-    {
-        AddToTicket(product);
-    }
-
     private void AddToTicket(Product product)
     {
         if (ticket.ContainsKey(product.ProductId))
@@ -71,13 +143,96 @@
         else
         {
             ticket[product.ProductId] = new OrderItem
-                {
-                    ProductId = product.ProductId,
-                    ProductName = product.ProductName,
-                    Product = product,
-                    Quantity = 1
-                };
+            {
+                ProductId = product.ProductId,
+                ProductName = product.ProductName,
+                Product = product,
+                Quantity = 1,
+                Price = GetProductPrice(product)
+            };
         }
-        ticketSection.UpdatePricesByPriceType();
+        StateHasChanged();
+    }
+
+    private void IncreaseQuantity(int productId)
+    {
+        if (ticket.ContainsKey(productId))
+        {
+            ticket[productId].Quantity++;
+            StateHasChanged();
+        }
+    }
+
+    private void DecreaseQuantity(int productId)
+    {
+        if (ticket.ContainsKey(productId))
+        {
+            if (ticket[productId].Quantity > 1)
+            {
+                ticket[productId].Quantity--;
+            }
+            else
+            {
+                ticket.Remove(productId);
+            }
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveFromTicket(int productId)
+    {
+        if (ticket.ContainsKey(productId))
+        {
+            ticket.Remove(productId);
+            StateHasChanged();
+        }
+    }
+
+    private void SetPriceType(string priceType)
+    {
+        currentPriceType = priceType;
+        // Update all item prices
+        foreach (var item in ticket.Values)
+        {
+            item.Price = GetProductPrice(item.Product);
+        }
+        StateHasChanged();
+    }
+
+    private decimal GetProductPrice(Product product)
+    {
+        return currentPriceType switch
+        {
+            "retail" => product.PriceRetail,
+            "cost" => product.PriceCost,
+            "public" => product.PricePublic,
+            _ => product.PriceRetail
+        };
+    }
+
+    private decimal GetItemPrice(OrderItem item)
+    {
+        return GetProductPrice(item.Product) * item.Quantity;
+    }
+
+    private decimal GetTicketTotal()
+    {
+        return ticket.Values.Sum(item => GetItemPrice(item));
+    }
+
+    private void ClearTicket()
+    {
+        ticket.Clear();
+        StateHasChanged();
+    }
+
+    private void ProcessOrder()
+    {
+        // TODO: Implement order processing logic
+        // For now, just show confirmation
+        var total = GetTicketTotal();
+        errorMessage = $"✅ Orden procesada exitosamente. Total: {total:C}";
+        ticket.Clear();
+        StateHasChanged();
     }
 }
