@@ -31,7 +31,7 @@
                 <input id="priceCost" type="number" step="0.01" class="form-control" @bind="newPriceCost" placeholder="100.00" />
             </div>
             <div class="form-group">
-                <button type="button" class="btn btn-success" @onclick="AddProduct">Agregar Producto</button>
+                <button type="button" class="btn btn-success" @onclick="async () => await AddProduct()">Agregar Producto</button>
             </div>
         </div>
     </form>
@@ -100,13 +100,13 @@
                         <td>
                             @if (product == productBeingEdited)
                             {
-                                <button class="btn btn-primary btn-sm" @onclick="() => SaveEdit(product)">💾 Guardar</button>
+                                <button class="btn btn-primary btn-sm" @onclick="async () => await SaveEdit(product)">💾 Guardar</button>
                                 <button class="btn btn-secondary btn-sm" @onclick="CancelEdit">❌ Cancelar</button>
                             }
                             else
                             {
                                 <button class="btn btn-warning btn-sm" @onclick="() => EditProduct(product)">✏️ Editar</button>
-                                <button class="btn btn-danger btn-sm" @onclick="() => DeleteProduct(product)">🗑️ Eliminar</button>
+                                <button class="btn btn-danger btn-sm" @onclick="async () => await DeleteProduct(product)">🗑️ Eliminar</button>
                             }
                         </td>
                     </tr>

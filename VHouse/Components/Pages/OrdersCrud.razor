@@ -36,7 +36,7 @@
                         <td><strong>@order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</strong></td>
                         <td>
                             <button class="btn btn-info btn-sm" @onclick="() => ViewOrderDetails(order)">👀 Ver Detalles</button>
-                            <button class="btn btn-danger btn-sm" @onclick="() => DeleteOrder(order)">🗑 Eliminar</button>
+                            <button class="btn btn-danger btn-sm" @onclick="async () => await DeleteOrder(order)">🗑 Eliminar</button>
                         </td>
                     </tr>
                 }

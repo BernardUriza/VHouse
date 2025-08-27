@@ -62,7 +62,7 @@
                 </div>
                 <div class="form-actions">
                     <button type="button" class="btn-cancel" @onclick="ToggleAddCustomerModal">Cancelar</button>
-                    <button type="button" class="btn-save" @onclick="AddCustomer">
+                    <button type="button" class="btn-save" @onclick="async () => await AddCustomer()">
                         <i class="fas fa-save"></i>
                         Guardar Cliente
                     </button>
@@ -128,7 +128,7 @@
                             <i class="fas fa-edit"></i>
                             Editar
                         </button>
-                        <button class="action-btn danger" @onclick="() => DeleteCustomer(customer)">
+                        <button class="action-btn danger" @onclick="async () => await DeleteCustomer(customer)">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
