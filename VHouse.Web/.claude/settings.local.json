@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Infrastructure\\Services/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Infrastructure\\Repositories/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

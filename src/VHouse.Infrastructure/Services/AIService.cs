@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Globalization;
 using VHouse.Domain.Enums;
 using VHouse.Domain.Interfaces;
 using VHouse.Domain.ValueObjects;
@@ -15,6 +16,56 @@ public class AIService : IAIService
     private readonly HttpClient _httpClient;
     private readonly ILogger<AIService> _logger;
     private readonly IConfiguration _configuration;
+    
+    private static readonly JsonSerializerOptions _defaultJsonOptions = new() { WriteIndented = true };
+    
+    private static readonly Action<ILogger, string, Exception?> _logExtractProductIdsError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(1, "ExtractProductIdsFailed"), "Failed to extract product IDs: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logExtractProductIdsParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(2, "ExtractProductIdsParseError"), "Failed to parse AI response as JSON: {Content}");
+        
+    private static readonly Action<ILogger, Exception?> _logClaudeApiError =
+        LoggerMessage.Define(LogLevel.Error, new EventId(3, "ClaudeApiError"), "Error calling Claude API");
+        
+    private static readonly Action<ILogger, Exception?> _logOpenAIApiError =
+        LoggerMessage.Define(LogLevel.Error, new EventId(4, "OpenAIApiError"), "Error calling OpenAI API");
+        
+    private static readonly Action<ILogger, Exception?> _logDallEApiError =
+        LoggerMessage.Define(LogLevel.Error, new EventId(5, "DallEApiError"), "Error calling DALL-E API");
+        
+    private static readonly Action<ILogger, string, Exception?> _logPredictDemandError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(6, "PredictDemandFailed"), "Failed to predict demand: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logPredictDemandParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(7, "PredictDemandParseError"), "Failed to parse demand forecast response: {Content}");
+        
+    private static readonly Action<ILogger, string, Exception?> _logOptimizeInventoryError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(8, "OptimizeInventoryFailed"), "Failed to optimize inventory: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logOptimizeInventoryParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(9, "OptimizeInventoryParseError"), "Failed to parse inventory optimization response: {Content}");
+        
+    private static readonly Action<ILogger, string, Exception?> _logGenerateBusinessInsightsError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(10, "GenerateBusinessInsightsFailed"), "Failed to generate business insights: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logGenerateBusinessInsightsParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(11, "GenerateBusinessInsightsParseError"), "Failed to parse business insights response: {Content}");
+        
+    private static readonly Action<ILogger, string, Exception?> _logProcessEnhancedOrderError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(12, "ProcessEnhancedOrderFailed"), "Failed to process enhanced order: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logProcessEnhancedOrderParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(13, "ProcessEnhancedOrderParseError"), "Failed to parse enhanced order response: {Content}");
+        
+    private static readonly Action<ILogger, Exception?> _logValidateProductAvailabilityError =
+        LoggerMessage.Define(LogLevel.Error, new EventId(14, "ValidateProductAvailabilityError"), "Error validating product availability");
+        
+    private static readonly Action<ILogger, string, Exception?> _logGenerateAlternativeProductsError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(15, "GenerateAlternativeProductsFailed"), "Failed to generate alternative products: {Error}");
+        
+    private static readonly Action<ILogger, string, Exception> _logGenerateAlternativeProductsParseError =
+        LoggerMessage.Define<string>(LogLevel.Error, new EventId(16, "GenerateAlternativeProductsParseError"), "Failed to parse alternative products response: {Content}");
 
     // Configuration keys
     private const string CLAUDE_API_KEY = "Claude:ApiKey";
@@ -84,7 +135,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to extract product IDs: {Error}", response.ErrorMessage);
+            _logExtractProductIdsError(_logger, response.ErrorMessage, null);
             return new List<int> { -1 };
         }
 
@@ -96,7 +147,7 @@ public class AIService : IAIService
         }
         catch (JsonException ex)
         {
-            _logger.LogError(ex, "Failed to parse AI response as JSON: {Content}", response.Content);
+            _logExtractProductIdsParseError(_logger, response.Content, ex);
             return new List<int> { -1 };
         }
     }
@@ -275,7 +326,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling Claude API");
+            _logClaudeApiError(_logger, ex);
             return new AIResponse
             {
                 IsSuccessful = false,
@@ -345,7 +396,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling OpenAI API");
+            _logOpenAIApiError(_logger, ex);
             return new AIResponse
             {
                 IsSuccessful = false,
@@ -412,7 +463,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error calling DALL-E API");
+            _logDallEApiError(_logger, ex);
             return new ImageGenerationResponse
             {
                 IsSuccessful = false,
@@ -435,7 +486,7 @@ public class AIService : IAIService
                string.Empty;
     }
 
-    private string GetClaudeModelName(AIModel model)
+    private static string GetClaudeModelName(AIModel model)
     {
         return model switch
         {
@@ -446,7 +497,7 @@ public class AIService : IAIService
         };
     }
 
-    private string GetOpenAIModelName(AIModel model)
+    private static string GetOpenAIModelName(AIModel model)
     {
         return model switch
         {
@@ -461,25 +512,25 @@ public class AIService : IAIService
 
     #region API Response Models
 
-    private record ClaudeAPIResponse(
+    private sealed record ClaudeAPIResponse(
         List<ClaudeContent> Content,
         ClaudeUsage Usage
     );
 
-    private record ClaudeContent(string Text, string Type);
-    private record ClaudeUsage(int InputTokens, int OutputTokens);
+    private sealed record ClaudeContent(string Text, string Type);
+    private sealed record ClaudeUsage(int InputTokens, int OutputTokens);
 
-    private record OpenAIAPIResponse(
+    private sealed record OpenAIAPIResponse(
         List<OpenAIChoice> Choices,
         OpenAIUsage Usage
     );
 
-    private record OpenAIChoice(OpenAIMessage Message);
-    private record OpenAIMessage(string Content);
-    private record OpenAIUsage(int TotalTokens);
+    private sealed record OpenAIChoice(OpenAIMessage Message);
+    private sealed record OpenAIMessage(string Content);
+    private sealed record OpenAIUsage(int TotalTokens);
 
-    private record DallEAPIResponse(List<DallEImageData> Data);
-    private record DallEImageData(string Url, string RevisedPrompt);
+    private sealed record DallEAPIResponse(List<DallEImageData> Data);
+    private sealed record DallEImageData(string Url, string RevisedPrompt);
 
     #endregion
 
@@ -493,7 +544,7 @@ public class AIService : IAIService
 
         var prompt = "Producto ID: " + productId + "\n" +
             "Días a predecir: " + days + "\n\n" +
-            "Datos históricos:\n" + JsonSerializer.Serialize(historicalData, new JsonSerializerOptions { WriteIndented = true }) + "\n\n" +
+            "Datos históricos:\n" + JsonSerializer.Serialize(historicalData, _defaultJsonOptions) + "\n\n" +
             "Analiza los datos y proporciona:\n" +
             "1. Predicción de demanda diaria para los próximos " + days + " días\n" +
             "2. Análisis de tendencias\n" +
@@ -523,7 +574,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to predict demand: {Error}", response.ErrorMessage);
+            _logPredictDemandError(_logger, response.ErrorMessage, null);
             return new DemandForecast
             {
                 ProductId = productId,
@@ -546,7 +597,7 @@ public class AIService : IAIService
             {
                 foreach (var pred in predictionsElement.EnumerateArray())
                 {
-                    var dateStr = pred.GetProperty("date").GetString() ?? DateTime.UtcNow.ToString("yyyy-MM-dd");
+                    var dateStr = pred.GetProperty("date").GetString() ?? DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
                     var quantity = pred.GetProperty("quantity").GetDouble();
                     var confidence = pred.TryGetProperty("confidence", out var confProp) ? confProp.GetDouble() : 0.8;
                     
@@ -562,7 +613,7 @@ public class AIService : IAIService
 
                     predictions.Add(new DemandPrediction
                     {
-                        Date = DateTime.Parse(dateStr),
+                        Date = DateTime.Parse(dateStr, CultureInfo.InvariantCulture),
                         PredictedQuantity = quantity,
                         LowerBound = quantity * 0.8,
                         UpperBound = quantity * 1.2,
@@ -603,7 +654,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse demand forecast response: {Content}", response.Content);
+            _logPredictDemandParseError(_logger, response.Content, ex);
             return new DemandForecast
             {
                 ProductId = productId,
@@ -623,8 +674,8 @@ public class AIService : IAIService
             Considera rotación de productos, caducidad, demanda estacional y márgenes.
             """;
 
-        var prompt = "Datos de inventario actual:\n" + JsonSerializer.Serialize(inventoryData, new JsonSerializerOptions { WriteIndented = true }) + "\n\n" +
-            "Datos de ventas:\n" + JsonSerializer.Serialize(salesData, new JsonSerializerOptions { WriteIndented = true }) + "\n\n" +
+        var prompt = "Datos de inventario actual:\n" + JsonSerializer.Serialize(inventoryData, _defaultJsonOptions) + "\n\n" +
+            "Datos de ventas:\n" + JsonSerializer.Serialize(salesData, _defaultJsonOptions) + "\n\n" +
             "Analiza y proporciona:\n" +
             "1. Productos que necesitan restock urgente\n" +
             "2. Productos con exceso de inventario\n" +
@@ -661,7 +712,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to optimize inventory: {Error}", response.ErrorMessage);
+            _logOptimizeInventoryError(_logger, response.ErrorMessage, null);
             return new InventoryOptimization
             {
                 OptimizationScore = 0,
@@ -736,7 +787,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse inventory optimization response: {Content}", response.Content);
+            _logOptimizeInventoryParseError(_logger, response.Content, ex);
             return new InventoryOptimization
             {
                 OptimizationScore = 0.3,
@@ -754,7 +805,7 @@ public class AIService : IAIService
             Enfócate en oportunidades de crecimiento, optimizaciones y tendencias del mercado vegano.
             """;
 
-        var prompt = "Datos del negocio:\n" + JsonSerializer.Serialize(businessData, new JsonSerializerOptions { WriteIndented = true }) + "\n\n" +
+        var prompt = "Datos del negocio:\n" + JsonSerializer.Serialize(businessData, _defaultJsonOptions) + "\n\n" +
             "Genera un análisis completo incluyendo:\n" +
             "1. Insights clave más importantes\n" +
             "2. Acciones recomendadas específicas\n" +
@@ -789,7 +840,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to generate business insights: {Error}", response.ErrorMessage);
+            _logGenerateBusinessInsightsError(_logger, response.ErrorMessage, null);
             return new BusinessInsights
             {
                 AnalysisScore = 0,
@@ -881,7 +932,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse business insights response: {Content}", response.Content);
+            _logGenerateBusinessInsightsParseError(_logger, response.Content, ex);
             return new BusinessInsights
             {
                 AnalysisScore = 0.4,
@@ -937,7 +988,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to process enhanced order: {Error}", response.ErrorMessage);
+            _logProcessEnhancedOrderError(_logger, response.ErrorMessage, null);
             return new EnhancedOrderResult
             {
                 IsValid = false,
@@ -1014,7 +1065,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse enhanced order response: {Content}", response.Content);
+            _logProcessEnhancedOrderParseError(_logger, response.Content, ex);
             return new EnhancedOrderResult
             {
                 IsValid = false,
@@ -1117,7 +1168,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error validating product availability");
+            _logValidateProductAvailabilityError(_logger, ex);
             return new ProductAvailabilityValidation
             {
                 ValidationResults = validationResults,
@@ -1128,7 +1179,7 @@ public class AIService : IAIService
         }
     }
 
-    private ProductValidationResult SimulateProductValidation(int productId, int requestedQuantity)
+    private static ProductValidationResult SimulateProductValidation(int productId, int requestedQuantity)
     {
         // Simulación basada en los datos de prueba del test
         return productId switch
@@ -1227,7 +1278,7 @@ public class AIService : IAIService
 
         if (!response.IsSuccessful)
         {
-            _logger.LogError("Failed to generate alternative products: {Error}", response.ErrorMessage);
+            _logGenerateAlternativeProductsError(_logger, response.ErrorMessage, null);
             return new AlternativeProductSuggestions
             {
                 ConfidenceScore = 0,
@@ -1296,7 +1347,7 @@ public class AIService : IAIService
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to parse alternative products response: {Content}", response.Content);
+            _logGenerateAlternativeProductsParseError(_logger, response.Content, ex);
             return new AlternativeProductSuggestions
             {
                 ConfidenceScore = 0.3,

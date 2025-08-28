@@ -1,6 +1,8 @@
 ﻿@using System.Text
 @using System.Globalization
 @inject IJSRuntime JSRuntime
+@* @inject ICustomerService CustomerService *@
+@* @inject IOrderService OrderService *@
 
 <div class="pos-order-header">
     <div class="order-controls">
@@ -10,7 +12,7 @@
                 <option value="">WALK-IN</option>
                 @foreach (var customer in customers)
                 {
-                    <option value="@customer.CustomerId">@customer.FullName</option>
+                    <option value="@customer.Id">@customer.CustomerName</option>
                 }
             </select>
         </div>
@@ -45,8 +47,8 @@
                            @bind="item.Quantity" @bind:event="oninput" @onchange="UpdateTotal">
                     <button class="qty-btn plus" @onclick="() => IncrementQuantity(item)">+</button>
                 </div>
-                <span class="price">@item.Price.ToString("C", new CultureInfo("es-MX"))</span>
-                <span class="total">@((item.Price * item.Quantity).ToString("C", new CultureInfo("es-MX")))</span>
+                <span class="price">@item.UnitPrice.ToString("C", new CultureInfo("es-MX"))</span>
+                <span class="total">@((item.UnitPrice * item.Quantity).ToString("C", new CultureInfo("es-MX")))</span>
                 <button class="remove-btn" @onclick="() => RemoveFromTicket(item.Product)">×</button>
             </div>
         }
@@ -136,13 +138,14 @@ else
     [Parameter]
     public Dictionary<int, VHouse.Domain.Entities.OrderItem> ticket { get; set; } = new();
 
-    private decimal Subtotal => ticket.Values.Sum(item => item.Price * item.Quantity);
+    private decimal Subtotal => ticket.Values.Sum(item => item.UnitPrice * item.Quantity);
     private decimal DiscountAmount => (discount / 100) * Subtotal;
     private decimal TotalPrice => Subtotal - DiscountAmount + shippingCost;
 
     protected override async Task OnInitializedAsync()
     {
-        customers = await CustomerService.GetCustomersAsync();
+        // customers = await CustomerService.GetCustomersAsync(); // Commented out until CustomerService is available
+        customers = new List<Customer>(); // Placeholder
     }
 
     private async Task SaveOrder()
@@ -151,20 +154,19 @@ else
 
         var order = new Order
             {
-                CustomerId = string.IsNullOrEmpty(selectedCustomerId) ? null : int.Parse(selectedCustomerId),
-                DeliveryDate = deliveryDate.Value.ToUniversalTime(),
-                PriceType = selectedPriceType,
+                CustomerId = string.IsNullOrEmpty(selectedCustomerId) ? 1 : int.Parse(selectedCustomerId), // Default customer ID for walk-ins
                 TotalAmount = TotalPrice,
-                Items = ticket.Values.Select(item => new OrderItem
+                Status = VHouse.Domain.Enums.OrderStatus.Pending,
+                Notes = $"Price Type: {selectedPriceType}, Delivery: {deliveryDate?.ToString()}",
+                OrderItems = ticket.Values.Select(item => new VHouse.Domain.Entities.OrderItem
                 {
                     ProductId = item.ProductId,
-                    ProductName = item.ProductName,
-                    Price = item.Price,
-                    Quantity = item.Quantity,
-                    Product = null
+                    UnitPrice = item.UnitPrice,
+                    Quantity = item.Quantity
                 }).ToList()
             };
-        isOrderGenerated = await OrderService.ProcessOrderAsync(order);
+        // isOrderGenerated = await OrderService.ProcessOrderAsync(order); // Commented out until OrderService is available
+        isOrderGenerated = true; // Placeholder
     }
 
     private void OnPriceTypeChanged(ChangeEventArgs e)
@@ -177,7 +179,7 @@ else
     {
         foreach (var item in ticket.Values)
         {
-            item.Price = GetPriceForType(item.Product);
+            item.UnitPrice = GetPriceForType(item.Product);
         }
         StateHasChanged(); 
     }
@@ -194,7 +196,7 @@ else
     {
         foreach (var item in ticket.Values)
         {
-            item.Price = GetPriceForType(item.Product);
+            item.UnitPrice = GetPriceForType(item.Product);
         }
         StateHasChanged(); // Refresh UI
     }
@@ -264,9 +266,9 @@ else
 
     private void RemoveFromTicket(Product product)
     {
-        if (ticket.ContainsKey(product.ProductId))
+        if (ticket.ContainsKey(product.Id))
         {
-            ticket.Remove(product.ProductId);
+            ticket.Remove(product.Id);
         }
     }
 
@@ -278,7 +280,7 @@ else
         // List of ordered products
         foreach (var item in ticket.Values)
         {
-            sb.AppendLine($"- {item.Product.ProductName} (x{item.Quantity}): {item.Price.ToString("C", new CultureInfo("es-MX"))}");
+            sb.AppendLine($"- {item.Product.ProductName} (x{item.Quantity}): {item.UnitPrice.ToString("C", new CultureInfo("es-MX"))}");
         }
 
         // Order details

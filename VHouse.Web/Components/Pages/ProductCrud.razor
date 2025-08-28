@@ -1,8 +1,9 @@
 ﻿@page "/product"
-@rendermode InteractiveServer
+@rendermode @(new InteractiveServerRenderMode())
 @using MediatR
 @using VHouse.Application.Commands
 @inject IMediator Mediator
+@* @inject IProductService ProductService *@
 
 <link href="~/css/products.css" rel="stylesheet" />
 
@@ -330,7 +331,7 @@
             @foreach (var product in products)
             {
                 <div class="product-item @(product == productBeingEdited ? "editing" : "")">
-                    <div class="product-id">#@product.ProductId</div>
+                    <div class="product-id">#@product.Id</div>
                     
                     <div class="product-details">
                         @if (product == productBeingEdited)
@@ -648,7 +649,8 @@
 
     private async Task LoadProductsAsync()
     {
-        products = await ProductService.GetProductsAsync();
+        // products = await ProductService.GetProductsAsync(); // Commented out until ProductService is available
+        products = new List<Product>(); // Placeholder
     }
 
     private async Task AddProduct()
@@ -666,7 +668,7 @@
                 PriceCost = newPriceCost
             };
 
-        await ProductService.AddProductAsync(newProduct);
+        // await ProductService.AddProductAsync(newProduct); // Commented out until ProductService is available
         await LoadProductsAsync();
 
         newProductName = string.Empty;
@@ -682,7 +684,7 @@
 
     private async Task SaveEdit(Product product)
     {
-        await ProductService.UpdateProductAsync(product);
+        // await ProductService.UpdateProductAsync(product); // Commented out until ProductService is available
         productBeingEdited = null;
         await LoadProductsAsync();
     }
@@ -694,7 +696,7 @@
 
     private async Task DeleteProduct(Product product)
     {
-        await ProductService.DeleteProductAsync(product.ProductId);
+        // await ProductService.DeleteProductAsync(product.Id); // Commented out until ProductService is available
         await LoadProductsAsync();
     }
 

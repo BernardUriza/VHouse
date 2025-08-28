@@ -64,23 +64,23 @@ public class AIController : ControllerBase
     }
 
     [HttpPost("process-enhanced-order")]
-    public async Task<IActionResult> ProcessEnhancedOrder([FromBody] ProcessEnhancedOrderRequest request)
+    public Task<IActionResult> ProcessEnhancedOrder([FromBody] ProcessEnhancedOrderRequest request)
     {
         // Implementar usando DirectAI injection en lugar de MediatR para demo rápido
         // En producción, crear Commands/Handlers específicos
-        return BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" });
+        return Task.FromResult<IActionResult>(BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" }));
     }
 
     [HttpPost("validate-availability")]
-    public async Task<IActionResult> ValidateAvailability([FromBody] ValidateAvailabilityRequest request)
+    public Task<IActionResult> ValidateAvailability([FromBody] ValidateAvailabilityRequest request)
     {
-        return BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" });
+        return Task.FromResult<IActionResult>(BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" }));
     }
 
     [HttpPost("generate-alternatives")]
-    public async Task<IActionResult> GenerateAlternatives([FromBody] GenerateAlternativesRequest request)
+    public Task<IActionResult> GenerateAlternatives([FromBody] GenerateAlternativesRequest request)
     {
-        return BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" });
+        return Task.FromResult<IActionResult>(BadRequest(new { error = "Endpoint pendiente - usar AIService directamente" }));
     }
 }
 

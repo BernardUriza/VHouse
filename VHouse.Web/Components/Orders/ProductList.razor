@@ -161,10 +161,10 @@
 <div class="products-grid">
     @foreach (var product in filteredProducts)
     {
-        <div class="product-card @(recommendedProducts.Contains(product.ProductId) ? "recommended" : "")">
+        <div class="product-card @(recommendedProducts.Contains(product.Id) ? "recommended" : "")">
             <div class="product-header">
                 <div class="product-name">@product.ProductName</div>
-                @if (recommendedProducts.Contains(product.ProductId))
+                @if (recommendedProducts.Contains(product.Id))
                 {
                     <div class="ai-badge">🤖 IA</div>
                 }
@@ -399,9 +399,8 @@
             }
 
             // Extraer IDs de productos recomendados usando AI
-            var catalogJson = System.Text.Json.JsonSerializer.Serialize(
-                products?.Select(p => new { p.ProductId, p.ProductName, Price = p.PriceRetail }) ?? new List<object>()
-            );
+            var catalogData = products?.Select(p => (object)new { ProductId = p.Id, p.ProductName, Price = p.PriceRetail }).ToList() ?? new List<object>();
+            var catalogJson = System.Text.Json.JsonSerializer.Serialize(catalogData);
             
             var recommendedIds = await AIService.ExtractProductIdsAsync(catalogJson, searchQuery);
             
@@ -409,8 +408,8 @@
             {
                 recommendedProducts = recommendedIds;
                 // Mostrar productos recomendados primero, luego el resto
-                var recommended = products?.Where(p => recommendedIds.Contains(p.ProductId)).ToList() ?? new();
-                var others = products?.Where(p => !recommendedIds.Contains(p.ProductId)).ToList() ?? new();
+                var recommended = products?.Where(p => recommendedIds.Contains(p.Id)).ToList() ?? new();
+                var others = products?.Where(p => !recommendedIds.Contains(p.Id)).ToList() ?? new();
                 filteredProducts = recommended.Concat(others).ToList();
             }
             else

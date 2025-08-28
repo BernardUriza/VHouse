@@ -5,11 +5,11 @@
 
     private Dictionary<string, (decimal Price, int Quantity)> GetGroupedItems()
     {
-        return Order.Items
-            .GroupBy(i => i.ProductName)
+        return Order.OrderItems
+            .GroupBy(i => i.Product?.ProductName ?? "Unknown Product")
             .ToDictionary(
                 g => g.Key,
-                g => (g.First().Price, g.Count())
+                g => (g.First().UnitPrice, g.Sum(x => x.Quantity))
             );
     }
 }
@@ -18,13 +18,13 @@
     <div class="modal-dialog modal-lg" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title">🛍 Detalles del Pedido #@Order.OrderId</h5><button type="button" class="btn-close" @onclick="EventCallback.Factory.Create(this, () => OnClose.InvokeAsync())"></button>
+                <h5 class="modal-title">🛍 Detalles del Pedido #@Order.Id</h5><button type="button" class="btn-close" @onclick="EventCallback.Factory.Create(this, () => OnClose.InvokeAsync())"></button>
 
             </div>
             <div class="modal-body">
                 <p><strong>📅 Fecha:</strong> @Order.OrderDate.ToString("dd/MM/yyyy HH:mm")</p>
-                <p><strong>🏪 Tipo de Precio:</strong> @Order.PriceType</p>
-                <p><strong>📦 Fecha de Entrega:</strong> @Order.DeliveryDate.ToString("dd/MM/yyyy HH:mm")</p>
+                <p><strong>📋 Estado:</strong> @Order.Status</p>
+                <p><strong>📝 Notas:</strong> @(string.IsNullOrEmpty(Order.Notes) ? "Sin notas" : Order.Notes)</p>
                 <p><strong>💰 Total:</strong> @Order.TotalAmount.ToString("C")</p>
 
                 <h5>🛒 Productos:</h5>
