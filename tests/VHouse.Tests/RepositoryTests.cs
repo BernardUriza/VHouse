@@ -248,8 +248,8 @@ namespace VHouse.Tests
             
             var inventoryData = new List<object>
             {
-                new { ProductId = 1, CurrentStock = 50, MinStock = 10 },
-                new { ProductId = 2, CurrentStock = 5, MinStock = 15 }
+                new { ProductId = 1, CurrentStockQuantity = 50, MinStockQuantity = 10 },
+                new { ProductId = 2, CurrentStockQuantity = 5, MinStockQuantity = 15 }
             };
             
             var salesData = new List<object>
@@ -331,7 +331,7 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public async Task AIService_ValidateProductAvailabilityAsync_ShouldCheckStock_TDD_Red()
+        public async Task AIService_ValidateProductAvailabilityAsync_ShouldCheckStockQuantity_TDD_Red()
         {
             // Arrange  
             using var context = GetInMemoryContext();
@@ -343,9 +343,9 @@ namespace VHouse.Tests
 
             var products = new List<Product>
             {
-                new Product { Id = 1, ProductName = "Leche Avena", IsActive = true, Stock = 10 },
-                new Product { Id = 2, ProductName = "Queso Vegano", IsActive = false, Stock = 0 },
-                new Product { Id = 3, ProductName = "Pan Integral", IsActive = true, Stock = 50 }
+                new Product { Id = 1, ProductName = "Leche Avena", IsActive = true, StockQuantity = 10 },
+                new Product { Id = 2, ProductName = "Queso Vegano", IsActive = false, StockQuantity = 0 },
+                new Product { Id = 3, ProductName = "Pan Integral", IsActive = true, StockQuantity = 50 }
             };
 
             context.Products.AddRange(products);
@@ -355,7 +355,7 @@ namespace VHouse.Tests
             {
                 new { ProductId = 1, Quantity = 5 },  // Disponible
                 new { ProductId = 2, Quantity = 3 },  // No activo
-                new { ProductId = 3, Quantity = 100 } // Stock insuficiente
+                new { ProductId = 3, Quantity = 100 } // StockQuantity insuficiente
             };
 
             // Act & Assert - DEBE FALLAR (RED) porque el método no está implementado

@@ -19,7 +19,8 @@
       "Bash(dotnet sln:*)",
       "Bash(dotnet add package:*)",
       "Bash(find:*)",
-      "Bash(dotnet test:*)"
+      "Bash(dotnet test:*)",
+      "Bash(dotnet run:*)"
     ],
     "deny": [],
     "ask": [],
