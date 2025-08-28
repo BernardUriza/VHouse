@@ -2,14 +2,10 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
-using VHouse;
-using VHouse.Classes;
-using VHouse.Components;
-using VHouse.Interfaces;
-using VHouse.Middleware;
-using VHouse.Repositories;
-using VHouse.Services;
-using VHouse.Validators;
+using VHouse.Domain.Interfaces;
+using VHouse.Domain.Entities;
+using VHouse.Application.Common;
+using VHouse.Infrastructure;
 // using Npgsql;
 using System.Diagnostics;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -50,85 +46,21 @@ else
 // Add response caching
 builder.Services.AddResponseCaching();
 
-// Register services with their interfaces
-builder.Services.AddScoped<IChatbotService, ChatbotService>();
-builder.Services.AddScoped<IProductService, ProductService>();
-builder.Services.AddScoped<IOrderService, OrderService>();
-builder.Services.AddScoped<ICustomerService, CustomerService>();
+// Clean Architecture Services
+builder.Services.AddScoped<IAIService, VHouse.Infrastructure.Services.AIService>();
 
-// Clean Architecture AI Services
-builder.Services.AddScoped<VHouse.Domain.Interfaces.IAIService, VHouse.Infrastructure.Services.AIService>();
+// Add MediatR
 builder.Services.AddMediatR(cfg => {
     cfg.RegisterServicesFromAssembly(typeof(VHouse.Application.Commands.GenerateProductDescriptionCommand).Assembly);
 });
 
-// Register B2B services
-builder.Services.AddScoped<ISupplierService, SupplierService>();
-builder.Services.AddScoped<IBrandService, BrandService>();
-builder.Services.AddScoped<IPurchaseOrderService, PurchaseOrderService>();
-builder.Services.AddScoped<IWarehouseService, WarehouseService>();
-builder.Services.AddScoped<IShrinkageService, ShrinkageService>();
+// Register Infrastructure Services
+builder.Services.AddScoped<IUnitOfWork, VHouse.Infrastructure.Repositories.UnitOfWork>();
+builder.Services.AddScoped(typeof(IRepository<>), typeof(VHouse.Infrastructure.Repositories.Repository<>));
 
-// Phase 5: Advanced Distribution Services
-builder.Services.AddScoped<ITenantService, TenantService>();
-builder.Services.AddScoped<IDistributionCenterService, DistributionCenterService>();
-builder.Services.AddScoped<IRouteOptimizationService, RouteOptimizationService>();
-builder.Services.AddScoped<IInventorySynchronizationService, InventorySynchronizationService>();
-
-// Phase 6: Production Security Framework
-builder.Services.AddScoped<ISecurityService, SecurityService>();
-builder.Services.AddScoped<IMonitoringService, MonitoringService>();
-builder.Services.AddScoped<IBackupService, BackupService>();
-
-// Phase 7: Advanced Analytics & Business Intelligence
-// Note: Temporarily disabled due to model conflicts
-// builder.Services.AddScoped<IAnalyticsService, AnalyticsService>();
-// builder.Services.AddScoped<IBusinessIntelligenceService, BusinessIntelligenceService>();
-// builder.Services.AddScoped<IPredictionService, PredictionService>();
-// builder.Services.AddScoped<IDataWarehouseService, DataWarehouseService>();
-
-// Phase 8: Multi-Cloud & Hybrid Infrastructure
-// Note: Temporarily disabled due to model conflicts
-// builder.Services.AddScoped<ICloudOrchestrationService, CloudOrchestrationService>();
-// builder.Services.AddScoped<IInfrastructureService, InfrastructureService>();
-// builder.Services.AddScoped<IContainerOrchestrationService, ContainerOrchestrationService>();
-
-// Phase 9: Advanced AI & Machine Learning Platform
-// Note: AI services temporarily disabled for demo due to model conflicts
-// builder.Services.AddScoped<IAIOrchestrationService, AIOrchestrationService>();
-// builder.Services.AddScoped<INLPService, NLPService>();
-// builder.Services.AddScoped<IRecommendationService, RecommendationService>();
-// builder.Services.AddScoped<IComputerVisionService, ComputerVisionService>();
-
-// Phase 10: Enterprise Ecosystem & API Economy
-builder.Services.AddScoped<IAPIGatewayService, APIGatewayService>();
-builder.Services.AddScoped<IIntegrationService, IntegrationService>();
-builder.Services.AddScoped<IBlockchainService, BlockchainService>();
-
-// Register caching services (safe for dev)
-builder.Services.AddScoped<ICachingService, CachingService>();
-
-// Register background job service
-if (!builder.Environment.IsDevelopment())
-{
-    builder.Services.AddSingleton<IBackgroundJobService, BackgroundJobService>();
-    builder.Services.AddHostedService<BackgroundJobService>();
-}
-
-// Add compression (safe for dev)
-builder.Services.AddResponseCompression(options =>
-{
-    options.EnableForHttps = true;
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.BrotliCompressionProvider>();
-    options.Providers.Add<Microsoft.AspNetCore.ResponseCompression.GzipCompressionProvider>();
-});
-
-// Register repositories and unit of work
-builder.Services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
-builder.Services.AddScoped<VHouse.Repositories.IUnitOfWork, VHouse.Repositories.UnitOfWork>();
-
-// Add FluentValidation
-builder.Services.AddValidatorsFromAssemblyContaining<ProductValidator>();
+// Add Application Services
+builder.Services.AddApplicationServices();
+builder.Services.AddInfrastructureServices(builder.Configuration);
 
 // Add localization
 builder.Services.AddLocalization(options => options.ResourcesPath = "Resources");

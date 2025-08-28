@@ -1,11 +1,6 @@
 ﻿@using System.Text
 @using System.Globalization
-@using VHouse.Services
-@using VHouse.Classes
-@using VHouse.Interfaces
-@inject OrderService OrderService
 @inject IJSRuntime JSRuntime
-@inject ICustomerService CustomerService
 
 <div class="pos-order-header">
     <div class="order-controls">
@@ -139,7 +134,7 @@ else
     private bool includeShipping = false;
 
     [Parameter]
-    public Dictionary<int, OrderItem> ticket { get; set; } = new();
+    public Dictionary<int, VHouse.Domain.Entities.OrderItem> ticket { get; set; } = new();
 
     private decimal Subtotal => ticket.Values.Sum(item => item.Price * item.Quantity);
     private decimal DiscountAmount => (discount / 100) * Subtotal;
@@ -230,13 +225,13 @@ else
         UpdatePricesByPriceType();
     }
 
-    private void IncrementQuantity(OrderItem item)
+    private void IncrementQuantity(VHouse.Domain.Entities.OrderItem item)
     {
         item.Quantity++;
         UpdateTotal(null);
     }
 
-    private void DecrementQuantity(OrderItem item)
+    private void DecrementQuantity(VHouse.Domain.Entities.OrderItem item)
     {
         if (item.Quantity > 1)
         {
