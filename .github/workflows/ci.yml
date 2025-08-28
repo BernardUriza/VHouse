@@ -1,0 +1,41 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Cache NuGet
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore
+        run: dotnet restore VHouse.sln
+
+      - name: Build (Release, Warnings as Errors)
+        run: dotnet build VHouse.sln -c Release -warnaserror
+
+      - name: Test (if any)
+        run: |
+          if ls -1 **/*Tests.csproj >/dev/null 2>&1; then
+            dotnet test -c Release --collect:"XPlat Code Coverage" --no-build
+          else
+            echo "No test projects found."
+          fi
+
+      - name: Vulnerable packages (transitive)
+        run: dotnet list VHouse/VHouse.csproj package --vulnerable --include-transitive || true

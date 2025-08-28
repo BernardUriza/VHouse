@@ -12,6 +12,8 @@ using VHouse.Services;
 using VHouse.Validators;
 // using Npgsql;
 using System.Diagnostics;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -206,13 +208,9 @@ else
 }
 
 // Add health checks after databaseUrl is configured
-if (!builder.Environment.IsDevelopment())
-{
-    builder.Services.AddHealthChecks()
-        // SQLite health check - simple check that database is accessible
-        .AddCheck("sqlite", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("SQLite database ready"), tags: new[] { "database", "sqlite" })
-        .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy(), tags: new[] { "self" });
-}
+builder.Services.AddHealthChecks()
+    .AddCheck("self", () => Microsoft.Extensions.Diagnostics.HealthChecks.HealthCheckResult.Healthy("Application is running"), tags: new[] { "self" })
+    .AddDbContextCheck<ApplicationDbContext>("database", tags: new[] { "database", "sqlite" });
 
 // 🔐 Configure Identity services
 builder.Services.AddDefaultIdentity<ApplicationUser>(options => {
@@ -308,10 +306,43 @@ app.UseResponseCaching();
 
 app.UseRouting();
 
-// Add health check endpoint (solo en producción)
+// Add health check endpoints
+app.MapHealthChecks("/health/live", new HealthCheckOptions
+{
+    Predicate = check => check.Tags.Contains("self"),
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new { status = report.Status.ToString(), timestamp = DateTime.UtcNow };
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+});
+
+app.MapHealthChecks("/health/ready", new HealthCheckOptions
+{
+    ResponseWriter = async (context, report) =>
+    {
+        context.Response.ContentType = "application/json";
+        var response = new
+        {
+            status = report.Status.ToString(),
+            checks = report.Entries.Select(x => new
+            {
+                name = x.Key,
+                status = x.Value.Status.ToString(),
+                exception = x.Value.Exception?.Message,
+                duration = x.Value.Duration.ToString()
+            }),
+            duration = report.TotalDuration.ToString()
+        };
+        await context.Response.WriteAsync(System.Text.Json.JsonSerializer.Serialize(response));
+    }
+});
+
+// Add detailed health check endpoint (solo en producción)
 if (!app.Environment.IsDevelopment())
 {
-    app.MapHealthChecks("/health", new Microsoft.AspNetCore.Diagnostics.HealthChecks.HealthCheckOptions
+    app.MapHealthChecks("/health", new HealthCheckOptions
     {
         ResponseWriter = async (context, report) =>
         {
