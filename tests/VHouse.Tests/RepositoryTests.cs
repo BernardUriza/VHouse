@@ -297,5 +297,107 @@ namespace VHouse.Tests
             Assert.NotEmpty(insights.Summary);
             Assert.True(insights.AnalysisScore >= 0);
         }
+
+        [Fact]
+        public async Task AIService_ProcessEnhancedOrderAsync_ShouldParseQuantitiesAndDates_TDD_Red()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var mockLogger = new Mock<ILogger<AIService>>();
+            var mockConfig = new Mock<IConfiguration>();
+            var mockHttp = new Mock<HttpClient>();
+            
+            var aiService = new AIService(mockHttp.Object, mockLogger.Object, mockConfig.Object);
+            
+            var catalogJson = """
+            [
+                {"id": 1, "name": "Leche de Avena Silk", "price": 45.50, "stock": 100},
+                {"id": 2, "name": "Queso Vegano Violife", "price": 85.00, "stock": 50}
+            ]
+            """;
+
+            var customerInput = "Necesito 25 leches de avena Silk para entregar el 15 de marzo, y 10 quesos veganos para mañana";
+
+            // Act & Assert - DEBE FALLAR (RED) porque el método no está implementado
+            var result = await aiService.ProcessEnhancedOrderAsync(catalogJson, customerInput);
+            
+            // Assert
+            Assert.NotNull(result);
+            Assert.True(result.OrderItems.Count > 0);
+            Assert.Contains(result.OrderItems, item => item.Quantity == 25 && item.ProductId == 1);
+            Assert.Contains(result.OrderItems, item => item.Quantity == 10 && item.ProductId == 2);
+            Assert.True(result.OrderItems.Any(item => item.RequestedDate.HasValue));
+            Assert.True(result.IsValid);
+        }
+
+        [Fact]
+        public async Task AIService_ValidateProductAvailabilityAsync_ShouldCheckStock_TDD_Red()
+        {
+            // Arrange  
+            using var context = GetInMemoryContext();
+            var mockLogger = new Mock<ILogger<AIService>>();
+            var mockConfig = new Mock<IConfiguration>();
+            var mockHttp = new Mock<HttpClient>();
+            
+            var aiService = new AIService(mockHttp.Object, mockLogger.Object, mockConfig.Object);
+
+            var products = new List<Product>
+            {
+                new Product { Id = 1, ProductName = "Leche Avena", IsActive = true, Stock = 10 },
+                new Product { Id = 2, ProductName = "Queso Vegano", IsActive = false, Stock = 0 },
+                new Product { Id = 3, ProductName = "Pan Integral", IsActive = true, Stock = 50 }
+            };
+
+            context.Products.AddRange(products);
+            await context.SaveChangesAsync();
+
+            var orderItems = new List<object>
+            {
+                new { ProductId = 1, Quantity = 5 },  // Disponible
+                new { ProductId = 2, Quantity = 3 },  // No activo
+                new { ProductId = 3, Quantity = 100 } // Stock insuficiente
+            };
+
+            // Act & Assert - DEBE FALLAR (RED) porque el método no está implementado
+            var validation = await aiService.ValidateProductAvailabilityAsync(orderItems, context);
+            
+            // Assert
+            Assert.NotNull(validation);
+            Assert.True(validation.ValidationResults.Count > 0);
+            Assert.Contains(validation.ValidationResults, v => v.ProductId == 1 && v.IsAvailable);
+            Assert.Contains(validation.ValidationResults, v => v.ProductId == 2 && !v.IsAvailable);
+            Assert.Contains(validation.ValidationResults, v => v.ProductId == 3 && !v.IsAvailable);
+            Assert.True(validation.Recommendations.Count > 0);
+        }
+
+        [Fact]
+        public async Task AIService_GenerateAlternativeProductsAsync_ShouldSuggestReplacements_TDD_Red()
+        {
+            // Arrange
+            using var context = GetInMemoryContext();
+            var mockLogger = new Mock<ILogger<AIService>>();
+            var mockConfig = new Mock<IConfiguration>();
+            var mockHttp = new Mock<HttpClient>();
+            
+            var aiService = new AIService(mockHttp.Object, mockLogger.Object, mockConfig.Object);
+
+            var unavailableProducts = new List<int> { 2, 3 }; // IDs no disponibles
+            var availableProductsJson = """
+            [
+                {"id": 4, "name": "Queso Vegano Alternativo", "price": 80.00, "category": "Lacteos", "stock": 30},
+                {"id": 5, "name": "Pan Multi-grano", "price": 25.00, "category": "Panaderia", "stock": 40}
+            ]
+            """;
+
+            // Act & Assert - DEBE FALLAR (RED) porque el método no está implementado
+            var alternatives = await aiService.GenerateAlternativeProductsAsync(unavailableProducts, availableProductsJson);
+            
+            // Assert
+            Assert.NotNull(alternatives);
+            Assert.True(alternatives.Suggestions.Count > 0);
+            Assert.All(alternatives.Suggestions, s => Assert.True(s.ReplacementProductId > 0));
+            Assert.All(alternatives.Suggestions, s => Assert.NotEmpty(s.Reason));
+            Assert.True(alternatives.ConfidenceScore >= 0);
+        }
     }
 }

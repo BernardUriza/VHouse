@@ -109,3 +109,64 @@ public record BusinessInsights
     public List<string> Opportunities { get; init; } = new();
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 }
+
+public record EnhancedOrderResult
+{
+    public List<EnhancedOrderItem> OrderItems { get; init; } = new();
+    public bool IsValid { get; init; }
+    public string ErrorMessage { get; init; } = string.Empty;
+    public List<string> Warnings { get; init; } = new();
+    public DateTime ProcessedAt { get; init; } = DateTime.UtcNow;
+}
+
+public record EnhancedOrderItem
+{
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public int Quantity { get; init; }
+    public DateTime? RequestedDate { get; init; }
+    public string SpecialInstructions { get; init; } = string.Empty;
+    public decimal EstimatedPrice { get; init; }
+}
+
+public record ProductAvailabilityValidation
+{
+    public List<ProductValidationResult> ValidationResults { get; init; } = new();
+    public List<string> Recommendations { get; init; } = new();
+    public bool AllProductsAvailable { get; init; }
+    public string Summary { get; init; } = string.Empty;
+    public DateTime ValidatedAt { get; init; } = DateTime.UtcNow;
+}
+
+public record ProductValidationResult
+{
+    public int ProductId { get; init; }
+    public string ProductName { get; init; } = string.Empty;
+    public bool IsAvailable { get; init; }
+    public bool IsActive { get; init; }
+    public int RequestedQuantity { get; init; }
+    public int AvailableStock { get; init; }
+    public string ValidationMessage { get; init; } = string.Empty;
+    public string Status { get; init; } = string.Empty;
+}
+
+public record AlternativeProductSuggestions
+{
+    public List<ProductAlternative> Suggestions { get; init; } = new();
+    public double ConfidenceScore { get; init; }
+    public string Summary { get; init; } = string.Empty;
+    public List<string> GeneralRecommendations { get; init; } = new();
+    public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
+}
+
+public record ProductAlternative
+{
+    public int OriginalProductId { get; init; }
+    public string OriginalProductName { get; init; } = string.Empty;
+    public int ReplacementProductId { get; init; }
+    public string ReplacementProductName { get; init; } = string.Empty;
+    public string Reason { get; init; } = string.Empty;
+    public double SimilarityScore { get; init; }
+    public decimal PriceDifference { get; init; }
+    public bool IsInStock { get; init; }
+}

@@ -56,4 +56,19 @@ public interface IAIService
     /// Genera insights de negocio basados en datos de ventas y patrones
     /// </summary>
     Task<BusinessInsights> GenerateBusinessInsightsAsync(object businessData);
+    
+    /// <summary>
+    /// Procesa pedidos con cantidades y fechas específicas (Fase 1)
+    /// </summary>
+    Task<EnhancedOrderResult> ProcessEnhancedOrderAsync(string catalogJson, string customerInput);
+    
+    /// <summary>
+    /// Valida disponibilidad inteligente de productos considerando stock y estado
+    /// </summary>
+    Task<ProductAvailabilityValidation> ValidateProductAvailabilityAsync(List<object> orderItems, object dbContext);
+    
+    /// <summary>
+    /// Genera sugerencias de productos alternativos cuando hay falta de stock
+    /// </summary>
+    Task<AlternativeProductSuggestions> GenerateAlternativeProductsAsync(List<int> unavailableProductIds, string availableProductsJson);
 }

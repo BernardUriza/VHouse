@@ -10,7 +10,8 @@
       "Bash(dotnet build:*)",
       "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
       "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain/**)",
-      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\ValueObjects/**)"
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\ValueObjects/**)",
+      "Bash(dotnet test:*)"
     ],
     "deny": [],
     "ask": []

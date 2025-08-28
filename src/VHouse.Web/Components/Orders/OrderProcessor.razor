@@ -27,6 +27,9 @@
             <button class="tab-btn @(activeTab == "order" ? "active" : "")" @onclick="() => SetActiveTab("order")">
                 📦 Pedidos
             </button>
+            <button class="tab-btn @(activeTab == "phase2" ? "active" : "")" @onclick="() => SetActiveTab("phase2")">
+                🎯 Fase 2
+            </button>
         </div>
 
         @if (activeTab == "chat")
@@ -180,6 +183,85 @@
                         {
                             <div class="payment">💳 @complexOrderResult.PaymentTerms.TermsDescription</div>
                         }
+                    </div>
+                </div>
+            }
+        }
+
+        @if (activeTab == "phase2")
+        {
+            <div class="input-section">
+                <div class="form-group">
+                    <select @bind="recommendationCustomerId" class="form-control">
+                        <option value="">Cliente para Recomendaciones...</option>
+                        <option value="1">VegaMart - Historial Lácteos</option>
+                        <option value="2">EcoTienda - Cliente Premium</option>
+                        <option value="3">RestauranteVerde - Bulk Orders</option>
+                    </select>
+                </div>
+                
+                <button class="btn-primary-ai" @onclick="GenerateRecommendations" disabled="@isProcessing">
+                    @(isProcessing ? "🤖 Analizando Patrones..." : "🎯 Generar Recomendaciones IA")
+                </button>
+                
+                <button class="btn-secondary-ai" @onclick="AnalyzeCustomerPattern" disabled="@isProcessing">
+                    @(isProcessing ? "📊 Analizando..." : "📈 Analizar Patrones de Compra")
+                </button>
+            </div>
+
+            @if (recommendations != null && recommendations.Any())
+            {
+                <div class="result-card">
+                    <div class="result-header">🎯 Recomendaciones Inteligentes</div>
+                    <div class="recommendations-content">
+                        @foreach (var rec in recommendations)
+                        {
+                            <div class="recommendation-item">
+                                <div class="rec-header">
+                                    <span class="rec-name">@rec.ProductName</span>
+                                    <span class="confidence-score">@($"{rec.ConfidenceScore:P0}")</span>
+                                    @if (rec.IsVegan)
+                                    {
+                                        <span class="vegan-badge">🌱</span>
+                                    }
+                                </div>
+                                <div class="rec-reason">💡 @rec.ReasonForRecommendation</div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+
+            @if (customerPattern != null)
+            {
+                <div class="result-card">
+                    <div class="result-header">📊 Análisis de Patrones</div>
+                    <div class="pattern-content">
+                        <div class="pattern-item">
+                            <span class="pattern-label">Ciclo de Pedidos:</span>
+                            <span class="pattern-value">@customerPattern.OrderingCycle</span>
+                        </div>
+                        <div class="pattern-item">
+                            <span class="pattern-label">Valor Promedio:</span>
+                            <span class="pattern-value">$@customerPattern.AverageOrderValue MXN</span>
+                        </div>
+                        <div class="pattern-item">
+                            <span class="pattern-label">Tendencia:</span>
+                            <span class="pattern-value @(customerPattern.GrowthTrend > 0 ? "trend-positive" : "trend-negative")">
+                                @($"{customerPattern.GrowthTrend:P1}")
+                            </span>
+                        </div>
+                        @if (customerPattern.PredictedNextOrderDate.HasValue)
+                        {
+                            <div class="pattern-item">
+                                <span class="pattern-label">Próximo Pedido Esperado:</span>
+                                <span class="pattern-value">@customerPattern.PredictedNextOrderDate.Value.ToString("dd/MM/yyyy")</span>
+                            </div>
+                        }
+                        <div class="pattern-item">
+                            <span class="pattern-label">Horario Preferido:</span>
+                            <span class="pattern-value">@customerPattern.PreferredOrderingTime</span>
+                        </div>
                     </div>
                 </div>
             }
@@ -460,6 +542,118 @@
     color: #ccc;
 }
 
+/* Phase 2 Styles - Recommendations & Analytics */
+.recommendations-content {
+    padding: 0.75rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.recommendation-item {
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.recommendation-item:last-child {
+    border-bottom: none;
+}
+
+.rec-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+}
+
+.rec-name {
+    font-weight: 700;
+    color: #fff;
+}
+
+.confidence-score {
+    font-weight: 700;
+    color: #ffff00;
+    font-size: 0.8rem;
+}
+
+.vegan-badge {
+    color: #00ff00;
+    font-size: 1rem;
+}
+
+.rec-reason {
+    font-size: 0.8rem;
+    color: #ccc;
+    font-style: italic;
+    line-height: 1.3;
+}
+
+.pattern-content {
+    padding: 0.75rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.pattern-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.3rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.pattern-item:last-child {
+    border-bottom: none;
+}
+
+.pattern-label {
+    font-weight: 600;
+    color: #ccc;
+}
+
+.pattern-value {
+    font-weight: 700;
+    color: #fff;
+}
+
+.trend-positive {
+    color: #00ff00 !important;
+}
+
+.trend-negative {
+    color: #ff4444 !important;
+}
+
+.btn-secondary-ai {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #00ff00;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #000;
+    color: #00ff00;
+    width: 100%;
+    margin-top: 0.5rem;
+}
+
+.btn-secondary-ai:hover:not(:disabled) {
+    background: #00ff00;
+    color: #000;
+}
+
+.btn-secondary-ai:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
@@ -492,6 +686,11 @@
     private string orderCustomerId = string.Empty;
     private string complexOrderText = string.Empty;
     private ComplexOrderResponseDto? complexOrderResult = null;
+
+    // Phase 2 variables - Recommendations & Analytics
+    private string recommendationCustomerId = string.Empty;
+    private List<IntelligentRecommendation>? recommendations = null;
+    private PurchasePattern? customerPattern = null;
 
     private void SetActiveTab(string tab)
     {
@@ -611,5 +810,182 @@
             isProcessing = false;
             StateHasChanged();
         }
+    }
+
+    private async Task GenerateRecommendations()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(recommendationCustomerId))
+            {
+                errorMessage = "Selecciona un cliente para generar recomendaciones.";
+                return;
+            }
+
+            var customerId = int.Parse(recommendationCustomerId);
+            
+            // Simulación directa para demo - en producción usaría el servicio completo
+            recommendations = GenerateMockRecommendations(customerId);
+            
+            if (!recommendations.Any())
+            {
+                errorMessage = "No se pudieron generar recomendaciones para este cliente.";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task AnalyzeCustomerPattern()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(recommendationCustomerId))
+            {
+                errorMessage = "Selecciona un cliente para analizar patrones.";
+                return;
+            }
+
+            var customerId = int.Parse(recommendationCustomerId);
+            
+            // Simulación de análisis de patrones - en producción vendría de la base de datos
+            var mockOrders = GenerateMockOrderHistory(customerId);
+            var patternAnalyzer = new PurchasePatternAnalyzer(AIService);
+            customerPattern = await patternAnalyzer.AnalyzeCustomerPatterns(customerId, mockOrders);
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private List<Order> GenerateMockOrderHistory(int customerId)
+    {
+        // Simulación de historial de pedidos para demostración
+        return customerId switch
+        {
+            1 => new List<Order> // VegaMart - Cliente regular
+            {
+                new Order { Id = 1, CustomerId = 1, CreatedAt = DateTime.Now.AddDays(-30), TotalAmount = 180 },
+                new Order { Id = 2, CustomerId = 1, CreatedAt = DateTime.Now.AddDays(-60), TotalAmount = 220 },
+                new Order { Id = 3, CustomerId = 1, CreatedAt = DateTime.Now.AddDays(-90), TotalAmount = 195 },
+                new Order { Id = 4, CustomerId = 1, CreatedAt = DateTime.Now.AddDays(-120), TotalAmount = 165 }
+            },
+            2 => new List<Order> // EcoTienda - Cliente premium con crecimiento
+            {
+                new Order { Id = 5, CustomerId = 2, CreatedAt = DateTime.Now.AddDays(-25), TotalAmount = 450 },
+                new Order { Id = 6, CustomerId = 2, CreatedAt = DateTime.Now.AddDays(-50), TotalAmount = 380 },
+                new Order { Id = 7, CustomerId = 2, CreatedAt = DateTime.Now.AddDays(-75), TotalAmount = 320 },
+                new Order { Id = 8, CustomerId = 2, CreatedAt = DateTime.Now.AddDays(-100), TotalAmount = 280 }
+            },
+            3 => new List<Order> // RestauranteVerde - Bulk orders semanales
+            {
+                new Order { Id = 9, CustomerId = 3, CreatedAt = DateTime.Now.AddDays(-7), TotalAmount = 850 },
+                new Order { Id = 10, CustomerId = 3, CreatedAt = DateTime.Now.AddDays(-14), TotalAmount = 920 },
+                new Order { Id = 11, CustomerId = 3, CreatedAt = DateTime.Now.AddDays(-21), TotalAmount = 780 },
+                new Order { Id = 12, CustomerId = 3, CreatedAt = DateTime.Now.AddDays(-28), TotalAmount = 890 }
+            },
+            _ => new List<Order>()
+        };
+    }
+
+    private List<IntelligentRecommendation> GenerateMockRecommendations(int customerId)
+    {
+        return customerId switch
+        {
+            1 => new List<IntelligentRecommendation> // VegaMart - Enfoque en lácteos
+            {
+                new IntelligentRecommendation
+                {
+                    ProductName = "Helado Vegano Chocolate Premium",
+                    ConfidenceScore = 0.89,
+                    ReasonForRecommendation = "Complementa tu historial de lácteos veganos. Los helados tienen alta demanda en temporada actual.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Mantequilla Vegana Artesanal",
+                    ConfidenceScore = 0.82,
+                    ReasonForRecommendation = "Producto complementario a leches vegetales. Margen alto y creciente demanda.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Cereal Granola Orgánico",
+                    ConfidenceScore = 0.76,
+                    ReasonForRecommendation = "Cross-sell ideal con leches de avena. Incrementa valor promedio del carrito 35%.",
+                    IsVegan = true
+                }
+            },
+            2 => new List<IntelligentRecommendation> // EcoTienda - Cliente premium
+            {
+                new IntelligentRecommendation
+                {
+                    ProductName = "Trufa Vegana Gourmet Collection",
+                    ConfidenceScore = 0.94,
+                    ReasonForRecommendation = "Perfil de cliente premium. Producto exclusivo con margen alto del 60%.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Queso Vegano Aged Reserve",
+                    ConfidenceScore = 0.88,
+                    ReasonForRecommendation = "Up-selling oportunity. Versión premium de productos actuales.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Vino Vegano Biológico",
+                    ConfidenceScore = 0.85,
+                    ReasonForRecommendation = "Expansión de categoría. Cliente sofisticado con poder adquisitivo alto.",
+                    IsVegan = true
+                }
+            },
+            3 => new List<IntelligentRecommendation> // RestauranteVerde - Bulk/food service
+            {
+                new IntelligentRecommendation
+                {
+                    ProductName = "Tofu Orgánico Bulk 5kg",
+                    ConfidenceScore = 0.92,
+                    ReasonForRecommendation = "Formato foodservice. Proteína versátil para menú restaurante. Costo-beneficio óptimo.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Aceite Coco Virgin Bulk 2L",
+                    ConfidenceScore = 0.86,
+                    ReasonForRecommendation = "Esencial para cocina vegana profesional. Pedidos semanales sugieren alta rotación.",
+                    IsVegan = true
+                },
+                new IntelligentRecommendation
+                {
+                    ProductName = "Seitan Artesanal Premium 2kg",
+                    ConfidenceScore = 0.80,
+                    ReasonForRecommendation = "Alternativa proteica premium para platos especiales. Diferenciación competitiva.",
+                    IsVegan = true
+                }
+            },
+            _ => new List<IntelligentRecommendation>()
+        };
     }
 }
