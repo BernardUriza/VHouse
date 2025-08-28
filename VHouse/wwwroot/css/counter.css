@@ -5,8 +5,8 @@
 
 /* Ensure high contrast on main content area */
 .content {
-    background: #000000 !important;
-    color: #ffffff !important;
+    background: #ffffff !important;
+    color: #000000 !important;
 }
 
 /* Override any default text colors */

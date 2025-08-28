@@ -78,7 +78,7 @@
                             <strong>Fecha de Entrega:</strong> @selectedOrder.DeliveryDate.ToString("dd/MM/yyyy HH:mm")
                         </div>
                     </div>
-                    @if (selectedOrder.OrderItems?.Any() == true)
+                    @if (selectedOrder.Items?.Any() == true)
                     {
                         <h6 class="mt-4">Items del Pedido:</h6>
                         <table class="table table-sm">
@@ -91,7 +91,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach (var item in selectedOrder.OrderItems)
+                                @foreach (var item in selectedOrder.Items)
                                 {
                                     <tr>
                                         <td>@item.Product?.ProductName</td>

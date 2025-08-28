@@ -57,15 +57,15 @@
                     <h3>🎫 Ticket de Venta</h3>
                     <div class="price-type-selector">
                         <button class="price-type-btn @(currentPriceType == "retail" ? "active" : "")" 
-                                @onclick="() => SetPriceType(\"retail\")">
+                                @onclick='() => SetPriceType("retail")'>
                             🏪 Punto Venta
                         </button>
                         <button class="price-type-btn @(currentPriceType == "public" ? "active" : "")" 
-                                @onclick="() => SetPriceType(\"public\")">
+                                @onclick='() => SetPriceType("public")'>
                             👥 Público
                         </button>
                         <button class="price-type-btn @(currentPriceType == "cost" ? "active" : "")" 
-                                @onclick="() => SetPriceType(\"cost\")">
+                                @onclick='() => SetPriceType("cost")'>
                             💰 Costo
                         </button>
                     </div>
@@ -194,7 +194,10 @@
         // Update all item prices
         foreach (var item in ticket.Values)
         {
-            item.Price = GetProductPrice(item.Product);
+            if (item.Product != null)
+            {
+                item.Price = GetProductPrice(item.Product);
+            }
         }
         StateHasChanged();
     }
@@ -212,7 +215,11 @@
 
     private decimal GetItemPrice(OrderItem item)
     {
-        return GetProductPrice(item.Product) * item.Quantity;
+        if (item.Product != null)
+        {
+            return GetProductPrice(item.Product) * item.Quantity;
+        }
+        return item.Price * item.Quantity;
     }
 
     private decimal GetTicketTotal()

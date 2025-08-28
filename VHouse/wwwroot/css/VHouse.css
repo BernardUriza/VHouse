@@ -54,14 +54,20 @@
 
 body {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: var(--bg-primary);
-    color: var(--text-primary);
+    background: #ffffff !important;
+    color: #000000 !important;
     overflow-x: hidden;
 }
 
 /* Eliminamos el fondo con efectos - Solo negro puro */
 body::before {
     display: none;
+}
+
+/* Forzar alto contraste en toda la aplicación */
+.page, .main, article, .container-fluid {
+    background: #ffffff !important;
+    color: #000000 !important;
 }
 
 .page {
@@ -320,7 +326,7 @@ main {
 }
 
 .nav-item ::deep .nav-link {
-    color: var(--text-primary);
+    color: #000000 !important;
     background: none;
     border: none;
     border-radius: 0;
@@ -355,24 +361,30 @@ main {
     font-weight: 700;
 }
 
+.nav-item ::deep a.active {
+    background: #00ff00 !important;
+    color: #000000 !important;
+    border-left: 4px solid #000000 !important;
+}
+
 .nav-item ::deep a.active i {
-    color: var(--bg-primary);
+    color: #000000 !important;
 }
 
 .nav-item ::deep .nav-link:hover {
-    color: var(--bg-primary);
-    background: var(--warning-color);
-    border-left: 4px solid var(--bg-primary);
+    color: #000000 !important;
+    background: #ffff00 !important;
+    border-left: 4px solid #000000 !important;
 }
 
 .nav-item ::deep .nav-link:hover i {
-    color: var(--bg-primary);
+    color: #000000 !important;
 }
 
 .nav-scrollable {
     display: none;
-    background: var(--bg-primary);
-    border-right: 3px solid var(--success-color);
+    background: #ffffff !important;
+    border-right: 3px solid #000000 !important;
     box-shadow: 2px 0 4px rgba(0, 0, 0, 0.8);
 }
 
@@ -387,8 +399,8 @@ main {
 
     .nav-scrollable {
         display: block;
-        background: var(--bg-primary);
-        border-right: 3px solid var(--success-color);
+        background: #ffffff !important;
+        border-right: 3px solid #000000 !important;
         box-shadow: 2px 0 4px rgba(0, 0, 0, 0.8);
         height: calc(100vh - 3.5rem);
         overflow-y: auto;

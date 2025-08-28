@@ -42,19 +42,35 @@
                     <div class="widget-content">
                         @if (widget.Type == "metric")
                         {
-                            <MetricWidget Widget="widget" />
+                            <!-- Metric Widget -->
+                            <div class="metric-widget">
+                                <h4>@widget.Title</h4>
+                                <div class="metric-value">@widget.Data.Value</div>
+                            </div>
                         }
                         else if (widget.Type == "chart")
                         {
-                            <ChartWidget Widget="widget" />
+                            <!-- Chart Widget -->
+                            <div class="chart-widget">
+                                <h4>@widget.Title</h4>
+                                <div class="chart-placeholder">Gráfico: @widget.Title</div>
+                            </div>
                         }
                         else if (widget.Type == "table")
                         {
-                            <TableWidget Widget="widget" />
+                            <!-- Table Widget -->
+                            <div class="table-widget">
+                                <h4>@widget.Title</h4>
+                                <div class="table-placeholder">Tabla: @widget.Title</div>
+                            </div>
                         }
                         else if (widget.Type == "gauge")
                         {
-                            <GaugeWidget Widget="widget" />
+                            <!-- Gauge Widget -->
+                            <div class="gauge-widget">
+                                <h4>@widget.Title</h4>
+                                <div class="gauge-placeholder">Indicador: @widget.Title</div>
+                            </div>
                         }
                     </div>
                 </div>
