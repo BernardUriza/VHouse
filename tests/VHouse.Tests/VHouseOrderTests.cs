@@ -6,10 +6,10 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Tests
 {
     /// <summary>
-    /// Tests para la nueva arquitectura VHouse2025 - Clean Architecture
+    /// Tests para la arquitectura VHouse - Clean Architecture
     /// Prueba funcionalidades de pedidos con AI y gestión de clientes
     /// </summary>
-    public class VHouse2025OrderTests
+    public class VHouseOrderTests
     {
         private VHouseDbContext GetInMemoryContext()
         {
@@ -21,30 +21,30 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public async Task CreateOrder_WithVHouse2025Architecture_ShouldSucceed()
+        public async Task CreateOrder_WithVHouseArchitecture_ShouldSucceed()
         {
             // Arrange
             using var context = GetInMemoryContext();
             
             var customer = new Customer
             {
-                CustomerName = "Cliente VHouse2025",
-                Email = "cliente2025@vhouse.com",
-                Phone = "555-2025",
-                Address = "Dirección VHouse 2025",
+                CustomerName = "Cliente VHouse",
+                Email = "cliente@vhouse.com",
+                Phone = "555-1234",
+                Address = "Dirección VHouse",
                 IsVeganPreferred = true,
                 IsActive = true
             };
 
             var product = new Product
             {
-                ProductName = "Producto VHouse2025",
+                ProductName = "Producto VHouse",
                 Emoji = "🌱",
                 PriceCost = 15.00m,
                 PriceRetail = 22.00m,
                 PriceSuggested = 28.00m,
                 PricePublic = 25.00m,
-                Description = "Producto para arquitectura limpia 2025",
+                Description = "Producto para arquitectura limpia ",
                 StockQuantity = 100,
                 IsVegan = true,
                 IsActive = true
@@ -60,7 +60,7 @@ namespace VHouse.Tests
                 CustomerId = customer.Id,
                 TotalAmount = 50.00m,
                 Status = OrderStatus.Confirmed,
-                Notes = "Pedido creado con Clean Architecture VHouse2025",
+                Notes = "Pedido creado con Clean Architecture VHouse",
                 OrderDate = DateTime.UtcNow,
                 OrderItems = new List<OrderItem>
                 {
@@ -91,7 +91,7 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public async Task AIOrderCreation_SelectHighScoringVeganProducts_VHouse2025()
+        public async Task AIOrderCreation_SelectHighScoringVeganProducts_VHouse()
         {
             // Arrange
             using var context = GetInMemoryContext();
@@ -100,7 +100,7 @@ namespace VHouse.Tests
             {
                 new Product
                 {
-                    ProductName = "Tocino Vegano Premium VHouse2025",
+                    ProductName = "Tocino Vegano Premium VHouse",
                     Emoji = "🥓",
                     PriceCost = 45.00m,
                     PriceRetail = 52.00m,
@@ -111,7 +111,7 @@ namespace VHouse.Tests
                 },
                 new Product
                 {
-                    ProductName = "Proteína Texturizada VHouse2025",
+                    ProductName = "Proteína Texturizada VHouse",
                     Emoji = "🥩",
                     PriceCost = 35.00m,
                     PriceRetail = 42.00m,
@@ -144,11 +144,11 @@ namespace VHouse.Tests
             Assert.Equal(2, aiSelectedProducts.Count);
             Assert.All(aiSelectedProducts, p => Assert.True(p.IsVegan));
             Assert.All(aiSelectedProducts, p => Assert.True(p.StockQuantity > 50));
-            Assert.Equal("Tocino Vegano Premium VHouse2025", aiSelectedProducts.First().ProductName);
+            Assert.Equal("Tocino Vegano Premium VHouse", aiSelectedProducts.First().ProductName);
         }
 
         [Fact]
-        public async Task CustomerManagement_VeganPreferences_VHouse2025()
+        public async Task CustomerManagement_VeganPreferences_VHouse()
         {
             // Arrange
             using var context = GetInMemoryContext();
@@ -157,15 +157,15 @@ namespace VHouse.Tests
             {
                 new Customer
                 {
-                    CustomerName = "Cliente Vegano VHouse2025",
-                    Email = "vegano@vhouse2025.com",
+                    CustomerName = "Cliente Vegano VHouse",
+                    Email = "vegano@vhouse.com",
                     IsVeganPreferred = true,
                     IsActive = true
                 },
                 new Customer
                 {
-                    CustomerName = "Cliente Omnívoro VHouse2025",
-                    Email = "omnivoro@vhouse2025.com",
+                    CustomerName = "Cliente Omnívoro VHouse",
+                    Email = "omnivoro@vhouse.com",
                     IsVeganPreferred = false,
                     IsActive = true
                 }
@@ -181,12 +181,12 @@ namespace VHouse.Tests
 
             // Assert
             Assert.Single(veganCustomers);
-            Assert.Equal("Cliente Vegano VHouse2025", veganCustomers.First().CustomerName);
+            Assert.Equal("Cliente Vegano VHouse", veganCustomers.First().CustomerName);
             Assert.True(veganCustomers.First().IsVeganPreferred);
         }
 
         [Fact]
-        public void OrderStatus_Workflow_VHouse2025()
+        public void OrderStatus_Workflow_VHouse()
         {
             // Arrange
             var order = new Order
@@ -213,7 +213,7 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public void OrderItem_TotalPrice_CalculatedProperty_VHouse2025()
+        public void OrderItem_TotalPrice_CalculatedProperty_VHouse()
         {
             // Arrange & Act
             var orderItem = new OrderItem
@@ -227,15 +227,15 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public async Task AIRecommendation_ForVeganCustomer_VHouse2025()
+        public async Task AIRecommendation_ForVeganCustomer_VHouse()
         {
             // Arrange
             using var context = GetInMemoryContext();
 
             var veganCustomer = new Customer
             {
-                CustomerName = "AI Vegan Customer 2025",
-                Email = "ai.vegan@vhouse2025.com",
+                CustomerName = "AI Vegan Customer ",
+                Email = "ai.vegan@vhouse.com",
                 IsVeganPreferred = true,
                 IsActive = true
             };
@@ -304,14 +304,14 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public async Task ProductStock_Management_VHouse2025()
+        public async Task ProductStock_Management_VHouse()
         {
             // Arrange
             using var context = GetInMemoryContext();
 
             var product = new Product
             {
-                ProductName = "Producto Stock VHouse2025",
+                ProductName = "Producto Stock VHouse",
                 StockQuantity = 10,
                 PriceRetail = 25.00m,
                 IsVegan = true,
@@ -344,7 +344,7 @@ namespace VHouse.Tests
         }
 
         [Fact]
-        public void BaseEntity_CreatedAt_AutoSet_VHouse2025()
+        public void BaseEntity_CreatedAt_AutoSet_VHouse()
         {
             // Arrange & Act
             var product = new Product

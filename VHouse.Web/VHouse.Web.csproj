@@ -9,9 +9,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\VHouse.Domain\VHouse.Domain.csproj" />
-    <ProjectReference Include="..\VHouse.Application\VHouse.Application.csproj" />
-    <ProjectReference Include="..\VHouse.Infrastructure\VHouse.Infrastructure.csproj" />
+    <ProjectReference Include="..\src\VHouse.Domain\VHouse.Domain.csproj" />
+    <ProjectReference Include="..\src\VHouse.Application\VHouse.Application.csproj" />
+    <ProjectReference Include="..\src\VHouse.Infrastructure\VHouse.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>

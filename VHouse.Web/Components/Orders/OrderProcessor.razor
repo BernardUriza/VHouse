@@ -2,9 +2,11 @@
 @using System.Text.Json
 @using MediatR
 @using VHouse.Domain.Interfaces
+@using VHouse.Domain.Entities
 @using VHouse.Application.Commands
 @using VHouse.Application.DTOs
 @using VHouse.Domain.Enums
+@using VHouse.Domain.ValueObjects
 @using VHouse.Application.Handlers
 @inject IAIService AIService
 @inject IMediator Mediator
@@ -12,8 +14,8 @@
 
 <div class="ai-order-processor">
     <div class="processor-header">
-        <h3>🌱 Asistente B2B Inteligente - Fase 4</h3>
-        <p class="subtitle">Chat IA, Emails y Procesamiento Complejo</p>
+        <h3>🌱 Asistente B2B Inteligente</h3>
+        <p class="subtitle">Chat IA, Emails y Procesamiento Avanzado</p>
     </div>
 
     <div class="tabs-container">
@@ -27,8 +29,8 @@
             <button class="tab-btn @(activeTab == "order" ? "active" : "")" @onclick="() => SetActiveTab("order")">
                 📦 Pedidos
             </button>
-            <button class="tab-btn @(activeTab == "phase2" ? "active" : "")" @onclick="() => SetActiveTab("phase2")">
-                🎯 Fase 2
+            <button class="tab-btn @(activeTab == "analytics" ? "active" : "")" @onclick="() => SetActiveTab("analytics")">
+                📊 Analytics
             </button>
         </div>
 
@@ -148,11 +150,15 @@
                 </div>
 
                 <textarea class="ai-textarea" @bind="complexOrderText"
-                          placeholder="Pedido complejo: 100 litros leche almendra, 50 quesos pizza, pago 30 días..."
+                          placeholder="Procesamiento inteligente: Necesito 25 leches de avena Silk para entregar el 15 de marzo, y 10 quesos veganos para mañana..."
                           rows="3"></textarea>
                 
-                <button class="btn-primary-ai" @onclick="ProcessComplexOrder" disabled="@isProcessing">
-                    @(isProcessing ? "🧠 Procesando..." : "📦 Procesar Pedido")
+                <button class="btn-primary-ai" @onclick="ProcessEnhancedOrder" disabled="@isProcessing">
+                    @(isProcessing ? "🤖 Procesando..." : "✨ Procesamiento Inteligente")
+                </button>
+                
+                <button class="btn-secondary-ai" @onclick="ValidateAndSuggestAlternatives" disabled="@isProcessing">
+                    @(isProcessing ? "🔍 Validando..." : "🔄 Validar y Sugerir Alternativas")
                 </button>
             </div>
 
@@ -188,7 +194,7 @@
             }
         }
 
-        @if (activeTab == "phase2")
+        @if (activeTab == "analytics")
         {
             <div class="input-section">
                 <div class="form-group">
@@ -201,7 +207,7 @@
                 </div>
                 
                 <button class="btn-primary-ai" @onclick="GenerateRecommendations" disabled="@isProcessing">
-                    @(isProcessing ? "🤖 Analizando Patrones..." : "🎯 Generar Recomendaciones IA")
+                    @(isProcessing ? "🤖 Analizando Patrones..." : "🎯 Generar Recomendaciones")
                 </button>
                 
                 <button class="btn-secondary-ai" @onclick="AnalyzeCustomerPattern" disabled="@isProcessing">
@@ -666,7 +672,7 @@
 }
 
 @code {
-    private string activeTab = "chat";
+    private string activeTab = "order";
     private bool isProcessing = false;
     private string? errorMessage = null;
 
@@ -686,8 +692,13 @@
     private string orderCustomerId = string.Empty;
     private string complexOrderText = string.Empty;
     private ComplexOrderResponseDto? complexOrderResult = null;
+    
+    // Phase 1 variables
+    private object? enhancedOrderResult = null;
+    private object? validationResult = null;
+    private object? alternativesResult = null;
 
-    // Phase 2 variables - Recommendations & Analytics
+    // Analytics variables - Recommendations & Patterns
     private string recommendationCustomerId = string.Empty;
     private List<IntelligentRecommendation>? recommendations = null;
     private PurchasePattern? customerPattern = null;
@@ -907,6 +918,92 @@
             },
             _ => new List<Order>()
         };
+    }
+
+    private async Task ProcessEnhancedOrder()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(orderCustomerId) || string.IsNullOrWhiteSpace(complexOrderText))
+            {
+                errorMessage = "Selecciona un cliente e ingresa el pedido.";
+                return;
+            }
+
+            // Mock catalog para demo
+            var catalogJson = @"""
+            [
+                {""id"": 1, ""name"": ""Leche de Avena Silk"", ""price"": 45.50, ""stock"": 100},
+                {""id"": 2, ""name"": ""Queso Vegano Violife"", ""price"": 85.00, ""stock"": 50},
+                {""id"": 3, ""name"": ""Pan Integral Orgánico"", ""price"": 25.00, ""stock"": 200}
+            ]
+            """;
+
+            // Usar AIService directamente para demo
+            enhancedOrderResult = await AIService.ProcessEnhancedOrderAsync(catalogJson, complexOrderText);
+            
+            complexOrderResult = null; // Clear old results
+            errorMessage = null;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error procesando pedido: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ValidateAndSuggestAlternatives()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (enhancedOrderResult == null)
+            {
+                errorMessage = "Primero procesa un pedido con procesamiento inteligente.";
+                return;
+            }
+
+            // Mock validation y alternatives para demo
+            var mockOrderItems = new List<object>
+            {
+                new { ProductId = 1, Quantity = 25 },
+                new { ProductId = 2, Quantity = 10 }
+            };
+
+            validationResult = await AIService.ValidateProductAvailabilityAsync(mockOrderItems, "mock-context");
+
+            // Si hay productos no disponibles, generar alternativas
+            var unavailableIds = new List<int> { 2 }; // Simulado
+            var availableProductsJson = @"""
+            [
+                {""id"": 4, ""name"": ""Queso Vegano Alternativo"", ""price"": 80.00, ""category"": ""Lacteos"", ""stock"": 30},
+                {""id"": 5, ""name"": ""Pan Multi-grano"", ""price"": 25.00, ""category"": ""Panaderia"", ""stock"": 40}
+            ]
+            """;
+
+            alternativesResult = await AIService.GenerateAlternativeProductsAsync(unavailableIds, availableProductsJson);
+
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error en validación: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
     }
 
     private List<IntelligentRecommendation> GenerateMockRecommendations(int customerId)

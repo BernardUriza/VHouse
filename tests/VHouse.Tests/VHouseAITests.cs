@@ -8,8 +8,7 @@ using VHouse.Domain.Interfaces;
 namespace VHouse.Tests
 {
     /// <summary>
-    /// Tests específicos para funcionalidades AI en VHouse2025
-    /// Incluye integración con Claude y OpenAI para recomendaciones inteligentes
+    /// Tests específicos para funcionalidades AI en VHouse    /// Incluye integración con Claude y OpenAI para recomendaciones inteligentes
     /// </summary>
     public class VHouse2025AITests
     {
@@ -249,8 +248,7 @@ namespace VHouse.Tests
             var claudeStatus = await mockAIService.Object.GetProviderStatusAsync(AIProvider.Claude);
             var openAIStatus = await mockAIService.Object.GetProviderStatusAsync(AIProvider.OpenAI);
 
-            // Assert - Claude tiene prioridad según la arquitectura VHouse2025
-            Assert.Contains("Priority Provider", claudeStatus);
+            // Assert - Claude tiene prioridad según la arquitectura VHouse            Assert.Contains("Priority Provider", claudeStatus);
             Assert.Contains("Fallback Provider", openAIStatus);
             Assert.Contains("✅ Available", claudeStatus);
         }
