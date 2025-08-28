@@ -1,0 +1,65 @@
+@page "/products"
+@using MediatR
+@using VHouse.Application.Queries
+@using VHouse.Application.DTOs
+@inject IMediator Mediator
+
+<PageTitle>Products</PageTitle>
+
+<h1>🌱 Vegan Products</h1>
+
+@if (products == null)
+{
+    <p><em>Loading products...</em></p>
+}
+else if (!products.Any())
+{
+    <p><em>No products found.</em></p>
+}
+else
+{
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Emoji</th>
+                <th>Name</th>
+                <th>Stock</th>
+                <th>Cost</th>
+                <th>Retail</th>
+                <th>Public</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var product in products)
+            {
+                <tr>
+                    <td>@product.Emoji</td>
+                    <td>@product.ProductName</td>
+                    <td>@product.StockQuantity</td>
+                    <td>@product.PriceCost.ToString("C")</td>
+                    <td>@product.PriceRetail.ToString("C")</td>
+                    <td>@product.PricePublic.ToString("C")</td>
+                    <td>
+                        <span class="badge @(product.IsActive ? "bg-success" : "bg-danger")">
+                            @(product.IsActive ? "Active" : "Inactive")
+                        </span>
+                        @if (product.IsVegan)
+                        {
+                            <span class="badge bg-info">🌱 Vegan</span>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+}
+
+@code {
+    private IEnumerable<ProductDto>? products;
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await Mediator.Send(new GetProductsQuery());
+    }
+}
