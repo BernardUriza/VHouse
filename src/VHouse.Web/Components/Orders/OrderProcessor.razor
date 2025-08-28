@@ -1,0 +1,615 @@
+﻿@page "/orders/processor"
+@using System.Text.Json
+@using MediatR
+@using VHouse.Domain.Interfaces
+@using VHouse.Application.Commands
+@using VHouse.Application.DTOs
+@using VHouse.Domain.Enums
+@using VHouse.Application.Handlers
+@inject IAIService AIService
+@inject IMediator Mediator
+@inject ProcessBusinessConversationCommandHandler BusinessHandler
+
+<div class="ai-order-processor">
+    <div class="processor-header">
+        <h3>🌱 Asistente B2B Inteligente - Fase 4</h3>
+        <p class="subtitle">Chat IA, Emails y Procesamiento Complejo</p>
+    </div>
+
+    <div class="tabs-container">
+        <div class="tab-buttons">
+            <button class="tab-btn @(activeTab == "chat" ? "active" : "")" @onclick="() => SetActiveTab("chat")">
+                💬 Chat
+            </button>
+            <button class="tab-btn @(activeTab == "email" ? "active" : "")" @onclick="() => SetActiveTab("email")">
+                📧 Emails
+            </button>
+            <button class="tab-btn @(activeTab == "order" ? "active" : "")" @onclick="() => SetActiveTab("order")">
+                📦 Pedidos
+            </button>
+        </div>
+
+        @if (activeTab == "chat")
+        {
+            <div class="input-section">
+                <div class="form-group">
+                    <select @bind="selectedCustomerId" class="form-control">
+                        <option value="">Cliente...</option>
+                        <option value="1">VegaMart</option>
+                        <option value="2">EcoTienda</option>
+                        <option value="3">RestauranteVerde</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <select @bind="conversationType" class="form-control">
+                        <option value="@BusinessConversationType.General">General</option>
+                        <option value="@BusinessConversationType.OrderInquiry">Pedido</option>
+                        <option value="@BusinessConversationType.PriceQuote">Cotización</option>
+                        <option value="@BusinessConversationType.BulkOrder">Mayoreo</option>
+                    </select>
+                </div>
+
+                <textarea class="ai-textarea" @bind="conversationMessage"
+                          placeholder="Ej: Necesito 50 cajas de leche de avena para la próxima semana..." 
+                          rows="4"></textarea>
+                
+                <button class="btn-primary-ai" @onclick="ProcessConversation" disabled="@isProcessing">
+                    @(isProcessing ? "🤔 Analizando..." : "💬 Procesar Chat")
+                </button>
+            </div>
+
+            @if (conversationResult != null)
+            {
+                <div class="result-card">
+                    <div class="result-header">🤖 Respuesta IA</div>
+                    <div class="result-content">@((MarkupString)conversationResult.Response.Replace("\n", "<br>"))</div>
+                    <div class="result-meta">
+                        <span class="badge priority-@conversationResult.Priority.ToString().ToLower()">@conversationResult.Priority</span>
+                        <small>@conversationResult.UsedProvider | @conversationResult.ResponseTimeMs ms</small>
+                    </div>
+                    
+                    @if (conversationResult.ProductRecommendations.Any())
+                    {
+                        <div class="recommendations">
+                            <h4>🌿 Productos Sugeridos</h4>
+                            @foreach (var product in conversationResult.ProductRecommendations)
+                            {
+                                <div class="product-rec">
+                                    <span>@product.ProductName</span>
+                                    <span class="price">$@product.Price</span>
+                                    <span class="@(product.InStock ? "in-stock" : "out-stock")">
+                                        @(product.InStock ? "✅" : "❌")
+                                    </span>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        }
+
+        @if (activeTab == "email")
+        {
+            <div class="input-section">
+                <div class="form-group">
+                    <select @bind="emailCustomerId" class="form-control">
+                        <option value="">Cliente...</option>
+                        <option value="1">VegaMart</option>
+                        <option value="2">EcoTienda</option>
+                        <option value="3">RestauranteVerde</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <select @bind="emailType" class="form-control">
+                        <option value="confirmacion_pedido">Confirmación</option>
+                        <option value="actualizacion_entrega">Entrega</option>
+                        <option value="recordatorio_pago">Pago</option>
+                        <option value="oferta_promocional">Promoción</option>
+                    </select>
+                </div>
+
+                <textarea class="ai-textarea" @bind="emailData"
+                          placeholder='{"pedidoId": 123, "productos": ["Leche", "Queso"]}'
+                          rows="2"></textarea>
+                
+                <button class="btn-primary-ai" @onclick="GenerateEmail" disabled="@isProcessing">
+                    @(isProcessing ? "🤖 Generando..." : "📧 Generar Email")
+                </button>
+            </div>
+
+            @if (emailResult != null)
+            {
+                <div class="result-card">
+                    <div class="result-header">📧 Email Generado</div>
+                    <div class="email-preview">
+                        <div><strong>Asunto:</strong> @emailResult.Subject</div>
+                        <div><strong>Urgente:</strong> @(emailResult.IsUrgent ? "⚠️ SÍ" : "No")</div>
+                        <div class="email-body">@((MarkupString)emailResult.Body)</div>
+                    </div>
+                </div>
+            }
+        }
+
+        @if (activeTab == "order")
+        {
+            <div class="input-section">
+                <div class="form-group">
+                    <select @bind="orderCustomerId" class="form-control">
+                        <option value="">Cliente...</option>
+                        <option value="1">VegaMart</option>
+                        <option value="2">EcoTienda</option>
+                        <option value="3">RestauranteVerde</option>
+                    </select>
+                </div>
+
+                <textarea class="ai-textarea" @bind="complexOrderText"
+                          placeholder="Pedido complejo: 100 litros leche almendra, 50 quesos pizza, pago 30 días..."
+                          rows="3"></textarea>
+                
+                <button class="btn-primary-ai" @onclick="ProcessComplexOrder" disabled="@isProcessing">
+                    @(isProcessing ? "🧠 Procesando..." : "📦 Procesar Pedido")
+                </button>
+            </div>
+
+            @if (complexOrderResult != null)
+            {
+                <div class="result-card">
+                    <div class="result-header">📦 Pedido Procesado</div>
+                    <div class="order-summary">
+                        <div class="order-items">
+                            @foreach (var item in complexOrderResult.ExtractedItems)
+                            {
+                                <div class="order-item">
+                                    <span>@item.ProductName</span>
+                                    <span>@item.Quantity x $@item.UnitPrice</span>
+                                </div>
+                            }
+                        </div>
+                        <div class="order-total">
+                            <strong>Total: $@complexOrderResult.OrderSummary.EstimatedTotal @complexOrderResult.OrderSummary.Currency</strong>
+                        </div>
+                        
+                        @if (complexOrderResult.RequestedDeliveryDate.HasValue)
+                        {
+                            <div class="delivery">🚚 @complexOrderResult.RequestedDeliveryDate.Value.ToString("dd/MM/yyyy")</div>
+                        }
+                        
+                        @if (complexOrderResult.PaymentTerms != null)
+                        {
+                            <div class="payment">💳 @complexOrderResult.PaymentTerms.TermsDescription</div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    </div>
+</div>
+
+<style>
+.ai-order-processor {
+    background: #000;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    overflow: hidden;
+    margin-bottom: 1rem;
+}
+
+.processor-header {
+    background: #fff;
+    color: #000;
+    padding: 0.75rem 1rem;
+    border-bottom: 2px solid #fff;
+}
+
+.processor-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.subtitle {
+    margin: 0.25rem 0 0 0;
+    font-size: 0.8rem;
+    opacity: 0.7;
+}
+
+.tabs-container {
+    background: #000;
+}
+
+.tab-buttons {
+    display: flex;
+    border-bottom: 2px solid #fff;
+}
+
+.tab-btn {
+    flex: 1;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-right: 1px solid #fff;
+    padding: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-weight: 600;
+}
+
+.tab-btn:last-child {
+    border-right: none;
+}
+
+.tab-btn.active {
+    background: #fff;
+    color: #000;
+}
+
+.tab-btn:hover:not(.active) {
+    background: #333;
+}
+
+.input-section {
+    padding: 1rem;
+}
+
+.form-group {
+    margin-bottom: 0.75rem;
+}
+
+.form-control {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    padding: 0.5rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: #ffff00;
+    box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.3);
+}
+
+.ai-textarea {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    padding: 0.75rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    resize: vertical;
+    margin-bottom: 0.75rem;
+}
+
+.ai-textarea:focus {
+    outline: none;
+    border-color: #ffff00;
+    box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.3);
+}
+
+.ai-textarea::placeholder {
+    color: #ccc;
+    font-style: italic;
+}
+
+.btn-primary-ai {
+    padding: 0.75rem 1.5rem;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    background: #fff;
+    color: #000;
+    width: 100%;
+}
+
+.btn-primary-ai:hover:not(:disabled) {
+    background: #ffff00;
+    border-color: #ffff00;
+    color: #000;
+}
+
+.btn-primary-ai:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.result-card {
+    background: #001a00;
+    border-top: 2px solid #00ff00;
+    margin-top: 1rem;
+}
+
+.result-header {
+    background: #00ff00;
+    color: #000;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.result-content {
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background: #000;
+    border: 1px solid #00ff00;
+}
+
+.result-meta {
+    padding: 0.5rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    border-top: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.badge {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+}
+
+.priority-low { background: #4CAF50; color: #000; }
+.priority-medium { background: #FF9800; color: #000; }
+.priority-high { background: #F44336; color: #fff; }
+.priority-urgent { background: #8B0000; color: #fff; }
+
+.recommendations {
+    padding: 0.75rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    border-top: none;
+}
+
+.recommendations h4 {
+    color: #00ff00;
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+}
+
+.product-rec {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid #333;
+    color: #fff;
+    font-size: 0.8rem;
+}
+
+.product-rec:last-child {
+    border-bottom: none;
+}
+
+.price {
+    font-weight: 700;
+    color: #ffff00;
+}
+
+.in-stock { color: #00ff00; }
+.out-stock { color: #ff0000; }
+
+.email-preview {
+    padding: 0.75rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.email-body {
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: #111;
+    border-left: 3px solid #00ff00;
+}
+
+.order-summary {
+    padding: 0.75rem 1rem;
+    background: #000;
+    border: 1px solid #00ff00;
+    color: #fff;
+    font-size: 0.9rem;
+}
+
+.order-items {
+    margin-bottom: 1rem;
+}
+
+.order-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.25rem 0;
+    border-bottom: 1px solid #333;
+}
+
+.order-item:last-child {
+    border-bottom: none;
+}
+
+.order-total {
+    padding: 0.5rem;
+    background: #111;
+    border-left: 3px solid #ffff00;
+    margin-bottom: 0.5rem;
+}
+
+.delivery, .payment {
+    padding: 0.25rem 0;
+    color: #ccc;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}
+</style>
+
+@if (errorMessage != null)
+{
+    <div class="alert alert-danger mt-2 p-2">@errorMessage</div>
+}
+
+@code {
+    private string activeTab = "chat";
+    private bool isProcessing = false;
+    private string? errorMessage = null;
+
+    // Chat variables
+    private string conversationMessage = string.Empty;
+    private string selectedCustomerId = string.Empty;
+    private BusinessConversationType conversationType = BusinessConversationType.General;
+    private BusinessConversationResponseDto? conversationResult = null;
+
+    // Email variables
+    private string emailCustomerId = string.Empty;
+    private string emailType = "confirmacion_pedido";
+    private string emailData = string.Empty;
+    private BusinessEmailResponseDto? emailResult = null;
+
+    // Complex order variables
+    private string orderCustomerId = string.Empty;
+    private string complexOrderText = string.Empty;
+    private ComplexOrderResponseDto? complexOrderResult = null;
+
+    private void SetActiveTab(string tab)
+    {
+        activeTab = tab;
+        errorMessage = null;
+    }
+
+    private async Task ProcessConversation()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrWhiteSpace(conversationMessage))
+            {
+                errorMessage = "Ingresa un mensaje para procesar.";
+                return;
+            }
+
+            var command = new ProcessBusinessConversationCommand(
+                conversationMessage,
+                string.IsNullOrEmpty(selectedCustomerId) ? null : int.Parse(selectedCustomerId),
+                null,
+                conversationType
+            );
+
+            conversationResult = await Mediator.Send(command);
+            
+            if (!conversationResult.IsSuccessful)
+            {
+                errorMessage = conversationResult.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task GenerateEmail()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(emailCustomerId))
+            {
+                errorMessage = "Selecciona un cliente.";
+                return;
+            }
+
+            var customerId = int.Parse(emailCustomerId);
+            var data = string.IsNullOrEmpty(emailData) ? new { } : JsonSerializer.Deserialize<object>(emailData);
+            
+            emailResult = await BusinessHandler.GenerateBusinessEmail(emailType, customerId, data);
+            
+            if (!emailResult.IsSuccessful)
+            {
+                errorMessage = emailResult.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task ProcessComplexOrder()
+    {
+        errorMessage = null;
+        isProcessing = true;
+        StateHasChanged();
+
+        try
+        {
+            if (string.IsNullOrEmpty(orderCustomerId) || string.IsNullOrWhiteSpace(complexOrderText))
+            {
+                errorMessage = "Selecciona un cliente e ingresa el pedido.";
+                return;
+            }
+
+            var customerId = int.Parse(orderCustomerId);
+            var context = new BusinessContext
+            {
+                CustomerType = "Distribuidor",
+                TypicalOrderValue = 5000,
+                RecentOrderHistory = new List<string> { "Pedido anterior: Leches vegetales", "Pedido anterior: Quesos veganos" }
+            };
+            
+            complexOrderResult = await BusinessHandler.ProcessComplexOrder(complexOrderText, customerId, context);
+            
+            if (!complexOrderResult.IsSuccessful)
+            {
+                errorMessage = complexOrderResult.ErrorMessage;
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error: {ex.Message}";
+        }
+        finally
+        {
+            isProcessing = false;
+            StateHasChanged();
+        }
+    }
+}

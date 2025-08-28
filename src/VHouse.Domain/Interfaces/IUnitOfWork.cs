@@ -4,9 +4,9 @@ namespace VHouse.Domain.Interfaces;
 
 public interface IUnitOfWork : IDisposable
 {
-    IRepository<Product> Products { get; }
-    IRepository<Customer> Customers { get; }
-    IRepository<Order> Orders { get; }
+    IProductRepository Products { get; }
+    ICustomerRepository Customers { get; }
+    IOrderRepository Orders { get; }
     IRepository<OrderItem> OrderItems { get; }
     
     Task<int> SaveChangesAsync();

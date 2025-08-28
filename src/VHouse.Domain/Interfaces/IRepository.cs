@@ -15,3 +15,26 @@ public interface IRepository<T> where T : BaseEntity
     void Remove(T entity);
     void RemoveRange(IEnumerable<T> entities);
 }
+
+// Repositorios específicos con métodos especializados
+public interface IProductRepository : IRepository<Product>
+{
+    Task<IEnumerable<Product>> GetActiveProductsAsync();
+    Task<IEnumerable<Product>> GetProductsByScoreAsync(int minScore);
+}
+
+public interface ICustomerRepository : IRepository<Customer>
+{
+    Task<Customer?> GetByEmailAsync(string email);
+    Task<IEnumerable<Customer>> GetRetailCustomersAsync();
+}
+
+public interface IOrderRepository : IRepository<Order>
+{
+    Task<IEnumerable<Order>> GetOrdersByCustomerAsync(int customerId);
+    Task<IEnumerable<Order>> GetOrdersByDateRangeAsync(DateTime startDate, DateTime endDate);
+    
+    // Métodos que faltan según TDD (Red phase)
+    Task<IEnumerable<Order>> GetRecentOrdersByCustomerAsync(int customerId, int days);
+    Task<int> GetOrderCountByCustomerAsync(int customerId);
+}

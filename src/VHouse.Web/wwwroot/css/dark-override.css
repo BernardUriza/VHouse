@@ -1,0 +1,341 @@
+/* MODO OSCURO ALTO CONTRASTE - OVERRIDE GLOBAL */
+/* Este archivo fuerza modo oscuro en todos los elementos */
+
+/* Override global para eliminar fondos blancos */
+* {
+    box-sizing: border-box;
+}
+
+/* BOOTSTRAP OVERRIDES AGRESIVOS */
+html,
+body {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Override completo de elementos Bootstrap */
+.container,
+.container-fluid,
+.row,
+.col,
+.col-*,
+[class*="col-"] {
+    background: transparent !important;
+    color: #ffffff !important;
+}
+
+/* Override específico de Bootstrap sidebar classes */
+.navbar,
+.navbar-expand,
+.navbar-expand-sm,
+.navbar-expand-md,
+.navbar-expand-lg,
+.navbar-expand-xl,
+.navbar-light,
+.navbar-dark,
+.bg-light,
+.bg-white,
+.text-dark {
+    background: #000000 !important;
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* SIDEBAR Y NAVEGACIÓN - FORZAR MODO OSCURO CON MÁXIMA ESPECIFICIDAD */
+html body .page .sidebar,
+html body div.page div.sidebar,
+.page > .sidebar,
+div.page > div.sidebar {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-right: 3px solid #ffffff !important;
+    box-shadow: 2px 0 8px rgba(255, 255, 255, 0.5) !important;
+}
+
+.sidebar,
+.page .sidebar,
+.nav-scrollable,
+.navbar-collapse,
+div.sidebar,
+.page div.sidebar {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-right: 3px solid #ffffff !important;
+    box-shadow: 2px 0 8px rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Forzar navbar */
+.navbar,
+.top-row,
+.navbar-brand,
+.navbar-nav {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-bottom: 3px solid #ffffff !important;
+}
+
+/* Enlaces de navegación */
+.nav-link,
+.navbar-nav .nav-link,
+.nav-item .nav-link,
+.nav-item a {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 700 !important;
+    margin-bottom: 2px !important;
+}
+
+/* Estados hover y activos de navegación */
+.nav-link:hover,
+.nav-item .nav-link:hover {
+    background: #ffff00 !important;
+    color: #000000 !important;
+    border-color: #ffff00 !important;
+}
+
+.nav-link.active,
+.nav-item .nav-link.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    font-weight: 900 !important;
+}
+
+/* PÁGINA PRINCIPAL */
+.page,
+.main,
+main,
+div.page,
+body {
+    background-color: #000000 !important;
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Contenido principal */
+.content,
+article.content,
+.px-4 {
+    background: #000000 !important;
+    color: #ffffff !important;
+}
+
+/* Forzar fondo negro en todos los contenedores principales */
+.dashboard-widget,
+.widget-header,
+.widget-content,
+.chart-widget-component,
+.table-widget-component,
+.metric-widget-component,
+.pos-ticket,
+.ticket-header,
+.order-processor,
+.product-list,
+.customer-header,
+.orders-header,
+.product-header,
+.analytics-dashboard .dashboard-container,
+.ai-dashboard .dashboard-container,
+.enterprise-dashboard,
+.infrastructure-dashboard {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+/* Headers con contraste */
+.dashboard-header,
+.widget-header,
+.ticket-header,
+.orders-section h3,
+.product-form h3,
+.customer-header h1,
+.tickets-header h1 {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+}
+
+/* Elementos interactivos */
+.dashboard-widget:hover,
+.product-item:hover,
+.ticket-item:hover,
+.btn:hover,
+.tab-btn:hover,
+.price-btn:hover,
+.nav-link:hover {
+    background: #ffff00 !important;
+    color: #000000 !important;
+    border-color: #ffff00 !important;
+}
+
+/* Estados activos */
+.nav-link.active,
+.tab-btn.active,
+.price-btn.active,
+.price-type-btn.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-color: #ffffff !important;
+    font-weight: 900 !important;
+}
+
+/* Botones primarios */
+.btn-primary,
+.btn-process,
+.btn-add-product {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 900 !important;
+}
+
+/* Botones secundarios */
+.btn-secondary,
+.btn-clear,
+.btn-remove {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 900 !important;
+}
+
+/* Formularios */
+.form-control,
+.form-select,
+.pos-select {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.form-control:focus,
+.form-select:focus,
+.pos-select:focus {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border-color: #ffff00 !important;
+    box-shadow: 0 0 0 0.3rem rgba(255, 255, 0, 0.5) !important;
+    outline: 2px solid #ffff00 !important;
+    outline-offset: 2px !important;
+}
+
+/* Tablas */
+.table,
+.table-dark {
+    background: #000000 !important;
+    color: #ffffff !important;
+    border: 2px solid #ffffff !important;
+}
+
+.table th,
+.table-dark th {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: 2px solid #ffffff !important;
+    font-weight: 900 !important;
+}
+
+.table td,
+.table-dark td {
+    border: 1px solid #ffffff !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+.table tbody tr:hover,
+.table-dark tbody tr:hover {
+    background: #111111 !important;
+    outline: 2px solid #ffff00 !important;
+}
+
+/* Cards globales */
+.card {
+    background: #000000 !important;
+    border: 3px solid #ffffff !important;
+    color: #ffffff !important;
+}
+
+.card-header {
+    background: #ffffff !important;
+    color: #000000 !important;
+    border-bottom: 3px solid #ffffff !important;
+    font-weight: 900 !important;
+}
+
+.card-body {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Alerts */
+.alert {
+    border: 3px solid !important;
+    background: #000000 !important;
+    font-weight: 700 !important;
+}
+
+.alert-success {
+    border-color: #00ff00 !important;
+    color: #00ff00 !important;
+}
+
+.alert-danger {
+    border-color: #ff0000 !important;
+    color: #ff0000 !important;
+}
+
+.alert-warning {
+    border-color: #ffff00 !important;
+    color: #ffff00 !important;
+}
+
+.alert-info {
+    border-color: #00ffff !important;
+    color: #00ffff !important;
+}
+
+/* Remover efectos de blur y transparencias */
+* {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
+
+/* Tipografía de alto contraste */
+h1, h2, h3, h4, h5, h6 {
+    color: #ffffff !important;
+    font-weight: 900 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 1.5px !important;
+}
+
+/* Forzar colores de texto */
+p, span, div, label {
+    color: #ffffff !important;
+    font-weight: 600 !important;
+}
+
+/* Override para elementos específicos que deben ser negros sobre blanco */
+.ticket-total,
+.btn-process,
+.btn-add-product,
+.price-type-btn.active,
+.nav-link.active {
+    background: #ffffff !important;
+    color: #000000 !important;
+}
+
+/* Elementos de estado */
+.empty-ticket,
+.empty-ticket h4,
+.empty-ticket p {
+    color: #ffffff !important;
+    font-weight: 700 !important;
+}

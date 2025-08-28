@@ -1,0 +1,449 @@
+﻿@using VHouse.Domain.Interfaces
+@inject ProductService ProductService
+@inject IAIService AIService
+
+<div class="ai-product-search">
+    <div class="search-header">
+        <h4>🔍 Búsqueda Inteligente</h4>
+    </div>
+    
+    <div class="search-container">
+        <input type="text" class="smart-search-input" @bind="searchQuery" 
+               placeholder="Ej: 'productos para desayuno vegano', 'algo proteico y saludable'..." 
+               @onkeypress="@((e) => { if(e.Code == "Enter") InvokeAsync(SmartSearch); })"/>
+        
+        <div class="search-buttons">
+            <button class="search-btn-primary" @onclick="SmartSearch" disabled="@isSearching">
+                @if (isSearching)
+                {
+                    <span class="loading">⏳ Buscando</span>
+                }
+                else
+                {
+                    <span>🚀 Buscar IA</span>
+                }
+            </button>
+            
+            @if (!string.IsNullOrEmpty(searchQuery))
+            {
+                <button class="search-btn-clear" @onclick="ClearSearch">🗑️ Limpiar</button>
+            }
+        </div>
+    </div>
+
+    @if (!string.IsNullOrEmpty(aiSuggestion))
+    {
+        <div class="ai-suggestion">
+            <div class="suggestion-header">💡 Sugerencia IA</div>
+            <div class="suggestion-content">@aiSuggestion</div>
+        </div>
+    }
+</div>
+
+<style>
+.ai-product-search {
+    background: #000;
+    border: 2px solid #fff;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+    overflow: hidden;
+}
+
+.search-header {
+    background: #fff;
+    color: #000;
+    padding: 0.6rem 1rem;
+    border-bottom: 2px solid #fff;
+}
+
+.search-header h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+.search-container {
+    padding: 1rem;
+}
+
+.smart-search-input {
+    width: 100%;
+    background: #000;
+    color: #fff;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    padding: 0.7rem;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+}
+
+.smart-search-input:focus {
+    outline: none;
+    border-color: #ffff00;
+    box-shadow: 0 0 0 2px rgba(255, 255, 0, 0.3);
+}
+
+.smart-search-input::placeholder {
+    color: #ccc;
+    font-style: italic;
+}
+
+.search-buttons {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.search-btn-primary, .search-btn-clear {
+    padding: 0.6rem 1rem;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.search-btn-primary {
+    background: #fff;
+    color: #000;
+    flex: 1;
+}
+
+.search-btn-primary:hover:not(:disabled) {
+    background: #ffff00;
+    border-color: #ffff00;
+}
+
+.search-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.search-btn-clear {
+    background: #ff4444;
+    color: #fff;
+    border-color: #ff4444;
+}
+
+.search-btn-clear:hover {
+    background: #fff;
+    color: #ff4444;
+    border-color: #fff;
+}
+
+.ai-suggestion {
+    background: #001a1a;
+    border-top: 2px solid #00ffff;
+}
+
+.suggestion-header {
+    background: #00ffff;
+    color: #000;
+    padding: 0.5rem 1rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+.suggestion-content {
+    padding: 0.75rem 1rem;
+    color: #fff;
+    font-size: 0.9rem;
+    line-height: 1.4;
+    background: #000;
+    border: 1px solid #00ffff;
+}
+</style>
+
+<div class="products-grid">
+    @foreach (var product in filteredProducts)
+    {
+        <div class="product-card @(recommendedProducts.Contains(product.ProductId) ? "recommended" : "")">
+            <div class="product-header">
+                <div class="product-name">@product.ProductName</div>
+                @if (recommendedProducts.Contains(product.ProductId))
+                {
+                    <div class="ai-badge">🤖 IA</div>
+                }
+            </div>
+            
+            <div class="product-info">
+                <div class="product-price">@product.PriceRetail.ToString("C")</div>
+                <button class="add-btn" @onclick="() => AddToTicket(product)">
+                    ➕ Agregar
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 0.75rem;
+    margin-top: 1rem;
+}
+
+.product-card {
+    background: #000;
+    border: 2px solid #fff;
+    border-radius: 6px;
+    overflow: hidden;
+    transition: all 0.2s ease;
+}
+
+.product-card:hover {
+    border-color: #ffff00;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(255, 255, 0, 0.3);
+}
+
+.product-card.recommended {
+    border-color: #00ff00;
+    background: #001a00;
+}
+
+.product-card.recommended:hover {
+    border-color: #00ff00;
+    box-shadow: 0 4px 12px rgba(0, 255, 0, 0.3);
+}
+
+.product-header {
+    background: #fff;
+    color: #000;
+    padding: 0.75rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #fff;
+}
+
+.product-card.recommended .product-header {
+    background: #00ff00;
+}
+
+.product-name {
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    flex: 1;
+}
+
+.ai-badge {
+    background: #000;
+    color: #00ff00;
+    padding: 0.2rem 0.5rem;
+    border-radius: 3px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.2px;
+    text-transform: uppercase;
+}
+
+.product-info {
+    padding: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+}
+
+.product-price {
+    color: #fff;
+    font-weight: 700;
+    font-size: 1.1rem;
+    letter-spacing: 0.3px;
+}
+
+.product-card.recommended .product-price {
+    color: #00ff00;
+}
+
+.add-btn {
+    background: #fff;
+    color: #000;
+    border: 2px solid #fff;
+    border-radius: 4px;
+    padding: 0.6rem 1rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.add-btn:hover {
+    background: #ffff00;
+    border-color: #ffff00;
+    color: #000;
+}
+
+.product-card.recommended .add-btn {
+    background: #00ff00;
+    border-color: #00ff00;
+    color: #000;
+}
+
+.product-card.recommended .add-btn:hover {
+    background: #fff;
+    border-color: #fff;
+}
+
+@media (max-width: 768px) {
+    .products-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .product-info {
+        flex-direction: column;
+        gap: 0.5rem;
+        align-items: stretch;
+    }
+    
+    .add-btn {
+        width: 100%;
+    }
+}
+</style>
+
+@if (!filteredProducts.Any())
+{
+    <div class="no-products">
+        <div class="no-products-icon">🌱</div>
+        <div class="no-products-text">No hay productos disponibles</div>
+        <div class="no-products-subtitle">Intenta otra búsqueda o revisa tu inventario</div>
+    </div>
+    
+    <style>
+    .no-products {
+        text-align: center;
+        padding: 2rem;
+        background: #000;
+        border: 2px solid #fff;
+        border-radius: 8px;
+        margin-top: 1rem;
+    }
+
+    .no-products-icon {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+    }
+
+    .no-products-text {
+        color: #fff;
+        font-size: 1.2rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .no-products-subtitle {
+        color: #ccc;
+        font-size: 0.9rem;
+        font-style: italic;
+    }
+    </style>
+}
+
+@code {
+    [Parameter] public List<Product> products { get; set; } = new();
+    [Parameter] public EventCallback<Product> OnProductAdded { get; set; }
+
+    private string searchQuery = string.Empty;
+    private string aiSuggestion = string.Empty;
+    private bool isSearching = false;
+    private List<Product> filteredProducts = new();
+    private List<int> recommendedProducts = new();
+
+    protected override void OnParametersSet()
+    {
+        filteredProducts = products ?? new();
+    }
+
+    private async Task AddToTicket(Product product)
+    {
+        await OnProductAdded.InvokeAsync(product);
+    }
+
+    private async Task SmartSearch()
+    {
+        if (string.IsNullOrWhiteSpace(searchQuery))
+        {
+            filteredProducts = products ?? new();
+            aiSuggestion = string.Empty;
+            recommendedProducts.Clear();
+            return;
+        }
+
+        isSearching = true;
+        StateHasChanged();
+
+        try
+        {
+            // Analizar intención con contexto del catálogo
+            var productContext = $"Catálogo de productos veganos: {string.Join(", ", products?.Select(p => $"{p.ProductName} (${p.PriceRetail:F2})") ?? new List<string>())}";
+            var intentResponse = await AIService.AnalyzeIntentAsync(searchQuery, productContext);
+
+            if (intentResponse.IsSuccessful)
+            {
+                aiSuggestion = intentResponse.Content;
+            }
+
+            // Extraer IDs de productos recomendados usando AI
+            var catalogJson = System.Text.Json.JsonSerializer.Serialize(
+                products?.Select(p => new { p.ProductId, p.ProductName, Price = p.PriceRetail }) ?? new List<object>()
+            );
+            
+            var recommendedIds = await AIService.ExtractProductIdsAsync(catalogJson, searchQuery);
+            
+            if (recommendedIds.Any() && recommendedIds.First() != -1)
+            {
+                recommendedProducts = recommendedIds;
+                // Mostrar productos recomendados primero, luego el resto
+                var recommended = products?.Where(p => recommendedIds.Contains(p.ProductId)).ToList() ?? new();
+                var others = products?.Where(p => !recommendedIds.Contains(p.ProductId)).ToList() ?? new();
+                filteredProducts = recommended.Concat(others).ToList();
+            }
+            else
+            {
+                // Búsqueda por texto simple si AI no encuentra coincidencias
+                filteredProducts = products?.Where(p => 
+                    p.ProductName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+                ).ToList() ?? new();
+                recommendedProducts.Clear();
+            }
+        }
+        catch (Exception ex)
+        {
+            aiSuggestion = $"Error en búsqueda inteligente: {ex.Message}";
+            // Fallback a búsqueda simple
+            filteredProducts = products?.Where(p => 
+                p.ProductName.Contains(searchQuery, StringComparison.OrdinalIgnoreCase)
+            ).ToList() ?? new();
+        }
+        finally
+        {
+            isSearching = false;
+            StateHasChanged();
+        }
+    }
+
+    private void ClearSearch()
+    {
+        searchQuery = string.Empty;
+        aiSuggestion = string.Empty;
+        filteredProducts = products ?? new();
+        recommendedProducts.Clear();
+    }
+}

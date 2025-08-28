@@ -11,7 +11,15 @@
       "Bash(dotnet ef migrations add:*)",
       "Bash(taskkill:*)",
       "WebSearch",
-      "Bash(git log:*)"
+      "Bash(git log:*)",
+      "Bash(git rev-parse:*)",
+      "Bash(powershell:*)",
+      "Bash(mkdir:*)",
+      "Bash(dotnet new:*)",
+      "Bash(dotnet sln:*)",
+      "Bash(dotnet add package:*)",
+      "Bash(find:*)",
+      "Bash(dotnet test:*)"
     ],
     "deny": [],
     "ask": [],

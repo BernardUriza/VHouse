@@ -1,16 +1,18 @@
 {
   "permissions": {
     "allow": [
-      "Bash(dotnet add package:*)",
-      "Bash(dotnet build)",
-      "Bash(dotnet ef migrations add:*)",
-      "Bash(git add:*)",
-      "Bash(git commit:*)",
-      "Bash(git push:*)",
-      "Bash(git add:*)",
-      "Bash(git push:*)",
-      "WebSearch"
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Enums/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Interfaces/**)",
+      "Bash(dotnet build:*)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\ValueObjects/**)"
     ],
-    "deny": []
+    "deny": [],
+    "ask": []
   }
 }

@@ -13,15 +13,15 @@ public class UnitOfWork : IUnitOfWork
     public UnitOfWork(VHouseDbContext context)
     {
         _context = context;
-        Products = new Repository<Product>(_context);
-        Customers = new Repository<Customer>(_context);
-        Orders = new Repository<Order>(_context);
+        Products = new ProductRepository(_context);
+        Customers = new CustomerRepository(_context);
+        Orders = new OrderRepository(_context);
         OrderItems = new Repository<OrderItem>(_context);
     }
 
-    public IRepository<Product> Products { get; private set; }
-    public IRepository<Customer> Customers { get; private set; }
-    public IRepository<Order> Orders { get; private set; }
+    public IProductRepository Products { get; private set; }
+    public ICustomerRepository Customers { get; private set; }
+    public IOrderRepository Orders { get; private set; }
     public IRepository<OrderItem> OrderItems { get; private set; }
 
     public async Task<int> SaveChangesAsync()
