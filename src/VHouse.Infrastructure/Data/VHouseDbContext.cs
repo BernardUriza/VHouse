@@ -56,7 +56,7 @@ public class VHouseDbContext : DbContext
         {
             entity.HasKey(oi => oi.Id);
             entity.Property(oi => oi.UnitPrice).HasColumnType("decimal(18,2)");
-            entity.Property(oi => oi.TotalPrice).HasColumnType("decimal(18,2)");
+            // TotalPrice is a calculated property marked with [NotMapped], so we don't configure it here
             
             entity.HasOne(oi => oi.Order)
                 .WithMany(o => o.OrderItems)
