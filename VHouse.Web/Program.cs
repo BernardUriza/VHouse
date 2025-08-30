@@ -204,21 +204,34 @@ if (!app.Environment.IsDevelopment())
 // app.UseMiddleware<GlobalExceptionHandlingMiddleware>(); // Commented out until middleware is created
 // app.UseSecurityMiddleware(); // Commented out until middleware is created
 
-// Add security headers middleware
+// Add security headers middleware - excluding static files to avoid MIME type issues
 app.Use(async (context, next) =>
 {
-    context.Response.Headers["X-Content-Type-Options"] = "nosniff";
-    context.Response.Headers["X-Frame-Options"] = "DENY";
-    context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
-    context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
-    context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
-    
-    if (!app.Environment.IsDevelopment())
-    {
-        context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
-    }
-    
     await next();
+    
+    // Don't add security headers to static files to avoid MIME type conflicts
+    if (!context.Request.Path.StartsWithSegments("/_framework") &&
+        !context.Request.Path.StartsWithSegments("/css") &&
+        !context.Request.Path.StartsWithSegments("/js") &&
+        !context.Request.Path.StartsWithSegments("/lib") &&
+        !context.Request.Path.Value.EndsWith(".css") &&
+        !context.Request.Path.Value.EndsWith(".js") &&
+        !context.Request.Path.Value.EndsWith(".ico") &&
+        !context.Request.Path.Value.EndsWith(".png") &&
+        !context.Request.Path.Value.EndsWith(".jpg") &&
+        !context.Request.Path.Value.EndsWith(".gif"))
+    {
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        context.Response.Headers["X-Frame-Options"] = "DENY";
+        context.Response.Headers["X-XSS-Protection"] = "1; mode=block";
+        context.Response.Headers["Referrer-Policy"] = "strict-origin-when-cross-origin";
+        context.Response.Headers["Permissions-Policy"] = "camera=(), microphone=(), geolocation=()";
+        
+        if (!app.Environment.IsDevelopment())
+        {
+            context.Response.Headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains";
+        }
+    }
 });
 
 // 🔧 Aplica migraciones automáticamente en cada inicio (skip during testing)
@@ -239,7 +252,7 @@ if (!skipMigrations)
         var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
         Log.ApplyingSeeds(migrationLogger);
-        // await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext - Commented out until ProductService is available
+        await SeedSampleDataAsync(context, migrationLogger);
         Log.SeedsAppliedSuccessfully(migrationLogger);
     }
 }
@@ -385,6 +398,95 @@ app.MapRazorComponents<VHouse.Web.Components.App>()
 }*/
 
 app.Run();
+
+// Sample data seeding method
+static async Task SeedSampleDataAsync(VHouseDbContext context, ILogger logger)
+{
+    if (!context.Products.Any())
+    {
+        var sampleProducts = new[]
+        {
+            new Product
+            {
+                ProductName = "Queso Vegano Artesanal",
+                Emoji = "🧀",
+                PriceCost = 80.00m,
+                PriceRetail = 120.00m,
+                PriceSuggested = 140.00m,
+                PricePublic = 150.00m,
+                Description = "Delicioso queso vegano hecho con nueces de macadamia",
+                StockQuantity = 25,
+                IsVegan = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                ProductName = "Hamburguesa Plant-Based",
+                Emoji = "🍔",
+                PriceCost = 45.00m,
+                PriceRetail = 75.00m,
+                PriceSuggested = 85.00m,
+                PricePublic = 95.00m,
+                Description = "Hamburguesa 100% vegetal con proteína de soya",
+                StockQuantity = 50,
+                IsVegan = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                ProductName = "Leche de Almendra Orgánica",
+                Emoji = "🥛",
+                PriceCost = 25.00m,
+                PriceRetail = 45.00m,
+                PriceSuggested = 50.00m,
+                PricePublic = 55.00m,
+                Description = "Leche de almendra orgánica sin azúcar añadida",
+                StockQuantity = 30,
+                IsVegan = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                ProductName = "Pizza Vegana Margarita",
+                Emoji = "🍕",
+                PriceCost = 60.00m,
+                PriceRetail = 95.00m,
+                PriceSuggested = 110.00m,
+                PricePublic = 120.00m,
+                Description = "Pizza con queso vegano y albahaca fresca",
+                StockQuantity = 15,
+                IsVegan = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            },
+            new Product
+            {
+                ProductName = "Yogurt de Coco Natural",
+                Emoji = "🥥",
+                PriceCost = 20.00m,
+                PriceRetail = 35.00m,
+                PriceSuggested = 40.00m,
+                PricePublic = 45.00m,
+                Description = "Yogurt cremoso de coco natural probiótico",
+                StockQuantity = 40,
+                IsVegan = true,
+                IsActive = true,
+                CreatedAt = DateTime.UtcNow
+            }
+        };
+
+        context.Products.AddRange(sampleProducts);
+        await context.SaveChangesAsync();
+        logger.LogInformation("✅ Added {ProductCount} sample products to database", sampleProducts.Length);
+    }
+    else
+    {
+        logger.LogInformation("ℹ️ Sample products already exist in database");
+    }
+}
 
 // Make the Program class accessible to the test project
 public partial class Program { }

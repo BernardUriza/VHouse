@@ -25,7 +25,10 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--text-primary);
 }
 
-h1 { font-size: var(--font-size-4xl); }
+h1 { 
+    font-size: var(--font-size-4xl);
+    margin-top: 0;
+}
 h2 { font-size: var(--font-size-3xl); }
 h3 { font-size: var(--font-size-2xl); }
 h4 { font-size: var(--font-size-xl); }
