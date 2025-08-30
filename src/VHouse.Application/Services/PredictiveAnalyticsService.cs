@@ -19,9 +19,9 @@ namespace VHouse.Application.Services
             _aiService = aiService;
         }
 
-        public async Task<PurchasePattern> AnalyzeCustomerPatterns(int customerId, List<Order> orderHistory)
+        public Task<PurchasePattern> AnalyzeCustomerPatterns(int customerId, List<Order> orderHistory)
         {
-            if (!orderHistory.Any()) return new PurchasePattern();
+            if (!orderHistory.Any()) return Task.FromResult(new PurchasePattern());
 
             var pattern = new PurchasePattern();
             
@@ -33,7 +33,7 @@ namespace VHouse.Application.Services
             pattern.PreferredOrderingTime = AnalyzeOrderingTimePattern(orderHistory);
             pattern.PredictedNextOrderDate = PredictNextOrderDate(orderHistory, pattern.OrderFrequency);
 
-            return pattern;
+            return Task.FromResult(pattern);
         }
 
         private double CalculateOrderFrequency(List<Order> orders)
@@ -378,17 +378,17 @@ namespace VHouse.Application.Services
             _aiService = aiService;
         }
 
-        public async Task<SeasonalPattern> AnalyzeProductSeasonality(int productId, List<MonthlySales> salesData)
+        public Task<SeasonalPattern> AnalyzeProductSeasonality(int productId, List<MonthlySales> salesData)
         {
             if (salesData.Count < 4) // Necesitamos al menos 4 meses de data
             {
-                return new SeasonalPattern
+                return Task.FromResult(new SeasonalPattern
                 {
                     PeakSeason = "Insufficient Data",
                     LowSeason = "Insufficient Data",
                     SeasonalityStrength = 0.0,
                     PredictedDemand = new List<SeasonalPrediction>()
-                };
+                });
             }
 
             var pattern = new SeasonalPattern();
@@ -405,7 +405,7 @@ namespace VHouse.Application.Services
             // Generar predicciones para los próximos 12 meses
             pattern.PredictedDemand = GenerateSeasonalPredictions(monthlyAverages, salesData);
 
-            return pattern;
+            return Task.FromResult(pattern);
         }
 
         private Dictionary<int, double> CalculateMonthlyAverages(List<MonthlySales> salesData)

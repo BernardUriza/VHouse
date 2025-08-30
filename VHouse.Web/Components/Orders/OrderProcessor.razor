@@ -20,16 +20,16 @@
 
     <div class="tabs-container">
         <div class="tab-buttons">
-            <button class="tab-btn @(activeTab == "chat" ? "active" : "")" @onclick="() => SetActiveTab("chat")">
+            <button class="tab-btn @(activeTab == "chat" ? "active" : "")" @onclick="@(() => SetActiveTab("chat"))">
                 💬 Chat
             </button>
-            <button class="tab-btn @(activeTab == "email" ? "active" : "")" @onclick="() => SetActiveTab("email")">
+            <button class="tab-btn @(activeTab == "email" ? "active" : "")" @onclick="@(() => SetActiveTab("email"))">
                 📧 Emails
             </button>
-            <button class="tab-btn @(activeTab == "order" ? "active" : "")" @onclick="() => SetActiveTab("order")">
+            <button class="tab-btn @(activeTab == "order" ? "active" : "")" @onclick="@(() => SetActiveTab("order"))">
                 📦 Pedidos
             </button>
-            <button class="tab-btn @(activeTab == "analytics" ? "active" : "")" @onclick="() => SetActiveTab("analytics")">
+            <button class="tab-btn @(activeTab == "analytics" ? "active" : "")" @onclick="@(() => SetActiveTab("analytics"))">
                 📊 Analytics
             </button>
         </div>
@@ -660,7 +660,7 @@
     cursor: not-allowed;
 }
 
-@keyframes pulse {
+@@keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }

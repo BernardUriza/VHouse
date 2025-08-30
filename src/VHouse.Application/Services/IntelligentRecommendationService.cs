@@ -57,18 +57,18 @@ namespace VHouse.Application.Services
             }
         }
 
-        private async Task<List<PurchaseHistoryItem>> GetCustomerPurchaseHistory(int customerId)
+        private Task<List<PurchaseHistoryItem>> GetCustomerPurchaseHistory(int customerId)
         {
             // Simulación del historial - en producción vendría de la base de datos
-            return new List<PurchaseHistoryItem>
+            return Task.FromResult(new List<PurchaseHistoryItem>
             {
                 new PurchaseHistoryItem { ProductName = "Leche Avena Orgánica", Frequency = 5, LastPurchase = DateTime.Now.AddDays(-15) },
                 new PurchaseHistoryItem { ProductName = "Queso Vegano Artesanal", Frequency = 3, LastPurchase = DateTime.Now.AddDays(-20) },
                 new PurchaseHistoryItem { ProductName = "Yogurt Coco Premium", Frequency = 4, LastPurchase = DateTime.Now.AddDays(-10) }
-            };
+            });
         }
 
-        private async Task<List<ProductInfo>> GetAvailableProducts(bool isVeganPreferred)
+        private Task<List<ProductInfo>> GetAvailableProducts(bool isVeganPreferred)
         {
             // Simulación de productos disponibles
             var allProducts = new List<ProductInfo>
@@ -80,9 +80,9 @@ namespace VHouse.Application.Services
                 new ProductInfo { Id = 8, Name = "Tofu Orgánico Extra Firme", IsVegan = true, Price = 28, Stock = 30, Category = "Proteínas" }
             };
 
-            return isVeganPreferred 
+            return Task.FromResult(isVeganPreferred 
                 ? allProducts.Where(p => p.IsVegan && p.Stock > 0).ToList()
-                : allProducts.Where(p => p.Stock > 0).ToList();
+                : allProducts.Where(p => p.Stock > 0).ToList());
         }
 
         private string BuildRecommendationPrompt(dynamic customer, List<PurchaseHistoryItem> history, List<ProductInfo> availableProducts)
@@ -227,7 +227,7 @@ Genera las recomendaciones ahora:";
             return ParseComplementaryProducts(aiResponse.Content, baseProduct.Name);
         }
 
-        private async Task<ProductInfo?> GetProductInfo(int productId)
+        private Task<ProductInfo?> GetProductInfo(int productId)
         {
             // Simulación - en producción vendría de la base de datos
             var products = new Dictionary<int, ProductInfo>
@@ -237,7 +237,7 @@ Genera las recomendaciones ahora:";
                 [3] = new ProductInfo { Id = 3, Name = "Helado Vegano", Category = "Postres", IsVegan = true }
             };
 
-            return products.ContainsKey(productId) ? products[productId] : null;
+            return Task.FromResult(products.ContainsKey(productId) ? products[productId] : null);
         }
 
         private string BuildCrossSellingPrompt(ProductInfo baseProduct)
@@ -322,23 +322,23 @@ Lista productos complementarios y explica por qué son buenas combinaciones.";
             return suggestions;
         }
 
-        private async Task<ProductInfo?> GetProductDetails(int productId)
+        private Task<ProductInfo?> GetProductDetails(int productId)
         {
             // Simulación de producto actual
-            return new ProductInfo
+            return Task.FromResult<ProductInfo?>(new ProductInfo
             {
                 Id = productId,
                 Name = "Leche Avena Básica",
                 Price = 20,
                 Category = "Lácteos",
                 IsVegan = true
-            };
+            });
         }
 
-        private async Task<List<ProductInfo>> GetPremiumVersions(ProductInfo currentProduct)
+        private Task<List<ProductInfo>> GetPremiumVersions(ProductInfo currentProduct)
         {
             // Simulación de versiones premium disponibles
-            return new List<ProductInfo>
+            return Task.FromResult(new List<ProductInfo>
             {
                 new ProductInfo
                 {
@@ -356,7 +356,7 @@ Lista productos complementarios y explica por qué son buenas combinaciones.";
                     Category = currentProduct.Category,
                     IsVegan = currentProduct.IsVegan
                 }
-            };
+            });
         }
 
         private async Task<string> GenerateValueProposition(ProductInfo current, ProductInfo premium)

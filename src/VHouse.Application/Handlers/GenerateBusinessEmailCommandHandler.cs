@@ -85,7 +85,7 @@ public class GenerateBusinessEmailCommandHandler : IRequestHandler<GenerateBusin
         }
     }
 
-    private async Task<string> BuildEmailPrompt(string emailType, dynamic customer, object emailData)
+    private Task<string> BuildEmailPrompt(string emailType, dynamic customer, object emailData)
     {
         var basePrompt = $@"
 ERES EL SISTEMA DE COMUNICACIONES AUTOMATIZADAS DE VHOUSE - DISTRIBUCIÓN VEGANA B2B
@@ -123,7 +123,7 @@ TIPOS DE EMAIL DISPONIBLES:
 
 Genera el email ahora:";
 
-        return basePrompt;
+        return Task.FromResult(basePrompt);
     }
 
     private (string Subject, string Body) ParseEmailResponse(string aiContent)

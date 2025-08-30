@@ -118,7 +118,7 @@ CONTEXTO DEL CLIENTE:
 - Estado: {(customer.IsActive ? "Cliente Activo" : "Inactivo")}";
     }
 
-    private async Task<string> BuildBusinessConversationPrompt(
+    private Task<string> BuildBusinessConversationPrompt(
         string message, 
         BusinessConversationType conversationType, 
         string businessContext,
@@ -162,7 +162,7 @@ EJEMPLOS DE PRODUCTOS VEGANOS TÍPICOS:
 
 Responde ahora:";
 
-        return basePrompt;
+        return Task.FromResult(basePrompt);
     }
 
     private async Task<(string Response, string Context, List<BusinessAction> Actions)> ParseBusinessResponse(
