@@ -49,6 +49,9 @@ else
 // Add response caching
 builder.Services.AddResponseCaching();
 
+// Add response compression services
+builder.Services.AddResponseCompression();
+
 // Clean Architecture Services
 builder.Services.AddScoped<IAIService, VHouse.Infrastructure.Services.AIService>();
 
@@ -218,23 +221,27 @@ app.Use(async (context, next) =>
     await next();
 });
 
-// 🔧 Aplica migraciones automáticamente en cada inicio
-using (var scope = app.Services.CreateScope())
+// 🔧 Aplica migraciones automáticamente en cada inicio (skip during testing)
+var skipMigrations = builder.Configuration.GetValue<bool>("SkipMigrations");
+if (!skipMigrations)
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<VHouseDbContext>();
-    var migrationLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    
-    Log.ApplyingMigrations(migrationLogger);
-    context.Database.Migrate(); // Aplica las migraciones
-    Log.MigrationsAppliedSuccessfully(migrationLogger);
+    using (var scope = app.Services.CreateScope())
+    {
+        var services = scope.ServiceProvider;
+        var context = services.GetRequiredService<VHouseDbContext>();
+        var migrationLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+        
+        Log.ApplyingMigrations(migrationLogger);
+        context.Database.Migrate(); // Aplica las migraciones
+        Log.MigrationsAppliedSuccessfully(migrationLogger);
 
-    // var productService = scope.ServiceProvider.GetRequiredService<IProductService>(); // Commented out until ProductService is available
-    var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
+        // var productService = scope.ServiceProvider.GetRequiredService<IProductService>(); // Commented out until ProductService is available
+        var scopeFactory = scope.ServiceProvider.GetRequiredService<IServiceScopeFactory>();
 
-    Log.ApplyingSeeds(migrationLogger);
-    // await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext - Commented out until ProductService is available
-    Log.SeedsAppliedSuccessfully(migrationLogger);
+        Log.ApplyingSeeds(migrationLogger);
+        // await productService.SeedProductsAsync(scopeFactory); // ✅ Use Scoped DbContext - Commented out until ProductService is available
+        Log.SeedsAppliedSuccessfully(migrationLogger);
+    }
 }
 
 // Add compression middleware (safe for dev)
@@ -378,6 +385,9 @@ app.MapRazorComponents<VHouse.Web.Components.App>()
 }*/
 
 app.Run();
+
+// Make the Program class accessible to the test project
+public partial class Program { }
 
 // LoggerMessage delegates for better performance
 static partial class Log
