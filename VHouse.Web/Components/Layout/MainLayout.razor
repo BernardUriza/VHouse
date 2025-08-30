@@ -1,16 +1,30 @@
+@* Created by Bernard Orozco - Modern VHouse Layout *@
 @inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
+        <div class="mb-6">
+            <h3 style="color: var(--accent-green); font-size: var(--font-size-lg); font-weight: 700; margin-bottom: var(--spacing-4);">
+                🌱 VHouse POS
+            </h3>
+            <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin: 0;">
+                Clean Architecture System
+            </p>
+        </div>
         <NavMenu />
     </div>
 
-    <main>
-        <div class="top-row px-4">
-            <h2>🌱 VHouse - Clean Architecture POS</h2>
+    <header class="top-row">
+        <h2 style="margin: 0; font-size: var(--font-size-2xl); font-weight: 700;">
+            🌱 VHouse - Clean Architecture POS
+        </h2>
+        <div style="font-size: var(--font-size-sm); color: var(--text-muted);">
+            Modern Vegan Point of Sale
         </div>
+    </header>
 
-        <article class="content px-4">
+    <main>
+        <article class="content">
             @Body
         </article>
     </main>

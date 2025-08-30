@@ -1,0 +1,142 @@
+/* Created by Bernard Orozco - Layout System */
+
+/* Modern Layout System */
+.page {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    grid-template-rows: auto 1fr;
+    grid-template-areas: 
+        "sidebar header"
+        "sidebar main";
+    min-height: 100vh;
+    max-width: 100vw;
+    overflow-x: hidden;
+}
+
+.sidebar {
+    grid-area: sidebar;
+    background: var(--card-bg);
+    border-right: 1px solid var(--border-color);
+    padding: var(--spacing-6);
+    overflow-y: auto;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.top-row {
+    grid-area: header;
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    padding: var(--spacing-4) var(--spacing-6);
+    border-bottom: 1px solid var(--border-color);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 64px;
+}
+
+main {
+    grid-area: main;
+    overflow-y: auto;
+    position: relative;
+}
+
+.content {
+    padding: var(--spacing-8) var(--spacing-6);
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* Grid System */
+.grid {
+    display: grid;
+    gap: var(--spacing-6);
+}
+
+.grid-2 { 
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+}
+
+.grid-3 { 
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); 
+}
+
+.grid-4 { 
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); 
+}
+
+/* Mobile Responsive Design */
+@media (max-width: 768px) {
+    .page {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto auto 1fr;
+        grid-template-areas: 
+            "header"
+            "sidebar"
+            "main";
+    }
+    
+    .sidebar {
+        position: static;
+        height: auto;
+        padding: var(--spacing-4);
+        border-right: none;
+        border-bottom: 1px solid var(--border-color);
+        overflow-y: visible;
+    }
+    
+    .content {
+        padding: var(--spacing-6) var(--spacing-4);
+    }
+    
+    .top-row {
+        padding: var(--spacing-3) var(--spacing-4);
+    }
+    
+    .grid-2, .grid-3, .grid-4 {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 480px) {
+    .content {
+        padding: var(--spacing-4) var(--spacing-3);
+    }
+    
+    .top-row h2 {
+        font-size: var(--font-size-lg);
+    }
+}
+
+/* Container Utilities */
+.container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-6);
+}
+
+.container-fluid {
+    width: 100%;
+    padding: 0 var(--spacing-6);
+}
+
+/* Flexbox Utilities */
+.flex { display: flex; }
+.flex-column { flex-direction: column; }
+.flex-row { flex-direction: row; }
+.flex-wrap { flex-wrap: wrap; }
+.flex-nowrap { flex-wrap: nowrap; }
+
+.justify-start { justify-content: flex-start; }
+.justify-end { justify-content: flex-end; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.justify-around { justify-content: space-around; }
+
+.items-start { align-items: flex-start; }
+.items-end { align-items: flex-end; }
+.items-center { align-items: center; }
+.items-stretch { align-items: stretch; }

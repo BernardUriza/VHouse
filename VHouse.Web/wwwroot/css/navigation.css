@@ -1,0 +1,208 @@
+/* Created by Bernard Orozco - Navigation Components */
+
+/* Modern Navigation */
+.nav-scrollable {
+    height: 100%;
+}
+
+.nav-item {
+    margin-bottom: var(--spacing-2);
+}
+
+.nav-link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    padding: var(--spacing-3) var(--spacing-4);
+    display: flex;
+    align-items: center;
+    border-radius: var(--radius-md);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+    transition: all var(--transition-fast);
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    transform: translateX(2px);
+}
+
+.nav-link.active {
+    background: var(--primary-green);
+    color: var(--text-primary);
+    font-weight: 600;
+    box-shadow: var(--shadow-md);
+}
+
+.nav-link.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: var(--accent-green);
+}
+
+/* Breadcrumb Navigation */
+.breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    margin-bottom: var(--spacing-6);
+    font-size: var(--font-size-sm);
+}
+
+.breadcrumb-item {
+    color: var(--text-muted);
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: '/';
+    margin-left: var(--spacing-2);
+    color: var(--border-color);
+}
+
+.breadcrumb-item.active {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.breadcrumb-item a {
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+.breadcrumb-item a:hover {
+    color: var(--accent-green);
+}
+
+/* Tab Navigation */
+.nav-tabs {
+    display: flex;
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--spacing-6);
+}
+
+.nav-tab {
+    padding: var(--spacing-3) var(--spacing-4);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 2px solid transparent;
+    transition: all var(--transition-fast);
+    font-weight: 500;
+    font-size: var(--font-size-sm);
+}
+
+.nav-tab:hover {
+    color: var(--text-primary);
+    border-bottom-color: var(--border-color);
+}
+
+.nav-tab.active {
+    color: var(--accent-green);
+    border-bottom-color: var(--accent-green);
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    justify-content: center;
+    margin: var(--spacing-8) 0;
+}
+
+.pagination-item {
+    padding: var(--spacing-2) var(--spacing-3);
+    color: var(--text-secondary);
+    text-decoration: none;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+    min-width: 40px;
+    text-align: center;
+}
+
+.pagination-item:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.pagination-item.active {
+    background: var(--accent-green);
+    color: var(--text-primary);
+    border-color: var(--accent-green);
+}
+
+.pagination-item.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* Dropdown Navigation */
+.dropdown {
+    position: relative;
+    display: inline-block;
+}
+
+.dropdown-toggle {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    cursor: pointer;
+    padding: var(--spacing-2) var(--spacing-3);
+    border-radius: var(--radius-md);
+    transition: all var(--transition-fast);
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.dropdown-toggle:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-lg);
+    min-width: 200px;
+    padding: var(--spacing-2) 0;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all var(--transition-fast);
+}
+
+.dropdown:hover .dropdown-menu,
+.dropdown.active .dropdown-menu {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.dropdown-item {
+    display: block;
+    padding: var(--spacing-2) var(--spacing-4);
+    color: var(--text-secondary);
+    text-decoration: none;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+}
+
+.dropdown-item:hover {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+}
