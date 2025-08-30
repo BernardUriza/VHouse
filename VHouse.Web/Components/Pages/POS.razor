@@ -1,0 +1,509 @@
+@page "/pos"
+@rendermode @(new InteractiveServerRenderMode())
+@using VHouse.Domain.Entities
+@using VHouse.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject VHouseDbContext Context
+
+<PageTitle>VHouse POS - Point of Sale</PageTitle>
+
+<div class="pos-container">
+    <div class="pos-header">
+        <h1>🌱 VHouse POS System</h1>
+        <p class="pos-subtitle">Clean Architecture Point of Sale</p>
+    </div>
+
+    <div class="pos-layout">
+        <!-- Products Section -->
+        <div class="pos-products">
+            <div class="section-header">
+                <h2>📦 Products</h2>
+                <div class="product-count">@products.Count items available</div>
+            </div>
+            
+            <div class="products-grid">
+                @foreach (var product in products)
+                {
+                    <div class="product-card @(selectedProducts.ContainsKey(product.Id) ? "selected" : "")" 
+                         @onclick="() => AddToOrder(product)">
+                        <div class="product-emoji">@product.Emoji</div>
+                        <div class="product-name">@product.ProductName</div>
+                        <div class="product-price">@product.PriceRetail.ToString("C")</div>
+                        <div class="product-stock">Stock: @product.StockQuantity</div>
+                        @if (selectedProducts.ContainsKey(product.Id))
+                        {
+                            <div class="product-quantity">Qty: @selectedProducts[product.Id]</div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Order Section -->
+        <div class="pos-order">
+            <div class="section-header">
+                <h2>🧾 Current Order</h2>
+                <button class="btn-clear" @onclick="ClearOrder" disabled="@(!selectedProducts.Any())">
+                    Clear All
+                </button>
+            </div>
+            
+            <div class="order-items">
+                @if (selectedProducts.Any())
+                {
+                    @foreach (var item in selectedProducts)
+                    {
+                        var product = products.First(p => p.Id == item.Key);
+                        var totalPrice = product.PriceRetail * item.Value;
+                        
+                        <div class="order-item">
+                            <div class="item-info">
+                                <span class="item-emoji">@product.Emoji</span>
+                                <span class="item-name">@product.ProductName</span>
+                            </div>
+                            <div class="item-controls">
+                                <button class="btn-qty" @onclick="() => DecrementQuantity(item.Key)">-</button>
+                                <span class="item-quantity">@item.Value</span>
+                                <button class="btn-qty" @onclick="() => IncrementQuantity(item.Key)">+</button>
+                            </div>
+                            <div class="item-price">@totalPrice.ToString("C")</div>
+                            <button class="btn-remove" @onclick="() => RemoveFromOrder(item.Key)">🗑️</button>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="empty-order">
+                        <div class="empty-icon">🛒</div>
+                        <p>No items in order</p>
+                        <p class="empty-hint">Click on products to add them</p>
+                    </div>
+                }
+            </div>
+            
+            @if (selectedProducts.Any())
+            {
+                <div class="order-summary">
+                    <div class="summary-line">
+                        <span>Subtotal:</span>
+                        <span>@GetSubtotal().ToString("C")</span>
+                    </div>
+                    <div class="summary-line">
+                        <span>Tax (16%):</span>
+                        <span>@GetTax().ToString("C")</span>
+                    </div>
+                    <div class="summary-line total">
+                        <span>Total:</span>
+                        <span>@GetTotal().ToString("C")</span>
+                    </div>
+                    
+                    <div class="order-actions">
+                        <button class="btn-process" @onclick="ProcessOrder">
+                            💳 Process Order
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+.pos-container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: var(--spacing-4);
+}
+
+.pos-header {
+    text-align: center;
+    margin-bottom: var(--spacing-8);
+}
+
+.pos-header h1 {
+    color: var(--accent-green);
+    margin-bottom: var(--spacing-2);
+}
+
+.pos-subtitle {
+    color: var(--text-muted);
+    font-size: var(--font-size-lg);
+}
+
+.pos-layout {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: var(--spacing-8);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--spacing-6);
+    padding: var(--spacing-4);
+    background: var(--surface-bg);
+    border-radius: var(--radius-lg);
+}
+
+.section-header h2 {
+    margin: 0;
+    color: var(--accent-green);
+}
+
+.product-count {
+    color: var(--text-muted);
+    font-size: var(--font-size-sm);
+}
+
+.products-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--spacing-4);
+}
+
+.product-card {
+    background: var(--card-bg);
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    text-align: center;
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    position: relative;
+}
+
+.product-card:hover {
+    border-color: var(--accent-green);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.product-card.selected {
+    border-color: var(--accent-green);
+    background: rgba(111, 170, 107, 0.1);
+}
+
+.product-emoji {
+    font-size: 2rem;
+    margin-bottom: var(--spacing-2);
+}
+
+.product-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--spacing-2);
+    font-size: var(--font-size-sm);
+}
+
+.product-price {
+    color: var(--accent-green);
+    font-weight: 700;
+    font-size: var(--font-size-lg);
+    margin-bottom: var(--spacing-1);
+}
+
+.product-stock {
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+}
+
+.product-quantity {
+    position: absolute;
+    top: var(--spacing-2);
+    right: var(--spacing-2);
+    background: var(--accent-green);
+    color: var(--dark-bg);
+    padding: var(--spacing-1) var(--spacing-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--font-size-xs);
+    font-weight: 700;
+}
+
+.pos-order {
+    background: var(--card-bg);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    height: fit-content;
+    position: sticky;
+    top: var(--spacing-4);
+}
+
+.btn-clear {
+    background: transparent;
+    color: var(--text-muted);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-2) var(--spacing-4);
+    cursor: pointer;
+    transition: all var(--transition-fast);
+    font-size: var(--font-size-sm);
+}
+
+.btn-clear:hover:not(:disabled) {
+    color: var(--text-primary);
+    border-color: var(--text-primary);
+}
+
+.btn-clear:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.order-items {
+    min-height: 300px;
+    margin-bottom: var(--spacing-6);
+}
+
+.order-item {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: var(--spacing-4);
+    align-items: center;
+    padding: var(--spacing-3);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.item-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.item-emoji {
+    font-size: 1.2rem;
+}
+
+.item-name {
+    color: var(--text-primary);
+    font-size: var(--font-size-sm);
+}
+
+.item-controls {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+}
+
+.btn-qty {
+    background: var(--surface-bg);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    width: 32px;
+    height: 32px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.btn-qty:hover {
+    background: var(--accent-green);
+    color: var(--dark-bg);
+    border-color: var(--accent-green);
+}
+
+.item-quantity {
+    color: var(--text-primary);
+    font-weight: 600;
+    min-width: 24px;
+    text-align: center;
+}
+
+.item-price {
+    color: var(--accent-green);
+    font-weight: 700;
+}
+
+.btn-remove {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 1rem;
+    transition: color var(--transition-fast);
+}
+
+.btn-remove:hover {
+    color: #ff4444;
+}
+
+.empty-order {
+    text-align: center;
+    padding: var(--spacing-10);
+    color: var(--text-muted);
+}
+
+.empty-icon {
+    font-size: 3rem;
+    margin-bottom: var(--spacing-4);
+}
+
+.empty-hint {
+    font-size: var(--font-size-sm);
+    font-style: italic;
+}
+
+.order-summary {
+    border-top: 2px solid var(--border-color);
+    padding-top: var(--spacing-4);
+}
+
+.summary-line {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: var(--spacing-3);
+    color: var(--text-secondary);
+}
+
+.summary-line.total {
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-color);
+    padding-top: var(--spacing-3);
+}
+
+.order-actions {
+    margin-top: var(--spacing-6);
+}
+
+.btn-process {
+    width: 100%;
+    background: var(--accent-green);
+    color: var(--dark-bg);
+    border: none;
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-4);
+    font-size: var(--font-size-lg);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all var(--transition-normal);
+}
+
+.btn-process:hover {
+    background: var(--light-green);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+@@media (max-width: 768px) {
+    .pos-layout {
+        grid-template-columns: 1fr;
+    }
+    
+    .pos-order {
+        position: static;
+    }
+    
+    .products-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    }
+    
+    .order-item {
+        grid-template-columns: 1fr auto;
+        gap: var(--spacing-2);
+    }
+    
+    .item-controls,
+    .item-price,
+    .btn-remove {
+        grid-column: 2;
+        justify-self: end;
+    }
+}
+</style>
+
+@code {
+    private List<Product> products = new();
+    private Dictionary<int, int> selectedProducts = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        products = await Context.Products
+            .Where(p => p.IsActive)
+            .OrderBy(p => p.ProductName)
+            .ToListAsync();
+    }
+
+    private void AddToOrder(Product product)
+    {
+        if (selectedProducts.ContainsKey(product.Id))
+        {
+            selectedProducts[product.Id]++;
+        }
+        else
+        {
+            selectedProducts[product.Id] = 1;
+        }
+    }
+
+    private void IncrementQuantity(int productId)
+    {
+        if (selectedProducts.ContainsKey(productId))
+        {
+            selectedProducts[productId]++;
+        }
+    }
+
+    private void DecrementQuantity(int productId)
+    {
+        if (selectedProducts.ContainsKey(productId))
+        {
+            if (selectedProducts[productId] > 1)
+            {
+                selectedProducts[productId]--;
+            }
+            else
+            {
+                selectedProducts.Remove(productId);
+            }
+        }
+    }
+
+    private void RemoveFromOrder(int productId)
+    {
+        selectedProducts.Remove(productId);
+    }
+
+    private void ClearOrder()
+    {
+        selectedProducts.Clear();
+    }
+
+    private decimal GetSubtotal()
+    {
+        return selectedProducts.Sum(item =>
+        {
+            var product = products.First(p => p.Id == item.Key);
+            return product.PriceRetail * item.Value;
+        });
+    }
+
+    private decimal GetTax()
+    {
+        return GetSubtotal() * 0.16m; // 16% tax
+    }
+
+    private decimal GetTotal()
+    {
+        return GetSubtotal() + GetTax();
+    }
+
+    private async Task ProcessOrder()
+    {
+        // Here you would integrate with your Order processing system
+        // For now, just clear the order after "processing"
+        
+        // TODO: Create Order entity, add OrderItems, save to database
+        // TODO: Update product stock quantities
+        // TODO: Generate receipt/invoice
+        
+        ClearOrder();
+        
+        // Show success message or redirect
+        await InvokeAsync(StateHasChanged);
+    }
+}
