@@ -21,7 +21,12 @@
       "Bash(find:*)",
       "Bash(dotnet test:*)",
       "Bash(dotnet run:*)",
-      "Bash(cmd.exe:*)"
+      "Bash(cmd.exe:*)",
+      "Bash(git commit:*)",
+      "Bash(dotnet clean:*)",
+      "Bash(tasklist:*)",
+      "WebFetch(domain:localhost)",
+      "Bash(start http://localhost:5000/client/MONA_DONA)"
     ],
     "deny": [],
     "ask": [],

@@ -1,0 +1,1758 @@
+@page "/client/{tenantCode}"
+@using VHouse.Domain.Entities
+@using VHouse.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@using OrderItemEntity = VHouse.Domain.Entities.OrderItem
+@using VHouse.Domain.Interfaces
+@using VHouse.Domain.ValueObjects
+@using VHouse.Domain.Enums
+@inject VHouseDbContext DbContext
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@inject IAIService AIService
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<PageTitle>@clientTenant?.BusinessName Portal - VHouse</PageTitle>
+
+@if (!isAuthenticated)
+{
+    <div class="login-container">
+        <div class="login-card">
+            <div class="login-header">
+                <h2>🌱 VHouse B2B Portal</h2>
+                <p>Distribución Vegana Profesional</p>
+            </div>
+            
+            @if (!string.IsNullOrEmpty(errorMessage))
+            {
+                <div class="alert alert-danger">@errorMessage</div>
+            }
+            
+            <div class="login-form">
+                <div class="form-group">
+                    <label>Usuario:</label>
+                    <input type="text" @bind="username" class="form-control" placeholder="Usuario del cliente" />
+                </div>
+                <div class="form-group">
+                    <label>Contraseña:</label>
+                    <input type="password" @bind="password" class="form-control" placeholder="Contraseña" />
+                </div>
+                <button @onclick="Login" class="btn btn-primary full-width" disabled="@isLoading">
+                    @if (isLoading)
+                    {
+                        <span>Validando...</span>
+                    }
+                    else
+                    {
+                        <span>Ingresar 🚀</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="client-portal">
+        <header class="portal-header">
+            <div class="client-info">
+                <h1>🍩 @clientTenant?.BusinessName</h1>
+                <p class="tagline">@GetClientTagline()</p>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-outline" @onclick="Logout">Cerrar Sesión</button>
+            </div>
+        </header>
+
+        <div class="dashboard-stats">
+            <div class="stat-card primary">
+                <div class="stat-icon">📦</div>
+                <div class="stat-info">
+                    <div class="stat-value">@availableProducts.Count</div>
+                    <div class="stat-label">Productos Disponibles</div>
+                </div>
+            </div>
+            <div class="stat-card success">
+                <div class="stat-icon">🛒</div>
+                <div class="stat-info">
+                    <div class="stat-value">@clientOrders.Count</div>
+                    <div class="stat-label">Pedidos Este Mes</div>
+                </div>
+            </div>
+            <div class="stat-card warning">
+                <div class="stat-icon">💰</div>
+                <div class="stat-info">
+                    <div class="stat-value">@totalSpent.ToString("C")</div>
+                    <div class="stat-label">Total Gastado</div>
+                </div>
+            </div>
+            <div class="stat-card info">
+                <div class="stat-icon">📈</div>
+                <div class="stat-info">
+                    <div class="stat-value">@averageOrder.ToString("C")</div>
+                    <div class="stat-label">Pedido Promedio</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="portal-content">
+            <div class="products-section">
+                <div class="section-header">
+                    <h3>🌱 Tu Catálogo Vegano</h3>
+                    <button class="btn btn-success" @onclick="ToggleOrderMode">
+                        @if (isOrderMode)
+                        {
+                            <span>📋 Ver Catálogo</span>
+                        }
+                        else
+                        {
+                            <span>🛒 Hacer Pedido</span>
+                        }
+                    </button>
+                </div>
+
+                @if (!isOrderMode)
+                {
+                    <div class="products-container" id="productsContainer">
+                        <div class="scroll-indicator" id="scrollIndicator"></div>
+                        <div class="products-grid">
+                            @foreach (var clientProduct in availableProducts)
+                            {
+                                <div class="product-card">
+                                    <div class="product-emoji">@clientProduct.Product.Emoji</div>
+                                    <div class="product-info">
+                                        <h4>@clientProduct.Product.ProductName</h4>
+                                        <p class="product-description">@clientProduct.Product.Description</p>
+                                        <div class="product-price">
+                                            <span class="current-price">@clientProduct.CustomPrice.ToString("C")</span>
+                                            <span class="min-order">Min: @clientProduct.MinOrderQuantity</span>
+                                        </div>
+                                    </div>
+                                    <button class="btn btn-sm btn-primary" @onclick="() => AddToCart(clientProduct)">
+                                        Agregar al Pedido
+                                    </button>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+                else
+                {
+                    <div class="order-section">
+                        <h4>🛒 Tu Pedido Actual</h4>
+                        @if (currentOrder.Any())
+                        {
+                            <div class="order-items">
+                                @foreach (var item in currentOrder)
+                                {
+                                    <div class="order-item">
+                                        <span class="item-emoji">@item.Product.Emoji</span>
+                                        <span class="item-name">@item.Product.ProductName</span>
+                                        <div class="quantity-controls">
+                                            <button @onclick="() => DecreaseQuantity(item)" class="btn-qty">-</button>
+                                            <span class="quantity">@item.Quantity</span>
+                                            <button @onclick="() => IncreaseQuantity(item)" class="btn-qty">+</button>
+                                        </div>
+                                        <span class="item-total">@((item.Quantity * item.CustomPrice).ToString("C"))</span>
+                                        <button @onclick="() => RemoveFromCart(item)" class="btn btn-sm btn-danger">❌</button>
+                                    </div>
+                                }
+                            </div>
+                            
+                            <div class="order-total">
+                                <h4>Total: @currentOrder.Sum(i => i.Quantity * i.CustomPrice).ToString("C")</h4>
+                                <textarea @bind="orderNotes" placeholder="Notas especiales para tu pedido..." class="form-control" rows="3"></textarea>
+                                <button @onclick="SubmitOrder" class="btn btn-success full-width" disabled="@isSubmitting">
+                                    @if (isSubmitting)
+                                    {
+                                        <span>Enviando Pedido...</span>
+                                    }
+                                    else
+                                    {
+                                        <span>🚀 Enviar Pedido a Bernard</span>
+                                    }
+                                </button>
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="empty-cart">
+                                <p>Tu pedido está vacío. Agrega productos desde el catálogo.</p>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+    
+    <!-- Botón flotante scroll-to-top -->
+    <div class="scroll-to-top" id="scrollToTop" @onclick="ScrollToTop">
+        ↑
+    </div>
+    
+    <!-- ASISTENTE IA FUTURISTA FLOTANTE 🤖 -->
+    <div class="ai-assistant-container @(isAiExpanded ? "expanded" : "collapsed")">
+        <div class="ai-assistant-toggle" @onclick="ToggleAiAssistant">
+            @if (!isAiExpanded)
+            {
+                <span class="ai-pulse">🧠</span>
+                <span class="ai-notification @(hasNewAiMessage ? "active" : "")"></span>
+            }
+            else
+            {
+                <span>✕</span>
+            }
+        </div>
+        
+        @if (isAiExpanded)
+        {
+            <div class="ai-assistant-panel">
+                <div class="ai-header">
+                    <div class="ai-avatar">
+                        <span class="ai-emoji">🌱</span>
+                        <div class="ai-status-indicator"></div>
+                    </div>
+                    <div class="ai-info">
+                        <h3>VeganAI Assistant</h3>
+                        <p class="ai-status">@aiStatus</p>
+                    </div>
+                </div>
+                
+                <div class="ai-chat-container" id="aiChatContainer">
+                    @foreach (var message in aiMessages)
+                    {
+                        <div class="ai-message @(message.IsUser ? "user" : "assistant") @(message.IsTyping ? "typing" : "")">
+                            @if (!message.IsUser)
+                            {
+                                <div class="ai-message-avatar">🤖</div>
+                            }
+                            <div class="ai-message-content">
+                                @if (message.IsTyping)
+                                {
+                                    <div class="typing-indicator">
+                                        <span></span>
+                                        <span></span>
+                                        <span></span>
+                                    </div>
+                                }
+                                else
+                                {
+                                    @((MarkupString)message.Content)
+                                }
+                            </div>
+                            @if (message.IsUser)
+                            {
+                                <div class="ai-message-avatar">👤</div>
+                            }
+                        </div>
+                    }
+                </div>
+                
+                <div class="ai-suggestions">
+                    @foreach (var suggestion in aiSuggestions)
+                    {
+                        <button class="ai-suggestion-chip" @onclick="() => SendAiMessage(suggestion)">
+                            @suggestion
+                        </button>
+                    }
+                </div>
+                
+                <div class="ai-input-container">
+                    <input type="text" @bind="aiInput" @bind:event="oninput" 
+                           @onkeypress="@(async (e) => { if (e.Code == "Enter") await SendAiMessage(); })"
+                           placeholder="Pregúntame sobre productos veganos..." 
+                           class="ai-input" disabled="@isAiThinking" />
+                    <button class="ai-send-button" @onclick="@(async () => await SendAiMessage())" disabled="@(isAiThinking || string.IsNullOrWhiteSpace(aiInput))">
+                        @if (isAiThinking)
+                        {
+                            <span class="ai-loading">⏳</span>
+                        }
+                        else
+                        {
+                            <span>➤</span>
+                        }
+                    </button>
+                </div>
+            </div>
+        }
+    </div>
+}
+
+<style>
+    /* 🌚 TEMA NOCTURNO VEGANO PROFESIONAL */
+    .login-container {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #0f1419 0%, #1a202c 50%, #2d3748 100%);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .login-container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 30% 20%, rgba(76, 175, 80, 0.1) 0%, transparent 70%),
+                    radial-gradient(circle at 80% 80%, rgba(129, 199, 132, 0.1) 0%, transparent 70%);
+        pointer-events: none;
+    }
+
+    .login-card {
+        background: rgba(26, 32, 44, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        padding: 2rem;
+        border-radius: 20px;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6),
+                    0 0 0 1px rgba(76, 175, 80, 0.1);
+        width: 100%;
+        max-width: 400px;
+        position: relative;
+    }
+
+    .login-header {
+        text-align: center;
+        margin-bottom: 2rem;
+    }
+
+    .login-header h2 {
+        color: #ffffff;
+        margin-bottom: 0.5rem;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .login-header p {
+        color: #81c784;
+        font-weight: 500;
+    }
+
+    .client-portal {
+        min-height: 100vh;
+        background: linear-gradient(180deg, #0f1419 0%, #1a202c 100%);
+        color: #ffffff;
+    }
+
+    .portal-header {
+        background: rgba(26, 32, 44, 0.95);
+        backdrop-filter: blur(20px);
+        padding: 1.5rem 2rem;
+        border-bottom: 1px solid rgba(76, 175, 80, 0.2);
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .client-info h1 {
+        margin: 0;
+        color: #ffffff;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .tagline {
+        color: #81c784;
+        margin: 0.25rem 0 0 0;
+        font-style: italic;
+        font-weight: 500;
+    }
+
+    .dashboard-stats {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1.5rem;
+        padding: 2rem;
+    }
+
+    .stat-card {
+        background: rgba(26, 32, 44, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        padding: 1.5rem;
+        border-radius: 16px;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .stat-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 0%, rgba(76, 175, 80, 0.05) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(76, 175, 80, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .stat-card:hover::before {
+        opacity: 1;
+    }
+
+    .stat-icon {
+        font-size: 2rem;
+        width: 60px;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 16px;
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+    }
+
+    .stat-value {
+        font-size: 1.5rem;
+        font-weight: 700;
+        color: #ffffff;
+    }
+
+    .stat-label {
+        font-size: 0.875rem;
+        color: #a0aec0;
+    }
+
+    .portal-content {
+        padding: 2rem;
+        max-height: calc(100vh - 120px);
+        overflow-y: auto;
+        scroll-behavior: smooth;
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        position: sticky;
+        top: 0;
+        background: linear-gradient(180deg, #0f1419 0%, rgba(26, 32, 44, 0.95) 100%);
+        backdrop-filter: blur(10px);
+        z-index: 5;
+        padding: 1rem 0;
+        margin: -1rem -2rem 1.5rem -2rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
+    .section-header h3 {
+        color: #ffffff;
+        margin: 0;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+
+    .products-container {
+        max-height: 70vh;
+        overflow-y: auto;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+        padding-right: 8px;
+        margin-right: -8px;
+    }
+
+    .products-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 1.5rem;
+        animation: fadeInUp 0.6s ease-out;
+    }
+
+    @@keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Mejoras de scroll específicas para el catálogo */
+    .products-container::-webkit-scrollbar {
+        width: 12px;
+    }
+
+    .products-container::-webkit-scrollbar-track {
+        background: rgba(15, 20, 25, 0.4);
+        border-radius: 10px;
+        margin: 10px;
+    }
+
+    .products-container::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.4), rgba(129, 199, 132, 0.6));
+        border-radius: 10px;
+        border: 2px solid rgba(15, 20, 25, 0.3);
+        transition: background 0.3s ease;
+    }
+
+    .products-container::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.6), rgba(129, 199, 132, 0.8));
+        box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+    }
+
+    .products-container::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+
+    /* Smooth scroll para Firefox */
+    .products-container {
+        scrollbar-width: thin;
+        scrollbar-color: rgba(76, 175, 80, 0.4) rgba(15, 20, 25, 0.3);
+    }
+
+    .product-card {
+        background: rgba(26, 32, 44, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: linear-gradient(45deg, transparent 0%, rgba(76, 175, 80, 0.05) 100%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+    }
+
+    .product-card:hover {
+        transform: translateY(-4px);
+        border-color: rgba(76, 175, 80, 0.4);
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3);
+    }
+
+    .product-card:hover::before {
+        opacity: 1;
+    }
+
+    .product-emoji {
+        font-size: 3rem;
+        text-align: center;
+        margin-bottom: 1rem;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+    }
+
+    .product-info h4 {
+        margin: 0 0 0.5rem 0;
+        color: #ffffff;
+        position: relative;
+        z-index: 1;
+    }
+
+    .product-description {
+        color: #a0aec0;
+        font-size: 0.875rem;
+        margin-bottom: 1rem;
+        position: relative;
+        z-index: 1;
+    }
+
+    .product-price {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1rem;
+    }
+
+    .current-price {
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #81c784;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    }
+
+    .min-order {
+        font-size: 0.75rem;
+        color: #a0aec0;
+        background: rgba(76, 175, 80, 0.1);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        padding: 0.25rem 0.5rem;
+        border-radius: 8px;
+    }
+
+    .order-items {
+        background: rgba(26, 32, 44, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+
+    .order-item {
+        display: grid;
+        grid-template-columns: 40px 1fr auto auto auto;
+        gap: 1rem;
+        align-items: center;
+        padding: 1rem 0;
+        border-bottom: 1px solid rgba(76, 175, 80, 0.1);
+    }
+
+    .order-item:last-child {
+        border-bottom: none;
+    }
+
+    .order-item .item-emoji {
+        font-size: 1.5rem;
+    }
+
+    .order-item .item-name {
+        color: #ffffff;
+        font-weight: 500;
+    }
+
+    .order-item .item-total {
+        color: #81c784;
+        font-weight: 600;
+    }
+
+    .quantity-controls {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+
+    .btn-qty {
+        width: 32px;
+        height: 32px;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        background: rgba(26, 32, 44, 0.8);
+        color: #ffffff;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        font-weight: 600;
+    }
+
+    .btn-qty:hover {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: rgba(76, 175, 80, 0.5);
+        transform: scale(1.05);
+    }
+
+    .quantity {
+        color: #ffffff;
+        font-weight: 600;
+        min-width: 30px;
+        text-align: center;
+    }
+
+    .order-total {
+        background: rgba(26, 32, 44, 0.8);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(76, 175, 80, 0.2);
+        border-radius: 16px;
+        padding: 1.5rem;
+    }
+
+    .order-total h4 {
+        color: #ffffff;
+        margin-bottom: 1rem;
+        text-align: center;
+        font-size: 1.25rem;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 0.75rem;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        background: rgba(15, 20, 25, 0.8);
+        color: #ffffff;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+        font-size: 0.875rem;
+        transition: all 0.2s ease;
+    }
+
+    .form-control:focus {
+        outline: none;
+        border-color: rgba(76, 175, 80, 0.6);
+        box-shadow: 0 0 0 3px rgba(76, 175, 80, 0.1);
+    }
+
+    .form-control::placeholder {
+        color: #4a5568;
+    }
+
+    .btn {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s;
+    }
+
+    .btn:hover::before {
+        left: 100%;
+    }
+
+    .btn-primary {
+        background: linear-gradient(135deg, #4299e1 0%, #3182ce 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(66, 153, 225, 0.3);
+    }
+
+    .btn-primary:hover {
+        background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(66, 153, 225, 0.4);
+    }
+
+    .btn-success {
+        background: linear-gradient(135deg, #68d391 0%, #38a169 100%);
+        color: white;
+        box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
+    }
+
+    .btn-success:hover {
+        background: linear-gradient(135deg, #38a169 0%, #2f855a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(104, 211, 145, 0.4);
+    }
+
+    .btn-outline {
+        background: transparent;
+        color: #a0aec0;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+    }
+
+    .btn-outline:hover {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: rgba(76, 175, 80, 0.5);
+        color: #ffffff;
+    }
+
+    .btn-danger {
+        background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+        color: white;
+        padding: 0.25rem 0.5rem;
+        font-size: 0.75rem;
+        box-shadow: 0 2px 8px rgba(245, 101, 101, 0.3);
+    }
+
+    .btn-danger:hover {
+        background: linear-gradient(135deg, #e53e3e 0%, #c53030 100%);
+        transform: translateY(-1px);
+    }
+
+    .full-width {
+        width: 100%;
+    }
+
+    .empty-cart {
+        text-align: center;
+        color: #a0aec0;
+        padding: 2rem;
+    }
+
+    .alert {
+        padding: 1rem;
+        border-radius: 10px;
+        margin-bottom: 1rem;
+        border: 1px solid;
+    }
+
+    .alert-danger {
+        background: rgba(245, 101, 101, 0.1);
+        color: #fed7d7;
+        border-color: rgba(245, 101, 101, 0.3);
+    }
+
+    /* Scrollbar personalizado */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+
+    ::-webkit-scrollbar-track {
+        background: rgba(15, 20, 25, 0.3);
+    }
+
+    ::-webkit-scrollbar-thumb {
+        background: rgba(76, 175, 80, 0.3);
+        border-radius: 4px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+        background: rgba(76, 175, 80, 0.5);
+    }
+
+    /* Botón flotante para scroll to top */
+    .scroll-to-top {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.9), rgba(129, 199, 132, 0.9));
+        border: 2px solid rgba(76, 175, 80, 0.3);
+        border-radius: 50%;
+        color: white;
+        font-size: 1.25rem;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        z-index: 1000;
+        opacity: 0;
+        visibility: hidden;
+        transform: scale(0.8);
+        backdrop-filter: blur(10px);
+        box-shadow: 0 8px 25px rgba(76, 175, 80, 0.3);
+    }
+
+    .scroll-to-top.visible {
+        opacity: 1;
+        visibility: visible;
+        transform: scale(1);
+    }
+
+    .scroll-to-top:hover {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 1), rgba(129, 199, 132, 1));
+        transform: scale(1.1);
+        box-shadow: 0 12px 35px rgba(76, 175, 80, 0.5);
+    }
+
+    .scroll-to-top:active {
+        transform: scale(0.95);
+    }
+
+    /* Indicador de scroll en el catálogo */
+    .scroll-indicator {
+        position: absolute;
+        top: 0;
+        left: 0;
+        height: 3px;
+        background: linear-gradient(90deg, rgba(76, 175, 80, 0.6), rgba(129, 199, 132, 0.8));
+        transition: width 0.1s ease;
+        border-radius: 0 3px 3px 0;
+        z-index: 10;
+    }
+
+    .products-container {
+        position: relative;
+    }
+
+    /* 🤖 ASISTENTE IA FUTURISTA FLOTANTE */
+    .ai-assistant-container {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        z-index: 9999;
+        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .ai-assistant-container.collapsed {
+        width: 70px;
+        height: 70px;
+    }
+
+    .ai-assistant-container.expanded {
+        width: 380px;
+        height: 600px;
+        max-height: 80vh;
+    }
+
+    .ai-assistant-toggle {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 70px;
+        height: 70px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
+        transition: all 0.3s ease;
+        border: 3px solid rgba(255, 255, 255, 0.1);
+        animation: float 3s ease-in-out infinite;
+    }
+
+    @@keyframes float {
+        0%, 100% { transform: translateY(0px); }
+        50% { transform: translateY(-10px); }
+    }
+
+    .ai-assistant-toggle:hover {
+        transform: scale(1.1);
+        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+    }
+
+    .ai-pulse {
+        font-size: 28px;
+        animation: pulse 2s infinite;
+    }
+
+    @@keyframes pulse {
+        0% { transform: scale(1); }
+        50% { transform: scale(1.1); }
+        100% { transform: scale(1); }
+    }
+
+    .ai-notification {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        width: 16px;
+        height: 16px;
+        background: #4CAF50;
+        border-radius: 50%;
+        border: 2px solid #1a202c;
+        display: none;
+    }
+
+    .ai-notification.active {
+        display: block;
+        animation: notificationPulse 1s infinite;
+    }
+
+    @@keyframes notificationPulse {
+        0% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0.7); }
+        70% { box-shadow: 0 0 0 10px rgba(76, 175, 80, 0); }
+        100% { box-shadow: 0 0 0 0 rgba(76, 175, 80, 0); }
+    }
+
+    .ai-assistant-panel {
+        position: absolute;
+        top: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(135deg, rgba(26, 32, 44, 0.98) 0%, rgba(45, 55, 72, 0.98) 100%);
+        backdrop-filter: blur(20px);
+        border-radius: 24px;
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @@keyframes slideIn {
+        from {
+            transform: scale(0.8) translateY(20px);
+            opacity: 0;
+        }
+        to {
+            transform: scale(1) translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .ai-header {
+        padding: 20px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+
+    .ai-avatar {
+        position: relative;
+        width: 50px;
+        height: 50px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+    }
+
+    .ai-emoji {
+        font-size: 24px;
+    }
+
+    .ai-status-indicator {
+        position: absolute;
+        bottom: 2px;
+        right: 2px;
+        width: 12px;
+        height: 12px;
+        background: #4CAF50;
+        border-radius: 50%;
+        border: 2px solid #1a202c;
+        animation: blink 2s infinite;
+    }
+
+    @@keyframes blink {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
+    }
+
+    .ai-info h3 {
+        margin: 0;
+        color: #ffffff;
+        font-size: 16px;
+        font-weight: 600;
+    }
+
+    .ai-status {
+        margin: 2px 0 0 0;
+        color: #81c784;
+        font-size: 12px;
+    }
+
+    .ai-chat-container {
+        flex: 1;
+        overflow-y: auto;
+        padding: 20px;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .ai-chat-container::-webkit-scrollbar {
+        width: 6px;
+    }
+
+    .ai-chat-container::-webkit-scrollbar-thumb {
+        background: rgba(102, 126, 234, 0.3);
+        border-radius: 3px;
+    }
+
+    .ai-message {
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+        animation: messageSlide 0.3s ease;
+    }
+
+    @@keyframes messageSlide {
+        from {
+            transform: translateY(10px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .ai-message.user {
+        flex-direction: row-reverse;
+    }
+
+    .ai-message-avatar {
+        width: 32px;
+        height: 32px;
+        background: rgba(102, 126, 234, 0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+    }
+
+    .ai-message.user .ai-message-avatar {
+        background: rgba(76, 175, 80, 0.2);
+    }
+
+    .ai-message-content {
+        max-width: 70%;
+        padding: 12px 16px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 18px;
+        color: #e2e8f0;
+        font-size: 14px;
+        line-height: 1.5;
+        border: 1px solid rgba(102, 126, 234, 0.2);
+    }
+
+    .ai-message.user .ai-message-content {
+        background: rgba(76, 175, 80, 0.1);
+        border-color: rgba(76, 175, 80, 0.2);
+    }
+
+    .typing-indicator {
+        display: flex;
+        gap: 4px;
+    }
+
+    .typing-indicator span {
+        width: 8px;
+        height: 8px;
+        background: #667eea;
+        border-radius: 50%;
+        animation: typing 1.4s infinite;
+    }
+
+    .typing-indicator span:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .typing-indicator span:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @@keyframes typing {
+        0%, 60%, 100% {
+            transform: translateY(0);
+            opacity: 0.5;
+        }
+        30% {
+            transform: translateY(-10px);
+            opacity: 1;
+        }
+    }
+
+    .ai-suggestions {
+        padding: 10px 15px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        min-height: 50px;
+    }
+
+    .ai-suggestion-chip {
+        padding: 6px 12px;
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 20px;
+        color: #e2e8f0;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+    .ai-suggestion-chip:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.3) 0%, rgba(118, 75, 162, 0.3) 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+    }
+
+    .ai-input-container {
+        padding: 15px;
+        border-top: 1px solid rgba(102, 126, 234, 0.2);
+        display: flex;
+        gap: 10px;
+        background: rgba(15, 20, 25, 0.3);
+    }
+
+    .ai-input {
+        flex: 1;
+        padding: 12px 16px;
+        background: rgba(26, 32, 44, 0.8);
+        border: 1px solid rgba(102, 126, 234, 0.3);
+        border-radius: 24px;
+        color: #ffffff;
+        font-size: 14px;
+        transition: all 0.3s ease;
+    }
+
+    .ai-input:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .ai-input::placeholder {
+        color: rgba(160, 174, 192, 0.6);
+    }
+
+    .ai-send-button {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border: none;
+        border-radius: 50%;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ai-send-button:hover:not(:disabled) {
+        transform: scale(1.1);
+        box-shadow: 0 5px 20px rgba(102, 126, 234, 0.4);
+    }
+
+    .ai-send-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    .ai-loading {
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        from { transform: rotate(0deg); }
+        to { transform: rotate(360deg); }
+    }
+</style>
+
+@code {
+    [Parameter] public string TenantCode { get; set; } = string.Empty;
+    
+    private ClientTenant? clientTenant;
+    private bool isAuthenticated = false;
+    private bool isLoading = false;
+    private bool isOrderMode = false;
+    private bool isSubmitting = false;
+    private string username = "";
+    private string password = "";
+    private string errorMessage = "";
+    private string orderNotes = "";
+    
+    private List<ClientProduct> availableProducts = new();
+    private List<Order> clientOrders = new();
+    private List<CartItem> currentOrder = new();
+    private decimal totalSpent = 0;
+    private decimal averageOrder = 0;
+    
+    // AI Assistant State
+    private bool isAiExpanded = false;
+    private bool isAiThinking = false;
+    private bool hasNewAiMessage = false;
+    private string aiInput = "";
+    private string aiStatus = "Online - Listo para ayudarte 🌱";
+    private List<AiMessage> aiMessages = new();
+    private List<string> aiSuggestions = new()
+    {
+        "¿Qué productos son 100% veganos?",
+        "Recomienda para donas",
+        "¿Tienen leche de avena?",
+        "Información nutricional"
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadTenant();
+    }
+
+    private async Task LoadTenant()
+    {
+        try
+        {
+            clientTenant = await DbContext.ClientTenants
+                .Include(ct => ct.ClientProducts)
+                .ThenInclude(cp => cp.Product)
+                .FirstOrDefaultAsync(ct => ct.TenantCode == TenantCode && ct.IsActive);
+
+            if (clientTenant == null)
+            {
+                Navigation.NavigateTo("/");
+                return;
+            }
+
+            // Check if already authenticated (simple session simulation)
+            var authCookie = await JSRuntime.InvokeAsync<string>("localStorage.getItem", $"auth_{TenantCode}");
+            if (!string.IsNullOrEmpty(authCookie) && authCookie == clientTenant.LoginUsername)
+            {
+                isAuthenticated = true;
+                await LoadDashboardData();
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cargando cliente: {ex.Message}";
+        }
+    }
+
+    private async Task Login()
+    {
+        if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+        {
+            errorMessage = "Usuario y contraseña son requeridos";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = "";
+        
+        try
+        {
+            if (clientTenant != null && 
+                clientTenant.LoginUsername == username && 
+                clientTenant.LoginPassword == password)
+            {
+                isAuthenticated = true;
+                clientTenant.LastLoginAt = DateTime.UtcNow;
+                await DbContext.SaveChangesAsync();
+                
+                // Simple session simulation
+                await JSRuntime.InvokeVoidAsync("localStorage.setItem", $"auth_{TenantCode}", username);
+                
+                await LoadDashboardData();
+            }
+            else
+            {
+                errorMessage = "Usuario o contraseña incorrectos";
+            }
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error de autenticación: {ex.Message}";
+        }
+        finally
+        {
+            isLoading = false;
+            StateHasChanged();
+        }
+    }
+
+    private async Task Logout()
+    {
+        isAuthenticated = false;
+        await JSRuntime.InvokeVoidAsync("localStorage.removeItem", $"auth_{TenantCode}");
+        username = "";
+        password = "";
+        StateHasChanged();
+    }
+
+    private async Task LoadDashboardData()
+    {
+        try
+        {
+            availableProducts = await DbContext.ClientProducts
+                .Include(cp => cp.Product)
+                .Where(cp => cp.ClientTenantId == clientTenant!.Id && cp.IsAvailable)
+                .OrderBy(cp => cp.Product.ProductName)
+                .ToListAsync();
+
+            clientOrders = await DbContext.Orders
+                .Where(o => o.ClientTenantId == clientTenant!.Id && o.OrderDate >= DateTime.Now.AddMonths(-1))
+                .ToListAsync();
+
+            totalSpent = clientOrders.Sum(o => o.TotalAmount);
+            averageOrder = clientOrders.Any() ? totalSpent / clientOrders.Count : 0;
+        }
+        catch (Exception ex)
+        {
+            errorMessage = $"Error cargando datos: {ex.Message}";
+        }
+    }
+
+    private string GetClientTagline()
+    {
+        return clientTenant?.TenantCode switch
+        {
+            "mona-la-dona" => "Donas veganas que transforman sonrisas 🍩✨",
+            "sano-market" => "Salud consciente, planeta agradecido 🌱💚",
+            "papeleria-fenix" => "Tu barrio vegano de confianza 📚🌿",
+            _ => "Distribución vegana profesional"
+        };
+    }
+
+    private void ToggleOrderMode()
+    {
+        isOrderMode = !isOrderMode;
+        StateHasChanged();
+    }
+
+    private void AddToCart(ClientProduct clientProduct)
+    {
+        var existingItem = currentOrder.FirstOrDefault(i => i.ProductId == clientProduct.ProductId);
+        if (existingItem != null)
+        {
+            existingItem.Quantity += clientProduct.MinOrderQuantity;
+        }
+        else
+        {
+            currentOrder.Add(new CartItem
+            {
+                ProductId = clientProduct.ProductId,
+                Product = clientProduct.Product,
+                CustomPrice = clientProduct.CustomPrice,
+                Quantity = clientProduct.MinOrderQuantity
+            });
+        }
+        
+        if (!isOrderMode) 
+        {
+            isOrderMode = true;
+        }
+        StateHasChanged();
+    }
+
+    private void IncreaseQuantity(CartItem item)
+    {
+        item.Quantity++;
+        StateHasChanged();
+    }
+
+    private void DecreaseQuantity(CartItem item)
+    {
+        if (item.Quantity > 1)
+        {
+            item.Quantity--;
+            StateHasChanged();
+        }
+    }
+
+    private void RemoveFromCart(CartItem item)
+    {
+        currentOrder.Remove(item);
+        StateHasChanged();
+    }
+
+    private async Task SubmitOrder()
+    {
+        if (!currentOrder.Any()) return;
+
+        isSubmitting = true;
+        
+        try
+        {
+            // Crear un customer temporal si no existe
+            var customer = await DbContext.Customers
+                .FirstOrDefaultAsync(c => c.Email == clientTenant!.Email) 
+                ?? new Customer 
+                { 
+                    CustomerName = clientTenant.BusinessName, 
+                    Email = clientTenant.Email, 
+                    Phone = clientTenant.Phone,
+                    IsActive = true
+                };
+                
+            if (customer.Id == 0)
+            {
+                DbContext.Customers.Add(customer);
+                await DbContext.SaveChangesAsync();
+            }
+            
+            var order = new Order
+            {
+                CustomerId = customer.Id,
+                ClientTenantId = clientTenant!.Id,
+                OrderDate = DateTime.UtcNow,
+                Status = Domain.Enums.OrderStatus.Pending,
+                Notes = $"[CLIENTE: {clientTenant.BusinessName}] {orderNotes}",
+                TotalAmount = currentOrder.Sum(i => i.Quantity * i.CustomPrice),
+                OrderItems = currentOrder.Select(i => new OrderItemEntity
+                {
+                    ProductId = i.ProductId,
+                    Quantity = i.Quantity,
+                    UnitPrice = i.CustomPrice
+                }).ToList()
+            };
+
+            DbContext.Orders.Add(order);
+            await DbContext.SaveChangesAsync();
+
+            // Clear cart
+            currentOrder.Clear();
+            orderNotes = "";
+            isOrderMode = false;
+
+            await JSRuntime.InvokeVoidAsync("alert", $"✅ Pedido enviado exitosamente!\n\nBernard recibirá tu pedido y te contactará pronto.\n\nTotal: {order.TotalAmount:C}");
+            
+            await LoadDashboardData();
+        }
+        catch (Exception ex)
+        {
+            await JSRuntime.InvokeVoidAsync("alert", $"❌ Error enviando pedido: {ex.Message}");
+        }
+        finally
+        {
+            isSubmitting = false;
+            StateHasChanged();
+        }
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                const scrollToTop = document.getElementById('scrollToTop');
+                const productsContainer = document.getElementById('productsContainer');
+                const scrollIndicator = document.getElementById('scrollIndicator');
+                
+                if (productsContainer && scrollToTop && scrollIndicator) {
+                    productsContainer.addEventListener('scroll', function() {
+                        const scrollTop = this.scrollTop;
+                        const scrollHeight = this.scrollHeight;
+                        const clientHeight = this.clientHeight;
+                        
+                        // Mostrar/ocultar botón scroll-to-top
+                        if (scrollTop > 200) {
+                            scrollToTop.classList.add('visible');
+                        } else {
+                            scrollToTop.classList.remove('visible');
+                        }
+                        
+                        // Actualizar indicador de scroll
+                        const scrollPercent = (scrollTop / (scrollHeight - clientHeight)) * 100;
+                        scrollIndicator.style.width = scrollPercent + '%';
+                    });
+                }
+            ");
+        }
+    }
+
+    private async Task ScrollToTop()
+    {
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            const productsContainer = document.getElementById('productsContainer');
+            if (productsContainer) {
+                productsContainer.scrollTo({
+                    top: 0,
+                    behavior: 'smooth'
+                });
+            }
+        ");
+    }
+
+    private void ToggleAiAssistant()
+    {
+        isAiExpanded = !isAiExpanded;
+        hasNewAiMessage = false;
+        
+        if (isAiExpanded && aiMessages.Count == 0)
+        {
+            // Mensaje de bienvenida inicial
+            aiMessages.Add(new AiMessage
+            {
+                Content = "¡Hola! 👋 Soy tu asistente vegano especializado. Puedo ayudarte con:<br/>• Información sobre productos veganos<br/>• Recomendaciones para tu negocio<br/>• Nutrición y beneficios<br/>• Sustitutos lácteos perfectos<br/><br/>¿En qué puedo ayudarte hoy? 🌱",
+                IsUser = false,
+                Timestamp = DateTime.Now
+            });
+        }
+        StateHasChanged();
+    }
+
+    private async Task SendAiMessage(string? message = null)
+    {
+        var userMessage = message ?? aiInput;
+        if (string.IsNullOrWhiteSpace(userMessage)) return;
+
+        // Add user message
+        aiMessages.Add(new AiMessage
+        {
+            Content = userMessage,
+            IsUser = true,
+            Timestamp = DateTime.Now
+        });
+
+        aiInput = "";
+        isAiThinking = true;
+        aiStatus = "Pensando... 🤔";
+        StateHasChanged();
+
+        // Add typing indicator
+        var typingMessage = new AiMessage
+        {
+            Content = "",
+            IsUser = false,
+            IsTyping = true,
+            Timestamp = DateTime.Now
+        };
+        aiMessages.Add(typingMessage);
+        StateHasChanged();
+
+        // Simulate AI thinking
+        await Task.Delay(1500);
+
+        // Remove typing indicator
+        aiMessages.Remove(typingMessage);
+
+        // Generate AI response using Claude
+        var response = await GenerateAiResponse(userMessage);
+        
+        aiMessages.Add(new AiMessage
+        {
+            Content = response,
+            IsUser = false,
+            Timestamp = DateTime.Now
+        });
+
+        isAiThinking = false;
+        aiStatus = "Online - Listo para ayudarte 🌱";
+        
+        // Update suggestions based on context
+        UpdateAiSuggestions(userMessage);
+        
+        StateHasChanged();
+        
+        // Scroll to bottom
+        await JSRuntime.InvokeVoidAsync("eval", @"
+            const chatContainer = document.getElementById('aiChatContainer');
+            if (chatContainer) {
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+            }
+        ");
+    }
+
+    private async Task<string> GenerateAiResponse(string userMessage)
+    {
+        try
+        {
+            // Crear contexto con productos disponibles para Claude
+            var productContext = string.Join("\n", availableProducts.Select(cp => 
+                $"• {cp.Product.Emoji} {cp.Product.ProductName} - ${cp.CustomPrice:F2} (Stock: {cp.Product.StockQuantity}, Min: {cp.MinOrderQuantity}) - {cp.Product.Description}"));
+            
+            var clientName = clientTenant?.BusinessName ?? "nuestro cliente";
+            var systemMessage = $@"Eres un asistente especializado en productos veganos para {clientName}. 
+
+PRODUCTOS DISPONIBLES:
+{productContext}
+
+INSTRUCCIONES:
+- Responde SIEMPRE en español 
+- Usa HTML para formato (br, strong, em)
+- Incluye emojis relevantes
+- Se específico con precios, stock y cantidades mínimas
+- Si preguntan sobre usos en repostería, da ejemplos detallados y prácticos
+- Enfócate en beneficios veganos y sostenibilidad
+- Si no encuentras info específica, usa conocimiento general vegano
+- Mantén un tono amigable y profesional
+- Termina siempre invitando a hacer más preguntas
+
+CLIENTE: {clientName}
+CONTEXTO: Portal B2B de distribución vegana premium";
+
+            var aiRequest = new AIRequest
+            {
+                Prompt = userMessage,
+                SystemMessage = systemMessage,
+                PreferredProvider = AIProvider.Claude,
+                MaxTokens = 500,
+                Temperature = 0.7
+            };
+
+            var response = await AIService.GenerateTextAsync(aiRequest);
+            
+            if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+            {
+                return response.Content;
+            }
+            else
+            {
+                // Fallback a respuesta básica si Claude falla
+                return $"🌱 Gracias por tu pregunta sobre <em>\"{userMessage}\"</em><br/><br/>" +
+                       $"Puedo ayudarte con información sobre nuestros {availableProducts.Count} productos veganos disponibles.<br/><br/>" +
+                       $"¿Te interesa algún producto específico? 💚";
+            }
+        }
+        catch (Exception ex)
+        {
+            // Log del error y fallback
+            Console.WriteLine($"Error en AI: {ex.Message}");
+            return $"🌱 Disculpa, tengo problemas técnicos momentáneos.<br/><br/>" +
+                   $"Puedo ayudarte con nuestros {availableProducts.Count} productos veganos disponibles.<br/>" +
+                   $"¿Qué producto te interesa? 💚";
+        }
+    }
+
+    private void UpdateAiSuggestions(string lastMessage)
+    {
+        var lowerMessage = lastMessage.ToLower();
+        
+        if (lowerMessage.Contains("dona"))
+        {
+            aiSuggestions = new List<string>
+            {
+                "¿Qué más necesito para donas?",
+                "Recetas veganas",
+                "Cantidades recomendadas",
+                "Precios por volumen"
+            };
+        }
+        else if (lowerMessage.Contains("precio"))
+        {
+            aiSuggestions = new List<string>
+            {
+                "Descuentos disponibles",
+                "Comparar productos",
+                "Pedido mínimo",
+                "Formas de pago"
+            };
+        }
+        else if (lowerMessage.Contains("leche"))
+        {
+            aiSuggestions = new List<string>
+            {
+                "Otras leches vegetales",
+                "Usos en repostería",
+                "Vida útil del producto",
+                "Certificaciones"
+            };
+        }
+        else
+        {
+            aiSuggestions = new List<string>
+            {
+                "Ver catálogo completo",
+                "Productos más vendidos",
+                "Novedades veganas",
+                "Contactar a Bernard"
+            };
+        }
+    }
+
+    public class CartItem
+    {
+        public int ProductId { get; set; }
+        public Product Product { get; set; } = null!;
+        public decimal CustomPrice { get; set; }
+        public int Quantity { get; set; }
+    }
+    
+    public class AiMessage
+    {
+        public string Content { get; set; } = string.Empty;
+        public bool IsUser { get; set; }
+        public bool IsTyping { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+}
+
+@* Created by Bernard Uriza Orozco *@

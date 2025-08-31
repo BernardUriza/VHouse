@@ -131,7 +131,6 @@ Genera el email ahora:";
         var lines = aiContent.Split('\n', StringSplitOptions.RemoveEmptyEntries);
         string subject = "";
         string body = "";
-        bool foundSubject = false;
         bool foundBody = false;
 
         foreach (var line in lines)
@@ -139,7 +138,6 @@ Genera el email ahora:";
             if (line.StartsWith("ASUNTO:", StringComparison.OrdinalIgnoreCase))
             {
                 subject = line.Substring(7).Trim();
-                foundSubject = true;
             }
             else if (line.StartsWith("CUERPO:", StringComparison.OrdinalIgnoreCase))
             {

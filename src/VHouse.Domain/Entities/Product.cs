@@ -34,7 +34,7 @@ public class Product : BaseEntity
     public bool IsActive { get; set; } = true;
     
     // Recommendation scoring for Phase 2 AI features
-    public double Score { get; set; } = 0.0;
+    public double Score { get; set; }
     
     // Navigation properties
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

@@ -165,7 +165,7 @@ Responde ahora:";
         return Task.FromResult(basePrompt);
     }
 
-    private async Task<(string Response, string Context, List<BusinessAction> Actions)> ParseBusinessResponse(
+    private Task<(string Response, string Context, List<BusinessAction> Actions)> ParseBusinessResponse(
         string aiContent, 
         BusinessConversationType conversationType)
     {
@@ -195,10 +195,10 @@ Responde ahora:";
             });
         }
 
-        return (aiContent, $"Conversación procesada: {conversationType}", actions);
+        return Task.FromResult((aiContent, $"Conversación procesada: {conversationType}", actions));
     }
 
-    private async Task<List<ProductSuggestion>> ExtractProductRecommendations(string aiContent, int? customerId)
+    private Task<List<ProductSuggestion>> ExtractProductRecommendations(string aiContent, int? customerId)
     {
         var suggestions = new List<ProductSuggestion>();
         
@@ -221,7 +221,7 @@ Responde ahora:";
             }
         }
 
-        return suggestions.Take(3).ToList(); // Limit to top 3 suggestions
+        return Task.FromResult(suggestions.Take(3).ToList()); // Limit to top 3 suggestions
     }
 
     private BusinessPriority DetermineConversationPriority(BusinessConversationType conversationType, string content)
@@ -246,7 +246,7 @@ Responde ahora:";
         return BusinessPriority.Low;
     }
 
-    private async Task<List<string>> ExtractBusinessEntities(string content)
+    private Task<List<string>> ExtractBusinessEntities(string content)
     {
         var entities = new List<string>();
         
@@ -270,7 +270,7 @@ Responde ahora:";
             }
         }
 
-        return entities;
+        return Task.FromResult(entities);
     }
 
     public async Task<BusinessEmailResponseDto> GenerateBusinessEmail(string emailType, int customerId, object emailData, AIProvider? preferredProvider = null)
@@ -413,9 +413,9 @@ Responde ahora:";
         }
     }
 
-    private async Task<string> BuildEmailPrompt(string emailType, dynamic customer, object emailData)
+    private Task<string> BuildEmailPrompt(string emailType, dynamic customer, object emailData)
     {
-        return $@"
+        var prompt = $@"
 SISTEMA DE COMUNICACIONES AUTOMATIZADAS VHOUSE - DISTRIBUCIÓN VEGANA B2B
 
 CLIENTE: {customer.CustomerName} ({customer.Email})
@@ -427,11 +427,12 @@ ASUNTO: [Línea clara y específica]
 CUERPO: [HTML básico, tono B2B vegano, call-to-action]
 
 Responde ahora:";
+        return Task.FromResult(prompt);
     }
 
-    private async Task<string> BuildComplexOrderPrompt(string order, dynamic customer, BusinessContext context)
+    private Task<string> BuildComplexOrderPrompt(string order, dynamic customer, BusinessContext context)
     {
-        return $@"
+        var prompt = $@"
 PROCESADOR INTELIGENTE DE PEDIDOS B2B - VHOUSE DISTRIBUCIÓN VEGANA
 
 CLIENTE: {customer.CustomerName}
@@ -454,6 +455,7 @@ FORMATO JSON ESTRUCTURADO:
 }}
 
 Procesa ahora:";
+        return Task.FromResult(prompt);
     }
 
     private (string Subject, string Body) ParseEmailResponse(string aiContent)

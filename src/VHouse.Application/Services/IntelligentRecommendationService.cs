@@ -182,10 +182,10 @@ Genera las recomendaciones ahora:";
             return recommendations;
         }
 
-        private async Task<List<IntelligentRecommendation>> GenerateBasicRecommendations(int customerId)
+        private Task<List<IntelligentRecommendation>> GenerateBasicRecommendations(int customerId)
         {
             // Recomendaciones ultra-básicas en caso de error total
-            return new List<IntelligentRecommendation>
+            return Task.FromResult(new List<IntelligentRecommendation>
             {
                 new IntelligentRecommendation
                 {
@@ -194,7 +194,7 @@ Genera las recomendaciones ahora:";
                     ReasonForRecommendation = "Recomendación general basada en preferencias veganas",
                     IsVegan = true
                 }
-            };
+            });
         }
     }
 
@@ -359,14 +359,14 @@ Lista productos complementarios y explica por qué son buenas combinaciones.";
             });
         }
 
-        private async Task<string> GenerateValueProposition(ProductInfo current, ProductInfo premium)
+        private Task<string> GenerateValueProposition(ProductInfo current, ProductInfo premium)
         {
             var priceDifference = premium.Price - current.Price;
             var benefitsKeywords = ExtractPremiumBenefits(premium.Name);
 
-            return $"Por solo ${priceDifference} más, obtienes {benefitsKeywords}. " +
+            return Task.FromResult($"Por solo ${priceDifference} más, obtienes {benefitsKeywords}. " +
                    $"Ideal para clientes que buscan {(premium.Name.Contains("Orgánica") ? "certificación orgánica" : "valor nutricional superior")}. " +
-                   $"Margen de ganancia {CalculateMarginIncrease(current.Price, premium.Price):P0} superior.";
+                   $"Margen de ganancia {CalculateMarginIncrease(current.Price, premium.Price):P0} superior.");
         }
 
         private string ExtractPremiumBenefits(string premiumName)

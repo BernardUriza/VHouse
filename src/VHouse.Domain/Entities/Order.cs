@@ -8,6 +8,8 @@ public class Order : BaseEntity
 {
     public int CustomerId { get; set; }
     
+    public int? ClientTenantId { get; set; }
+    
     [Column(TypeName = "decimal(18,2)")]
     public decimal TotalAmount { get; set; }
     
@@ -22,5 +24,6 @@ public class Order : BaseEntity
     
     // Navigation properties
     public virtual Customer Customer { get; set; } = null!;
+    public virtual ClientTenant? ClientTenant { get; set; }
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
 }

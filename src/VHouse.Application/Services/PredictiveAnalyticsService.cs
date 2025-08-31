@@ -121,17 +121,17 @@ namespace VHouse.Application.Services
             _aiService = aiService;
         }
 
-        public async Task<CustomerSegment> CategorizeCustomer(int customerId, List<Order> orderHistory)
+        public Task<CustomerSegment> CategorizeCustomer(int customerId, List<Order> orderHistory)
         {
             if (!orderHistory.Any())
             {
-                return new CustomerSegment
+                return Task.FromResult(new CustomerSegment
                 {
                     SegmentName = "New Customer",
                     Confidence = 1.0,
                     RecommendedStrategies = new List<string> { "Welcome campaign", "Product education", "First purchase incentive" },
                     PredictedLifetimeValue = 0
-                };
+                });
             }
 
             var averageOrderValue = orderHistory.Average(o => o.TotalAmount);
@@ -139,7 +139,7 @@ namespace VHouse.Application.Services
             var orderCount = orderHistory.Count;
             var recencyDays = (DateTime.Now - orderHistory.Max(o => o.CreatedAt)).TotalDays;
 
-            return CategorizeBySpendingBehavior(averageOrderValue, totalSpent, orderCount, recencyDays);
+            return Task.FromResult(CategorizeBySpendingBehavior(averageOrderValue, totalSpent, orderCount, recencyDays));
         }
 
         private CustomerSegment CategorizeBySpendingBehavior(decimal avgOrderValue, decimal totalSpent, int orderCount, double recencyDays)

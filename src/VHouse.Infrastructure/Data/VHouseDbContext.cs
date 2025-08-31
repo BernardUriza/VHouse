@@ -14,6 +14,10 @@ public class VHouseDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    
+    // B2B Client Portal entities
+    public DbSet<ClientTenant> ClientTenants { get; set; }
+    public DbSet<ClientProduct> ClientProducts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -65,6 +69,34 @@ public class VHouseDbContext : DbContext
             entity.HasOne(oi => oi.Product)
                 .WithMany(p => p.OrderItems)
                 .HasForeignKey(oi => oi.ProductId);
+        });
+
+        // ClientTenant configuration
+        modelBuilder.Entity<ClientTenant>(entity =>
+        {
+            entity.HasKey(ct => ct.Id);
+            entity.Property(ct => ct.TenantCode).IsRequired().HasMaxLength(50);
+            entity.Property(ct => ct.LoginUsername).IsRequired().HasMaxLength(50);
+            entity.HasIndex(ct => ct.TenantCode).IsUnique();
+            entity.HasIndex(ct => ct.LoginUsername).IsUnique();
+        });
+
+        // ClientProduct configuration
+        modelBuilder.Entity<ClientProduct>(entity =>
+        {
+            entity.HasKey(cp => cp.Id);
+            entity.Property(cp => cp.CustomPrice).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(cp => cp.ClientTenant)
+                .WithMany(ct => ct.ClientProducts)
+                .HasForeignKey(cp => cp.ClientTenantId);
+                
+            entity.HasOne(cp => cp.Product)
+                .WithMany()
+                .HasForeignKey(cp => cp.ProductId);
+                
+            // Prevent duplicate assignments
+            entity.HasIndex(cp => new { cp.ClientTenantId, cp.ProductId }).IsUnique();
         });
     }
 }
