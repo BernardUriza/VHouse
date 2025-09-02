@@ -4,9 +4,12 @@
 @using VHouse.Domain.Enums
 @using VHouse.Infrastructure.Data
 @using Microsoft.EntityFrameworkCore
+@using Microsoft.AspNetCore.Components.Web
 @inject VHouseDbContext Context
 
-<PageTitle>🚀 VHouse POS - Universal Point of Sale</PageTitle>
+<HeadContent>
+    <title>🚀 VHouse POS - Universal Point of Sale</title>
+</HeadContent>
 
 <!-- 🌟 MODERN FUTURISTIC POS INTERFACE -->
 <div class="futuristic-pos">
@@ -439,13 +442,13 @@
             };
 
             // Add order items
-            var orderItems = new List<OrderItem>();
+            var orderItems = new List<VHouse.Domain.Entities.OrderItem>();
             foreach (var item in selectedProducts)
             {
                 var product = products.First(p => p.Id == item.Key);
                 var unitPrice = GetProductPrice(product);
                 
-                var orderItem = new OrderItem
+                var orderItem = new VHouse.Domain.Entities.OrderItem
                 {
                     ProductId = product.Id,
                     Quantity = item.Value,
