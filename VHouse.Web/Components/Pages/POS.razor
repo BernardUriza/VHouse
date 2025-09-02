@@ -5,505 +5,400 @@
 @using Microsoft.EntityFrameworkCore
 @inject VHouseDbContext Context
 
-<PageTitle>VHouse POS - Point of Sale</PageTitle>
+<PageTitle>🚀 VHouse POS - Universal Point of Sale</PageTitle>
 
-<div class="pos-container">
-    <div class="pos-header">
-        <h1>🌱 VHouse POS System</h1>
-        <p class="pos-subtitle">Clean Architecture Point of Sale</p>
-    </div>
-
-    <div class="pos-layout">
-        <!-- Products Section -->
-        <div class="pos-products">
-            <div class="section-header">
-                <h2>📦 Products</h2>
-                <div class="product-count">@products.Count items available</div>
+<!-- 🌟 MODERN FUTURISTIC POS INTERFACE -->
+<div class="futuristic-pos">
+    
+    <!-- 🎯 SMART HEADER CON CONTROLES UNIVERSALES -->
+    <header class="pos-smart-header">
+        <div class="pos-branding">
+            <div class="brand-icon">🌱</div>
+            <div class="brand-info">
+                <h1>VHouse POS</h1>
+                <span class="brand-subtitle">Universal Point of Sale</span>
+            </div>
+        </div>
+        
+        <!-- 🎛️ CONTROL PANEL UNIVERSAL -->
+        <div class="universal-controls">
+            <!-- Cliente/Tenant Selector -->
+            <div class="control-group @(showClientPanel ? "expanded" : "")">
+                <button class="control-trigger" @onclick="ToggleClientPanel">
+                    <span class="control-icon">👥</span>
+                    <span class="control-label">@GetSelectedClientName()</span>
+                    <span class="expand-arrow @(showClientPanel ? "rotated" : "")">▼</span>
+                </button>
+                @if (showClientPanel)
+                {
+                    <div class="control-panel client-panel">
+                        <div class="panel-title">Seleccionar Cliente</div>
+                        <div class="client-options">
+                            <button class="client-option @(selectedClientId == 0 ? "active" : "")" @onclick="() => SelectClient(0, \"Walk-in Customer\")">
+                                <span class="client-icon">🚶</span>
+                                <span class="client-name">Walk-in Customer</span>
+                            </button>
+                            <button class="client-option @(selectedClientId == 1 ? "active" : "")" @onclick="() => SelectClient(1, \"Mona la Dona\")">
+                                <span class="client-icon">🍩</span>
+                                <span class="client-name">Mona la Dona</span>
+                            </button>
+                            <button class="client-option @(selectedClientId == 2 ? "active" : "")" @onclick="() => SelectClient(2, \"Sano Market\")">
+                                <span class="client-icon">🥬</span>
+                                <span class="client-name">Sano Market</span>
+                            </button>
+                            <button class="client-option @(selectedClientId == 3 ? "active" : "")" @onclick="() => SelectClient(3, \"La Papelería\")">
+                                <span class="client-icon">📚</span>
+                                <span class="client-name">La Papelería</span>
+                            </button>
+                        </div>
+                    </div>
+                }
             </div>
             
-            <div class="products-grid">
-                @foreach (var product in products)
+            <!-- Tipo de Precio Selector -->
+            <div class="control-group @(showPricePanel ? "expanded" : "")">
+                <button class="control-trigger" @onclick="TogglePricePanel">
+                    <span class="control-icon">💰</span>
+                    <span class="control-label">@GetSelectedPriceType()</span>
+                    <span class="expand-arrow @(showPricePanel ? "rotated" : "")">▼</span>
+                </button>
+                @if (showPricePanel)
                 {
-                    <div class="product-card @(selectedProducts.ContainsKey(product.Id) ? "selected" : "")" 
-                         @onclick="() => AddToOrder(product)">
-                        <div class="product-emoji">@product.Emoji</div>
-                        <div class="product-name">@product.ProductName</div>
-                        <div class="product-price">@product.PriceRetail.ToString("C")</div>
-                        <div class="product-stock">Stock: @product.StockQuantity</div>
-                        @if (selectedProducts.ContainsKey(product.Id))
-                        {
-                            <div class="product-quantity">Qty: @selectedProducts[product.Id]</div>
-                        }
+                    <div class="control-panel price-panel">
+                        <div class="panel-title">Tipo de Precio</div>
+                        <div class="price-options">
+                            <button class="price-option @(selectedPriceType == "public" ? "active" : "")" @onclick="() => SelectPriceType(\"public\")">
+                                <span class="price-icon">🏷️</span>
+                                <span class="price-name">Precio Público</span>
+                                <span class="price-desc">Para clientes finales</span>
+                            </button>
+                            <button class="price-option @(selectedPriceType == "retail" ? "active" : "")" @onclick="() => SelectPriceType(\"retail\")">
+                                <span class="price-icon">🏪</span>
+                                <span class="price-name">Precio POS</span>
+                                <span class="price-desc">Para revendedores</span>
+                            </button>
+                            <button class="price-option @(selectedPriceType == "cost" ? "active" : "")" @onclick="() => SelectPriceType(\"cost\")">
+                                <span class="price-icon">📊</span>
+                                <span class="price-name">Precio Costo</span>
+                                <span class="price-desc">Para análisis</span>
+                            </button>
+                        </div>
+                    </div>
+                }
+            </div>
+            
+            <!-- Inventario/Filtros -->
+            <div class="control-group @(showInventoryPanel ? "expanded" : "")">
+                <button class="control-trigger" @onclick="ToggleInventoryPanel">
+                    <span class="control-icon">📦</span>
+                    <span class="control-label">@GetInventoryStatus()</span>
+                    <span class="expand-arrow @(showInventoryPanel ? "rotated" : "")">▼</span>
+                </button>
+                @if (showInventoryPanel)
+                {
+                    <div class="control-panel inventory-panel">
+                        <div class="panel-title">Filtros de Inventario</div>
+                        <div class="inventory-filters">
+                            <button class="filter-btn @(showOnlyAvailable ? "active" : "")" @onclick="ToggleAvailableOnly">
+                                <span class="filter-icon">✅</span>
+                                Solo Disponibles
+                            </button>
+                            <button class="filter-btn @(showOnlyVegan ? "active" : "")" @onclick="ToggleVeganOnly">
+                                <span class="filter-icon">🌱</span>
+                                Solo Veganos
+                            </button>
+                            <input class="search-input" placeholder="🔍 Buscar productos..." @bind="searchTerm" @bind:event="oninput" />
+                        </div>
                     </div>
                 }
             </div>
         </div>
-
-        <!-- Order Section -->
-        <div class="pos-order">
-            <div class="section-header">
-                <h2>🧾 Current Order</h2>
-                <button class="btn-clear" @onclick="ClearOrder" disabled="@(!selectedProducts.Any())">
-                    Clear All
-                </button>
+        
+        <!-- 🚨 STATUS INDICATORS -->
+        <div class="status-indicators">
+            <div class="status-indicator order-count">
+                <span class="indicator-value">@selectedProducts.Count</span>
+                <span class="indicator-label">Items</span>
             </div>
-            
-            <div class="order-items">
-                @if (selectedProducts.Any())
+            <div class="status-indicator order-total">
+                <span class="indicator-value">@GetTotal().ToString("C0")</span>
+                <span class="indicator-label">Total</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- 🎮 MAIN POS INTERFACE -->
+    <main class="pos-main">
+        
+        <!-- 📱 PRODUCTS PANEL - MINIMALISTA Y EFICIENTE -->
+        <section class="products-panel">
+            <div class="products-grid">
+                @foreach (var product in GetFilteredProducts())
                 {
-                    @foreach (var item in selectedProducts)
-                    {
-                        var product = products.First(p => p.Id == item.Key);
-                        var totalPrice = product.PriceRetail * item.Value;
+                    <div class="product-tile @(selectedProducts.ContainsKey(product.Id) ? "selected" : "")" 
+                         @onclick="() => ToggleProduct(product)">
                         
-                        <div class="order-item">
-                            <div class="item-info">
-                                <span class="item-emoji">@product.Emoji</span>
-                                <span class="item-name">@product.ProductName</span>
-                            </div>
-                            <div class="item-controls">
-                                <button class="btn-qty" @onclick="() => DecrementQuantity(item.Key)">-</button>
-                                <span class="item-quantity">@item.Value</span>
-                                <button class="btn-qty" @onclick="() => IncrementQuantity(item.Key)">+</button>
-                            </div>
-                            <div class="item-price">@totalPrice.ToString("C")</div>
-                            <button class="btn-remove" @onclick="() => RemoveFromOrder(item.Key)">🗑️</button>
+                        <!-- Product Info -->
+                        <div class="product-display">
+                            <div class="product-emoji">@product.Emoji</div>
+                            <div class="product-name">@product.ProductName</div>
+                            <div class="product-price">@GetProductPrice(product).ToString("C")</div>
                         </div>
-                    }
-                }
-                else
-                {
-                    <div class="empty-order">
-                        <div class="empty-icon">🛒</div>
-                        <p>No items in order</p>
-                        <p class="empty-hint">Click on products to add them</p>
+                        
+                        <!-- Quick Quantity Controls -->
+                        @if (selectedProducts.ContainsKey(product.Id))
+                        {
+                            <div class="quantity-overlay">
+                                <button class="qty-btn minus" @onclick:stopPropagation="true" @onclick="() => DecrementQuantity(product.Id)">−</button>
+                                <span class="qty-display">@selectedProducts[product.Id]</span>
+                                <button class="qty-btn plus" @onclick:stopPropagation="true" @onclick="() => IncrementQuantity(product.Id)">+</button>
+                            </div>
+                        }
+                        
+                        <!-- Stock Indicator -->
+                        <div class="stock-indicator @(product.StockQuantity <= 5 ? "low-stock" : "")">
+                            @product.StockQuantity
+                        </div>
                     </div>
                 }
             </div>
+        </section>
+        
+        <!-- 📋 SMART ORDER PANEL -->
+        <aside class="order-panel @(selectedProducts.Any() ? "has-items" : "empty")">
             
             @if (selectedProducts.Any())
             {
-                <div class="order-summary">
-                    <div class="summary-line">
-                        <span>Subtotal:</span>
+                <!-- Order Items -->
+                <div class="order-items">
+                    @foreach (var item in selectedProducts)
+                    {
+                        var product = products.First(p => p.Id == item.Key);
+                        var unitPrice = GetProductPrice(product);
+                        var totalPrice = unitPrice * item.Value;
+                        
+                        <div class="order-item">
+                            <div class="item-visual">
+                                <span class="item-emoji">@product.Emoji</span>
+                                <span class="item-qty">@item.Value</span>
+                            </div>
+                            <div class="item-details">
+                                <div class="item-name">@product.ProductName</div>
+                                <div class="item-calculation">@item.Value × @unitPrice.ToString("C") = @totalPrice.ToString("C")</div>
+                            </div>
+                            <button class="remove-item" @onclick="() => RemoveFromOrder(item.Key)">×</button>
+                        </div>
+                    }
+                </div>
+                
+                <!-- Smart Totals -->
+                <div class="order-totals">
+                    <div class="total-line">
+                        <span>Subtotal</span>
                         <span>@GetSubtotal().ToString("C")</span>
                     </div>
-                    <div class="summary-line">
-                        <span>Tax (16%):</span>
+                    <div class="total-line">
+                        <span>IVA (16%)</span>
                         <span>@GetTax().ToString("C")</span>
                     </div>
-                    <div class="summary-line total">
-                        <span>Total:</span>
+                    <div class="total-line grand-total">
+                        <span>TOTAL</span>
                         <span>@GetTotal().ToString("C")</span>
                     </div>
-                    
-                    <div class="order-actions">
-                        <button class="btn-process" @onclick="ProcessOrder">
-                            💳 Process Order
-                        </button>
+                </div>
+                
+                <!-- Smart Actions -->
+                <div class="order-actions">
+                    <button class="action-btn secondary" @onclick="ClearOrder">
+                        <span class="btn-icon">🗑️</span>
+                        <span class="btn-text">Limpiar</span>
+                    </button>
+                    <button class="action-btn primary" @onclick="ProcessOrder">
+                        <span class="btn-icon">⚡</span>
+                        <span class="btn-text">Procesar Orden</span>
+                    </button>
+                </div>
+            }
+            else
+            {
+                <!-- Empty State -->
+                <div class="empty-order-state">
+                    <div class="empty-animation">🛒</div>
+                    <h3>Orden Vacía</h3>
+                    <p>Toca productos para agregar al carrito</p>
+                    <div class="empty-tips">
+                        <div class="tip">💡 Usa los controles superiores para cambiar cliente y precios</div>
                     </div>
                 </div>
             }
-        </div>
-    </div>
+            
+        </aside>
+    </main>
+    
 </div>
-
-<style>
-.pos-container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: var(--spacing-4);
-}
-
-.pos-header {
-    text-align: center;
-    margin-bottom: var(--spacing-8);
-}
-
-.pos-header h1 {
-    color: var(--accent-green);
-    margin-bottom: var(--spacing-2);
-}
-
-.pos-subtitle {
-    color: var(--text-muted);
-    font-size: var(--font-size-lg);
-}
-
-.pos-layout {
-    display: grid;
-    grid-template-columns: 2fr 1fr;
-    gap: var(--spacing-8);
-}
-
-.section-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--spacing-6);
-    padding: var(--spacing-4);
-    background: var(--surface-bg);
-    border-radius: var(--radius-lg);
-}
-
-.section-header h2 {
-    margin: 0;
-    color: var(--accent-green);
-}
-
-.product-count {
-    color: var(--text-muted);
-    font-size: var(--font-size-sm);
-}
-
-.products-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: var(--spacing-4);
-}
-
-.product-card {
-    background: var(--card-bg);
-    border: 2px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
-    text-align: center;
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    position: relative;
-}
-
-.product-card:hover {
-    border-color: var(--accent-green);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-.product-card.selected {
-    border-color: var(--accent-green);
-    background: rgba(111, 170, 107, 0.1);
-}
-
-.product-emoji {
-    font-size: 2rem;
-    margin-bottom: var(--spacing-2);
-}
-
-.product-name {
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: var(--spacing-2);
-    font-size: var(--font-size-sm);
-}
-
-.product-price {
-    color: var(--accent-green);
-    font-weight: 700;
-    font-size: var(--font-size-lg);
-    margin-bottom: var(--spacing-1);
-}
-
-.product-stock {
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
-}
-
-.product-quantity {
-    position: absolute;
-    top: var(--spacing-2);
-    right: var(--spacing-2);
-    background: var(--accent-green);
-    color: var(--dark-bg);
-    padding: var(--spacing-1) var(--spacing-2);
-    border-radius: var(--radius-sm);
-    font-size: var(--font-size-xs);
-    font-weight: 700;
-}
-
-.pos-order {
-    background: var(--card-bg);
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
-    height: fit-content;
-    position: sticky;
-    top: var(--spacing-4);
-}
-
-.btn-clear {
-    background: transparent;
-    color: var(--text-muted);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: var(--spacing-2) var(--spacing-4);
-    cursor: pointer;
-    transition: all var(--transition-fast);
-    font-size: var(--font-size-sm);
-}
-
-.btn-clear:hover:not(:disabled) {
-    color: var(--text-primary);
-    border-color: var(--text-primary);
-}
-
-.btn-clear:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.order-items {
-    min-height: 300px;
-    margin-bottom: var(--spacing-6);
-}
-
-.order-item {
-    display: grid;
-    grid-template-columns: 1fr auto auto auto;
-    gap: var(--spacing-4);
-    align-items: center;
-    padding: var(--spacing-3);
-    border-bottom: 1px solid var(--border-color);
-}
-
-.item-info {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.item-emoji {
-    font-size: 1.2rem;
-}
-
-.item-name {
-    color: var(--text-primary);
-    font-size: var(--font-size-sm);
-}
-
-.item-controls {
-    display: flex;
-    align-items: center;
-    gap: var(--spacing-2);
-}
-
-.btn-qty {
-    background: var(--surface-bg);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-sm);
-    width: 32px;
-    height: 32px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-weight: 700;
-}
-
-.btn-qty:hover {
-    background: var(--accent-green);
-    color: var(--dark-bg);
-    border-color: var(--accent-green);
-}
-
-.item-quantity {
-    color: var(--text-primary);
-    font-weight: 600;
-    min-width: 24px;
-    text-align: center;
-}
-
-.item-price {
-    color: var(--accent-green);
-    font-weight: 700;
-}
-
-.btn-remove {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    font-size: 1rem;
-    transition: color var(--transition-fast);
-}
-
-.btn-remove:hover {
-    color: #ff4444;
-}
-
-.empty-order {
-    text-align: center;
-    padding: var(--spacing-10);
-    color: var(--text-muted);
-}
-
-.empty-icon {
-    font-size: 3rem;
-    margin-bottom: var(--spacing-4);
-}
-
-.empty-hint {
-    font-size: var(--font-size-sm);
-    font-style: italic;
-}
-
-.order-summary {
-    border-top: 2px solid var(--border-color);
-    padding-top: var(--spacing-4);
-}
-
-.summary-line {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--spacing-3);
-    color: var(--text-secondary);
-}
-
-.summary-line.total {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    color: var(--text-primary);
-    border-top: 1px solid var(--border-color);
-    padding-top: var(--spacing-3);
-}
-
-.order-actions {
-    margin-top: var(--spacing-6);
-}
-
-.btn-process {
-    width: 100%;
-    background: var(--accent-green);
-    color: var(--dark-bg);
-    border: none;
-    border-radius: var(--radius-lg);
-    padding: var(--spacing-4);
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    cursor: pointer;
-    transition: all var(--transition-normal);
-}
-
-.btn-process:hover {
-    background: var(--light-green);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-lg);
-}
-
-@@media (max-width: 768px) {
-    .pos-layout {
-        grid-template-columns: 1fr;
-    }
-    
-    .pos-order {
-        position: static;
-    }
-    
-    .products-grid {
-        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-    }
-    
-    .order-item {
-        grid-template-columns: 1fr auto;
-        gap: var(--spacing-2);
-    }
-    
-    .item-controls,
-    .item-price,
-    .btn-remove {
-        grid-column: 2;
-        justify-self: end;
-    }
-}
-</style>
 
 @code {
     private List<Product> products = new();
     private Dictionary<int, int> selectedProducts = new();
+    
+    // UI State
+    private bool showClientPanel = false;
+    private bool showPricePanel = false;
+    private bool showInventoryPanel = false;
+    private bool showOnlyAvailable = true;
+    private bool showOnlyVegan = false;
+    private string searchTerm = "";
+    
+    // Business Logic State
+    private int selectedClientId = 0;
+    private string selectedClientName = "Walk-in Customer";
+    private string selectedPriceType = "retail";
 
     protected override async Task OnInitializedAsync()
+    {
+        await LoadProducts();
+    }
+
+    private async Task LoadProducts()
     {
         products = await Context.Products
             .Where(p => p.IsActive)
             .OrderBy(p => p.ProductName)
             .ToListAsync();
+        StateHasChanged();
     }
 
-    private void AddToOrder(Product product)
+    // ============= UI CONTROL METHODS =============
+    
+    private void ToggleClientPanel() => showClientPanel = !showClientPanel;
+    private void TogglePricePanel() => showPricePanel = !showPricePanel;
+    private void ToggleInventoryPanel() => showInventoryPanel = !showInventoryPanel;
+    
+    private void SelectClient(int clientId, string clientName)
+    {
+        selectedClientId = clientId;
+        selectedClientName = clientName;
+        showClientPanel = false;
+        StateHasChanged();
+    }
+    
+    private void SelectPriceType(string priceType)
+    {
+        selectedPriceType = priceType;
+        showPricePanel = false;
+        StateHasChanged();
+    }
+    
+    private void ToggleAvailableOnly()
+    {
+        showOnlyAvailable = !showOnlyAvailable;
+        StateHasChanged();
+    }
+    
+    private void ToggleVeganOnly()
+    {
+        showOnlyVegan = !showOnlyVegan;
+        StateHasChanged();
+    }
+
+    // ============= BUSINESS LOGIC METHODS =============
+    
+    private List<Product> GetFilteredProducts()
+    {
+        var filtered = products.AsQueryable();
+        
+        if (showOnlyAvailable)
+            filtered = filtered.Where(p => p.StockQuantity > 0);
+            
+        if (showOnlyVegan)
+            filtered = filtered.Where(p => p.IsVegan);
+            
+        if (!string.IsNullOrWhiteSpace(searchTerm))
+            filtered = filtered.Where(p => p.ProductName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+            
+        return filtered.ToList();
+    }
+    
+    private decimal GetProductPrice(Product product)
+    {
+        return selectedPriceType switch
+        {
+            "public" => product.PricePublic,
+            "cost" => product.PriceCost,
+            _ => product.PriceRetail
+        };
+    }
+    
+    private void ToggleProduct(Product product)
     {
         if (selectedProducts.ContainsKey(product.Id))
         {
-            selectedProducts[product.Id]++;
+            IncrementQuantity(product.Id);
         }
         else
         {
             selectedProducts[product.Id] = 1;
         }
+        StateHasChanged();
     }
-
+    
     private void IncrementQuantity(int productId)
     {
         if (selectedProducts.ContainsKey(productId))
-        {
             selectedProducts[productId]++;
-        }
+        StateHasChanged();
     }
-
+    
     private void DecrementQuantity(int productId)
     {
         if (selectedProducts.ContainsKey(productId))
         {
-            if (selectedProducts[productId] > 1)
-            {
-                selectedProducts[productId]--;
-            }
-            else
-            {
+            selectedProducts[productId]--;
+            if (selectedProducts[productId] <= 0)
                 selectedProducts.Remove(productId);
-            }
         }
+        StateHasChanged();
     }
-
+    
     private void RemoveFromOrder(int productId)
     {
         selectedProducts.Remove(productId);
+        StateHasChanged();
     }
-
+    
     private void ClearOrder()
     {
         selectedProducts.Clear();
+        StateHasChanged();
     }
-
+    
+    // ============= CALCULATION METHODS =============
+    
     private decimal GetSubtotal()
     {
-        return selectedProducts.Sum(item =>
-        {
+        return selectedProducts.Sum(item => {
             var product = products.First(p => p.Id == item.Key);
-            return product.PriceRetail * item.Value;
+            return GetProductPrice(product) * item.Value;
         });
     }
-
-    private decimal GetTax()
-    {
-        return GetSubtotal() * 0.16m; // 16% tax
-    }
-
-    private decimal GetTotal()
-    {
-        return GetSubtotal() + GetTax();
-    }
-
+    
+    private decimal GetTax() => GetSubtotal() * 0.16m;
+    private decimal GetTotal() => GetSubtotal() + GetTax();
+    
+    // ============= DISPLAY METHODS =============
+    
+    private string GetSelectedClientName() => selectedClientName;
+    private string GetSelectedPriceType() => selectedPriceType.ToUpper();
+    private string GetInventoryStatus() => $"{GetFilteredProducts().Count} Products";
+    
+    // ============= ACTIONS =============
+    
     private async Task ProcessOrder()
     {
-        // Here you would integrate with your Order processing system
-        // For now, just clear the order after "processing"
+        // TODO: Implement order processing logic
+        // This would create an Order entity and save to database
         
-        // TODO: Create Order entity, add OrderItems, save to database
-        // TODO: Update product stock quantities
-        // TODO: Generate receipt/invoice
-        
+        // For now, just clear the order
         ClearOrder();
-        
-        // Show success message or redirect
-        await InvokeAsync(StateHasChanged);
     }
 }

@@ -1,0 +1,223 @@
+/* ========================================
+   GLOBAL DARK THEME OVERRIDE
+   VHouse - Sistema de Override Global
+   Mata TODOS los fondos blancos
+   ======================================== */
+
+/* Override global de fondos blancos */
+* {
+    /* Fuerza el tema oscuro en TODOS los elementos */
+}
+
+/* Elementos que típicamente tienen fondo blanco */
+.card,
+.modal,
+.dropdown-menu,
+.popover,
+.tooltip,
+.table,
+.form-control,
+.form-select,
+.btn,
+.alert,
+.list-group-item,
+.nav-link,
+.nav-tabs .nav-link,
+.pagination .page-link,
+.breadcrumb-item {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
+}
+
+/* Override de elementos con fondos específicos */
+[style*="background: white"],
+[style*="background:white"],
+[style*="background: #fff"],
+[style*="background:#fff"],
+[style*="background: #ffffff"],
+[style*="background:#ffffff"] {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Override de clases Bootstrap y genéricas */
+.bg-white,
+.bg-light {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Asegura que inputs y selects usen el tema */
+input,
+select,
+textarea {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--text-primary) !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--vegan-green) !important;
+    box-shadow: 0 0 10px rgba(0, 255, 0, 0.3) !important;
+}
+
+/* Botones que podrían tener fondo blanco */
+button,
+.btn {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--text-primary) !important;
+}
+
+button:hover,
+.btn:hover {
+    background: var(--text-primary) !important;
+    color: var(--bg-primary) !important;
+    box-shadow: 0 0 15px var(--text-primary) !important;
+}
+
+/* Botones primarios */
+.btn-primary,
+.btn-success,
+.btn-info,
+.btn-warning,
+.btn-danger {
+    border-width: 2px !important;
+    font-weight: 700 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+.btn-primary {
+    background: var(--bg-primary) !important;
+    color: var(--vegan-green) !important;
+    border-color: var(--vegan-green) !important;
+}
+
+.btn-primary:hover {
+    background: var(--vegan-green) !important;
+    color: var(--bg-primary) !important;
+    box-shadow: 0 0 20px var(--vegan-green) !important;
+}
+
+.btn-success {
+    background: var(--bg-primary) !important;
+    color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+}
+
+.btn-success:hover {
+    background: var(--success-color) !important;
+    color: var(--bg-primary) !important;
+    box-shadow: 0 0 20px var(--success-color) !important;
+}
+
+/* Tablas */
+.table {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+.table th,
+.table td {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
+}
+
+.table-striped tbody tr:nth-of-type(odd) {
+    background: rgba(255, 255, 255, 0.05) !important;
+}
+
+/* Navegación */
+.nav-link {
+    color: var(--text-primary) !important;
+}
+
+.nav-link:hover {
+    color: var(--vegan-green) !important;
+    text-shadow: 0 0 10px var(--vegan-green) !important;
+}
+
+.nav-link.active {
+    color: var(--vegan-green) !important;
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--vegan-green) !important;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.3) !important;
+}
+
+/* Modales y overlays */
+.modal-content {
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--text-primary) !important;
+}
+
+.modal-header,
+.modal-body,
+.modal-footer {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
+}
+
+/* Dropdowns */
+.dropdown-menu {
+    background: var(--bg-primary) !important;
+    border: 2px solid var(--text-primary) !important;
+}
+
+.dropdown-item {
+    color: var(--text-primary) !important;
+}
+
+.dropdown-item:hover {
+    background: var(--text-primary) !important;
+    color: var(--bg-primary) !important;
+}
+
+/* Alerts */
+.alert {
+    border: 2px solid !important;
+    font-weight: 600 !important;
+}
+
+.alert-success {
+    background: var(--bg-primary) !important;
+    color: var(--success-color) !important;
+    border-color: var(--success-color) !important;
+}
+
+.alert-warning {
+    background: var(--bg-primary) !important;
+    color: var(--warning-color) !important;
+    border-color: var(--warning-color) !important;
+}
+
+.alert-danger {
+    background: var(--bg-primary) !important;
+    color: var(--danger-color) !important;
+    border-color: var(--danger-color) !important;
+}
+
+.alert-info {
+    background: var(--bg-primary) !important;
+    color: var(--info-color) !important;
+    border-color: var(--info-color) !important;
+}
+
+/* Override para cualquier elemento que tenga fondo blanco programáticamente */
+body * {
+    /* Si algún JavaScript intenta poner fondo blanco, lo cambiamos */
+}
+
+/* Forzar el body principal */
+body,
+html {
+    background: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}

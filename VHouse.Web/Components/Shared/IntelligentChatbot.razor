@@ -288,7 +288,7 @@
             Timestamp = m.Timestamp
         }).ToList();
         
-        suggestions = await ChatbotService.GetContextualSuggestionsAsync(sessionId);
+        suggestions = ChatbotService.GetContextualSuggestions(sessionId);
         quickActions = GenerateQuickActions(currentSession.Context);
         
         currentStatus = $"Online - {currentSession.Context.PageTitle} 🌱";

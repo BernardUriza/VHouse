@@ -189,7 +189,7 @@ else
         bool confirm = await JSRuntime.InvokeAsync<bool>("confirm", "¿Guardar el pedido?");
         if (confirm)
         {
-            await SaveOrder();
+            SaveOrder();
         }
     }
     private void UpdateTicketPrices(ChangeEventArgs args)

@@ -53,7 +53,7 @@ public class IntelligentChatbotService : IIntelligentChatbotService
             // Procesar comandos especiales si existen
             if (IsSpecialCommand(request.UserMessage))
             {
-                return await ProcessSpecialCommandAsync(request.UserMessage, session);
+                return await Task.FromResult(ProcessSpecialCommand(request.UserMessage, session));
             }
 
             // Generar respuesta usando AI con contexto
@@ -84,7 +84,7 @@ public class IntelligentChatbotService : IIntelligentChatbotService
             session.LastActivity = DateTime.UtcNow;
 
             // Generar sugerencias contextuales
-            var suggestions = await GetContextualSuggestionsAsync(session.SessionId, request.UserMessage);
+            var suggestions = GetContextualSuggestions(session.SessionId, request.UserMessage);
 
             var response = new ChatbotResponse
             {

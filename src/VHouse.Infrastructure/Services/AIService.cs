@@ -237,7 +237,7 @@ public class AIService : IAIService
 
     public async Task<AIHealthStatus> GetHealthStatusAsync()
     {
-        var serviceStatus = await CheckAIServicesHealthAsync();
+        var serviceStatus = CheckAIServicesHealth();
         
         string recommendedProvider = "Claude";
         bool fallbackAvailable = false;

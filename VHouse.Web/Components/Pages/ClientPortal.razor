@@ -1858,7 +1858,7 @@ else
                 }
                 
                 // Obtener sugerencias contextuales iniciales
-                aiSuggestions = await IntelligentChatbot.GetContextualSuggestionsAsync(currentSessionId);
+                aiSuggestions = IntelligentChatbot.GetContextualSuggestions(currentSessionId);
                 
                 aiStatus = $"Conectado - {currentChatSession.Context.PageTitle} 🌱";
             }

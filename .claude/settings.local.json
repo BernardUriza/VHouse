@@ -26,7 +26,10 @@
       "Bash(dotnet clean:*)",
       "Bash(tasklist:*)",
       "WebFetch(domain:localhost)",
-      "Bash(start http://localhost:5000/client/MONA_DONA)"
+      "Bash(start http://localhost:5000/client/MONA_DONA)",
+      "Bash(sqlite3:*)",
+      "Bash(dotnet ef migrations:*)",
+      "Bash(grep:*)"
     ],
     "deny": [],
     "ask": [],

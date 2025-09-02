@@ -5,6 +5,7 @@
 
 /* 1. Variables and Design Tokens */
 @import url('shared/variables.css');
+@import url('VHouse.css');
 
 /* 2. Base and Reset Styles */
 @import url('site.css');
@@ -26,7 +27,10 @@
 /* 6. Special Components */
 @import url('intelligent-chatbot.css');
 
-/* 7. Utility Classes */
+/* 7. Global Dark Theme Override - MATA TODOS LOS FONDOS BLANCOS */
+@import url('global-dark-theme.css');
+
+/* 8. Utility Classes */
 .text-center { text-align: center; }
 .text-left { text-align: left; }
 .text-right { text-align: right; }

@@ -29,9 +29,9 @@ namespace VHouse.Application.Services
 
                 // Simular obtención de historial de pedidos
                 var purchaseHistory = await GetCustomerPurchaseHistory(customerId);
-                var availableProducts = await GetAvailableProducts(customer.IsVeganPreferred);
+                var availableProducts = await GetAvailableProducts(customer!.IsVeganPreferred);
 
-                var prompt = BuildRecommendationPrompt(customer, purchaseHistory, availableProducts);
+                var prompt = BuildRecommendationPrompt(customer!, purchaseHistory, availableProducts);
 
                 var aiRequest = new AIRequest
                 {
@@ -45,7 +45,7 @@ namespace VHouse.Application.Services
                 
                 if (!aiResponse.IsSuccessful)
                 {
-                    return GenerateFallbackRecommendations(customer, availableProducts);
+                    return GenerateFallbackRecommendations(customer!, availableProducts);
                 }
 
                 return ParseAIRecommendations(aiResponse.Content, availableProducts);
@@ -158,7 +158,7 @@ Genera las recomendaciones ahora:";
             catch
             {
                 // Si falla el parsing JSON, generar recomendaciones de fallback
-                return GenerateFallbackRecommendations(null, availableProducts);
+                return GenerateFallbackRecommendations(null!, availableProducts);
             }
         }
 

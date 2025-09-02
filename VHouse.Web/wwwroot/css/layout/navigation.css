@@ -54,7 +54,9 @@ nav.flex-column {
     transform: translateY(-50%);
     width: 4px;
     height: 70%;
-    background: white;
+    background: var(--bg-primary);
+    border: 2px solid var(--text-primary);
+    color: var(--text-primary);
     border-radius: 0 4px 4px 0;
 }
 

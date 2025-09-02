@@ -25,12 +25,12 @@ public interface IIntelligentChatbotService
     /// <summary>
     /// Obtiene sugerencias contextuales basadas en el estado actual
     /// </summary>
-    Task<List<string>> GetContextualSuggestionsAsync(string sessionId, string? lastMessage = null);
+    List<string> GetContextualSuggestions(string sessionId, string? lastMessage = null);
     
     /// <summary>
     /// Procesa comandos especiales del chatbot (ej: /productos, /pedido)
     /// </summary>
-    Task<ChatbotResponse> ProcessSpecialCommandAsync(string command, ChatSession session);
+    ChatbotResponse ProcessSpecialCommand(string command, ChatSession session);
     
     /// <summary>
     /// Analiza la intención del usuario y determina acciones recomendadas

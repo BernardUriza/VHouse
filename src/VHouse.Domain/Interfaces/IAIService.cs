@@ -35,7 +35,7 @@ public interface IAIService
     /// <summary>
     /// Verifica el estado de los servicios AI disponibles
     /// </summary>
-    Task<Dictionary<string, bool>> CheckAIServicesHealthAsync();
+    Dictionary<string, bool> CheckAIServicesHealth();
     
     /// <summary>
     /// Obtiene el estado de salud detallado de los servicios AI
