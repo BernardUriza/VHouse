@@ -34,19 +34,19 @@
                     <div class="control-panel client-panel">
                         <div class="panel-title">Seleccionar Cliente</div>
                         <div class="client-options">
-                            <button class="client-option @(selectedClientId == 0 ? "active" : "")" @onclick="() => SelectClient(0, \"Walk-in Customer\")">
+                            <button class="client-option @(selectedClientId == 0 ? "active" : "")" @onclick="@(() => SelectClient(0, "Walk-in Customer"))">
                                 <span class="client-icon">🚶</span>
                                 <span class="client-name">Walk-in Customer</span>
                             </button>
-                            <button class="client-option @(selectedClientId == 1 ? "active" : "")" @onclick="() => SelectClient(1, \"Mona la Dona\")">
+                            <button class="client-option @(selectedClientId == 1 ? "active" : "")" @onclick="@(() => SelectClient(1, "Mona la Dona"))">
                                 <span class="client-icon">🍩</span>
                                 <span class="client-name">Mona la Dona</span>
                             </button>
-                            <button class="client-option @(selectedClientId == 2 ? "active" : "")" @onclick="() => SelectClient(2, \"Sano Market\")">
+                            <button class="client-option @(selectedClientId == 2 ? "active" : "")" @onclick="@(() => SelectClient(2, "Sano Market"))">
                                 <span class="client-icon">🥬</span>
                                 <span class="client-name">Sano Market</span>
                             </button>
-                            <button class="client-option @(selectedClientId == 3 ? "active" : "")" @onclick="() => SelectClient(3, \"La Papelería\")">
+                            <button class="client-option @(selectedClientId == 3 ? "active" : "")" @onclick="@(() => SelectClient(3, "La Papelería"))">
                                 <span class="client-icon">📚</span>
                                 <span class="client-name">La Papelería</span>
                             </button>
@@ -67,17 +67,17 @@
                     <div class="control-panel price-panel">
                         <div class="panel-title">Tipo de Precio</div>
                         <div class="price-options">
-                            <button class="price-option @(selectedPriceType == "public" ? "active" : "")" @onclick="() => SelectPriceType(\"public\")">
+                            <button class="price-option @(selectedPriceType == "public" ? "active" : "")" @onclick="@(() => SelectPriceType("public"))">
                                 <span class="price-icon">🏷️</span>
                                 <span class="price-name">Precio Público</span>
                                 <span class="price-desc">Para clientes finales</span>
                             </button>
-                            <button class="price-option @(selectedPriceType == "retail" ? "active" : "")" @onclick="() => SelectPriceType(\"retail\")">
+                            <button class="price-option @(selectedPriceType == "retail" ? "active" : "")" @onclick="@(() => SelectPriceType("retail"))">
                                 <span class="price-icon">🏪</span>
                                 <span class="price-name">Precio POS</span>
                                 <span class="price-desc">Para revendedores</span>
                             </button>
-                            <button class="price-option @(selectedPriceType == "cost" ? "active" : "")" @onclick="() => SelectPriceType(\"cost\")">
+                            <button class="price-option @(selectedPriceType == "cost" ? "active" : "")" @onclick="@(() => SelectPriceType("cost"))">
                                 <span class="price-icon">📊</span>
                                 <span class="price-name">Precio Costo</span>
                                 <span class="price-desc">Para análisis</span>
@@ -136,7 +136,7 @@
                 @foreach (var product in GetFilteredProducts())
                 {
                     <div class="product-tile @(selectedProducts.ContainsKey(product.Id) ? "selected" : "")" 
-                         @onclick="() => ToggleProduct(product)">
+                         @onclick="@(() => ToggleProduct(product))">
                         
                         <!-- Product Info -->
                         <div class="product-display">
@@ -149,9 +149,9 @@
                         @if (selectedProducts.ContainsKey(product.Id))
                         {
                             <div class="quantity-overlay">
-                                <button class="qty-btn minus" @onclick:stopPropagation="true" @onclick="() => DecrementQuantity(product.Id)">−</button>
+                                <button class="qty-btn minus" @onclick:stopPropagation="true" @onclick="@(() => DecrementQuantity(product.Id))">−</button>
                                 <span class="qty-display">@selectedProducts[product.Id]</span>
-                                <button class="qty-btn plus" @onclick:stopPropagation="true" @onclick="() => IncrementQuantity(product.Id)">+</button>
+                                <button class="qty-btn plus" @onclick:stopPropagation="true" @onclick="@(() => IncrementQuantity(product.Id))">+</button>
                             </div>
                         }
                         
@@ -186,7 +186,7 @@
                                 <div class="item-name">@product.ProductName</div>
                                 <div class="item-calculation">@item.Value × @unitPrice.ToString("C") = @totalPrice.ToString("C")</div>
                             </div>
-                            <button class="remove-item" @onclick="() => RemoveFromOrder(item.Key)">×</button>
+                            <button class="remove-item" @onclick="@(() => RemoveFromOrder(item.Key))">×</button>
                         </div>
                     }
                 </div>
@@ -393,7 +393,7 @@
     
     // ============= ACTIONS =============
     
-    private async Task ProcessOrder()
+    private void ProcessOrder()
     {
         // TODO: Implement order processing logic
         // This would create an Order entity and save to database
