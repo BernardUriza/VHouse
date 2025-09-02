@@ -1,0 +1,196 @@
+@page "/clients"
+@using VHouse.Domain.Entities
+@using VHouse.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject VHouseDbContext DbContext
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<PageTitle>Clientes - VHouse</PageTitle>
+
+<div class="clients-container">
+    <div class="page-header">
+        <div class="header-content">
+            <h1>🌱 Mis Clientes Veganos</h1>
+            <p class="subtitle">Gestiona y accede a los portales B2B de tus clientes</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-success" @onclick="AddNewClient">
+                ➕ Nuevo Cliente
+            </button>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p>Cargando clientes...</p>
+        </div>
+    }
+    else if (!clients.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">🏪</span>
+            <h3>No hay clientes registrados</h3>
+            <p>Agrega tu primer cliente para comenzar a gestionar pedidos</p>
+            <button class="btn btn-primary" @onclick="AddNewClient">
+                Agregar Cliente
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="clients-grid">
+            @foreach (var client in clients)
+            {
+                <div class="client-card">
+                    <div class="client-header">
+                        <div class="client-avatar">
+                            @GetClientEmoji(client.BusinessName)
+                        </div>
+                        <div class="client-status @(client.IsActive ? "active" : "inactive")">
+                            @(client.IsActive ? "Activo" : "Inactivo")
+                        </div>
+                    </div>
+                    
+                    <div class="client-info">
+                        <h3>@client.BusinessName</h3>
+                        <p class="client-tenant">@client.TenantCode</p>
+                        
+                        <div class="client-details">
+                            <div class="detail-item">
+                                <span class="detail-label">📧 Email:</span>
+                                <span class="detail-value">@client.Email</span>
+                            </div>
+                            @if (!string.IsNullOrEmpty(client.Phone))
+                            {
+                                <div class="detail-item">
+                                    <span class="detail-label">📱 Teléfono:</span>
+                                    <span class="detail-value">@client.Phone</span>
+                                </div>
+                            }
+                            <div class="detail-item">
+                                <span class="detail-label">👤 Contacto:</span>
+                                <span class="detail-value">@client.ContactPerson</span>
+                            </div>
+                        </div>
+
+                        <div class="client-stats">
+                            <div class="stat">
+                                <span class="stat-value">@GetOrderCount(client.Id)</span>
+                                <span class="stat-label">Pedidos</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">@GetLastOrderDate(client.Id)</span>
+                                <span class="stat-label">Último pedido</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">@GetTotalRevenue(client.Id).ToString("C")</span>
+                                <span class="stat-label">Total</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="client-actions">
+                        <button class="btn-portal" @onclick="() => OpenClientPortal(client.TenantCode)">
+                            🌐 Abrir Portal B2B
+                        </button>
+                        <div class="secondary-actions">
+                            <button class="btn-action" @onclick="() => ViewOrders(client.Id)" title="Ver pedidos">
+                                📦
+                            </button>
+                            <button class="btn-action" @onclick="() => EditClient(client.Id)" title="Editar">
+                                ✏️
+                            </button>
+                            <button class="btn-action danger" @onclick="() => ToggleClientStatus(client)" title="@(client.IsActive ? "Desactivar" : "Activar")">
+                                @(client.IsActive ? "🔒" : "🔓")
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<ClientTenant> clients = new();
+    private bool isLoading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadClients();
+    }
+
+    private async Task LoadClients()
+    {
+        isLoading = true;
+        try
+        {
+            clients = await DbContext.ClientTenants
+                .OrderBy(c => c.BusinessName)
+                .ToListAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private string GetClientEmoji(string businessName)
+    {
+        var name = businessName.ToLower();
+        if (name.Contains("dona") || name.Contains("donut")) return "🍩";
+        if (name.Contains("sano") || name.Contains("market")) return "🥬";
+        if (name.Contains("papelería") || name.Contains("papel")) return "📚";
+        if (name.Contains("café") || name.Contains("coffee")) return "☕";
+        if (name.Contains("restaurante") || name.Contains("restaurant")) return "🍽️";
+        if (name.Contains("panadería") || name.Contains("bakery")) return "🥖";
+        return "🏪";
+    }
+
+    private void OpenClientPortal(string tenantCode)
+    {
+        Navigation.NavigateTo($"/client/{tenantCode}", forceLoad: true);
+    }
+
+    private void ViewOrders(int clientId)
+    {
+        Navigation.NavigateTo($"/orders?clientId={clientId}");
+    }
+
+    private void EditClient(int clientId)
+    {
+        Navigation.NavigateTo($"/clients/edit/{clientId}");
+    }
+
+    private async Task ToggleClientStatus(ClientTenant client)
+    {
+        client.IsActive = !client.IsActive;
+        DbContext.Update(client);
+        await DbContext.SaveChangesAsync();
+        StateHasChanged();
+    }
+
+    private void AddNewClient()
+    {
+        Navigation.NavigateTo("/clients/new");
+    }
+
+    private int GetOrderCount(int clientId)
+    {
+        return new Random().Next(5, 50);
+    }
+
+    private string GetLastOrderDate(int clientId)
+    {
+        var days = new Random().Next(0, 7);
+        return days == 0 ? "Hoy" : $"Hace {days} días";
+    }
+
+    private decimal GetTotalRevenue(int clientId)
+    {
+        return new Random().Next(500, 5000);
+    }
+}

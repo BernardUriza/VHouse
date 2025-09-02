@@ -1,0 +1,463 @@
+/* ========================================
+   DELIVERIES PAGE STYLES
+   VHouse - Delivery Tracking System
+   ======================================== */
+
+.deliveries-container {
+    padding: 2rem;
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+/* Header Section */
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 2px solid rgba(76, 175, 80, 0.2);
+    gap: 2rem;
+}
+
+.header-content h1 {
+    color: #2d3748;
+    margin: 0;
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.subtitle {
+    color: #718096;
+    margin: 0.5rem 0 0;
+    font-size: 1.1rem;
+}
+
+.header-actions {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-end;
+}
+
+/* Filter Buttons */
+.filter-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.filter-btn {
+    padding: 0.5rem 1rem;
+    background: white;
+    border: 2px solid var(--border-color);
+    border-radius: var(--radius-md);
+    color: var(--text-primary);
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.filter-btn:hover {
+    background: var(--background-secondary);
+}
+
+.filter-btn.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: white;
+}
+
+/* Stats Cards */
+.stats-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.stat-card {
+    background: white;
+    padding: 1.5rem;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-card::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+}
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    font-size: 2rem;
+    width: 60px;
+    height: 60px;
+    background: var(--primary-alpha-10);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--primary);
+    line-height: 1;
+}
+
+.stat-label {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+    margin-top: 0.25rem;
+}
+
+/* Deliveries Grid */
+.deliveries-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+    gap: 1.5rem;
+}
+
+/* Delivery Card */
+.delivery-card {
+    background: white;
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border-left: 4px solid var(--border-color);
+}
+
+.delivery-card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-xl);
+}
+
+/* Status-specific borders */
+.delivery-card.pending {
+    border-left-color: #FFA726;
+}
+
+.delivery-card.intransit {
+    border-left-color: #42A5F5;
+}
+
+.delivery-card.delivered {
+    border-left-color: var(--success);
+}
+
+.delivery-card.failed {
+    border-left-color: var(--danger);
+}
+
+/* Delivery Header */
+.delivery-header {
+    padding: 1rem 1.5rem;
+    background: var(--background-secondary);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.delivery-number {
+    font-family: var(--font-mono);
+    font-size: 1.125rem;
+    color: var(--text-primary);
+}
+
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: var(--radius-full);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.status-badge.pending {
+    background: rgba(255, 167, 38, 0.2);
+    color: #FF8F00;
+}
+
+.status-badge.intransit {
+    background: rgba(66, 165, 245, 0.2);
+    color: #1976D2;
+}
+
+.status-badge.delivered {
+    background: var(--primary-alpha-20);
+    color: var(--primary-dark);
+}
+
+.status-badge.failed {
+    background: rgba(239, 68, 68, 0.2);
+    color: var(--danger);
+}
+
+/* Delivery Client */
+.delivery-client {
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.client-avatar {
+    width: 50px;
+    height: 50px;
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 4px 8px var(--primary-alpha-30);
+}
+
+.client-info h4 {
+    margin: 0 0 0.25rem;
+    color: var(--text-primary);
+    font-size: 1.125rem;
+    font-weight: 600;
+}
+
+.client-info p {
+    margin: 0;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+}
+
+/* Delivery Details */
+.delivery-details {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.375rem 0;
+    font-size: 0.875rem;
+}
+
+.detail-row .label {
+    color: var(--text-muted);
+}
+
+.detail-row .value {
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.detail-row .value.amount {
+    color: var(--primary);
+    font-weight: 700;
+    font-size: 1rem;
+}
+
+/* Delivery Items */
+.delivery-items {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.delivery-items h5 {
+    margin: 0 0 0.75rem;
+    color: var(--text-primary);
+    font-size: 0.875rem;
+    font-weight: 600;
+}
+
+.items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.delivery-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: var(--background-secondary);
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+}
+
+.product-emoji {
+    font-size: 1.125rem;
+}
+
+.product-name {
+    flex: 1;
+    color: var(--text-primary);
+}
+
+.quantity {
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.more-items {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    font-style: italic;
+    padding: 0.5rem;
+}
+
+/* Delivery Actions */
+.delivery-actions {
+    padding: 1rem 1.5rem;
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.btn-action {
+    flex: 1;
+    padding: 0.5rem 1rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+    min-width: 100px;
+}
+
+.btn-action.primary {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-action.primary:hover {
+    background: var(--primary-dark);
+}
+
+.btn-action.success {
+    background: var(--success);
+    color: white;
+}
+
+.btn-action.success:hover {
+    background: #388E3C;
+}
+
+.btn-action.secondary {
+    background: var(--background-secondary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+
+.btn-action.secondary:hover {
+    background: var(--background-tertiary);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: rgba(76, 175, 80, 0.05);
+    border-radius: var(--radius-lg);
+    margin: 2rem 0;
+}
+
+.empty-icon {
+    font-size: 5rem;
+    margin-bottom: 1rem;
+    opacity: 0.7;
+}
+
+.empty-state h3 {
+    color: var(--text-primary);
+    margin: 1rem 0 0.5rem;
+    font-size: 1.5rem;
+}
+
+.empty-state p {
+    color: var(--text-muted);
+    margin-bottom: 2rem;
+}
+
+/* Loading State */
+.loading-container {
+    text-align: center;
+    padding: 4rem;
+}
+
+.spinner {
+    width: 50px;
+    height: 50px;
+    border: 4px solid rgba(76, 175, 80, 0.1);
+    border-top-color: var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 0 auto 1rem;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .deliveries-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .page-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1rem;
+    }
+    
+    .header-actions {
+        width: 100%;
+        align-items: stretch;
+    }
+    
+    .filter-buttons {
+        justify-content: center;
+    }
+    
+    .stats-cards {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 480px) {
+    .stats-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .delivery-actions {
+        flex-direction: column;
+    }
+    
+    .btn-action {
+        flex: none;
+    }
+}

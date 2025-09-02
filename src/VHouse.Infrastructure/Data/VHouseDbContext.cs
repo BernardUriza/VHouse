@@ -18,6 +18,15 @@ public class VHouseDbContext : DbContext
     // B2B Client Portal entities
     public DbSet<ClientTenant> ClientTenants { get; set; }
     public DbSet<ClientProduct> ClientProducts { get; set; }
+    
+    // Delivery tracking entities
+    public DbSet<Delivery> Deliveries { get; set; }
+    public DbSet<DeliveryItem> DeliveryItems { get; set; }
+    
+    // Consignment system entities  
+    public DbSet<Consignment> Consignments { get; set; }
+    public DbSet<ConsignmentItem> ConsignmentItems { get; set; }
+    public DbSet<ConsignmentSale> ConsignmentSales { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -97,6 +106,102 @@ public class VHouseDbContext : DbContext
                 
             // Prevent duplicate assignments
             entity.HasIndex(cp => new { cp.ClientTenantId, cp.ProductId }).IsUnique();
+        });
+
+        // Delivery configuration
+        modelBuilder.Entity<Delivery>(entity =>
+        {
+            entity.HasKey(d => d.Id);
+            entity.Property(d => d.DeliveryNumber).IsRequired().HasMaxLength(50);
+            entity.Property(d => d.TotalAmount).HasColumnType("decimal(18,2)");
+            entity.Property(d => d.DeliveryLatitude).HasColumnType("decimal(10,8)");
+            entity.Property(d => d.DeliveryLongitude).HasColumnType("decimal(11,8)");
+            
+            entity.HasOne(d => d.Order)
+                .WithMany()
+                .HasForeignKey(d => d.OrderId);
+                
+            entity.HasOne(d => d.ClientTenant)
+                .WithMany()
+                .HasForeignKey(d => d.ClientTenantId);
+                
+            entity.HasIndex(d => d.DeliveryNumber).IsUnique();
+            entity.HasIndex(d => d.DeliveryDate);
+            entity.HasIndex(d => d.Status);
+        });
+
+        // DeliveryItem configuration
+        modelBuilder.Entity<DeliveryItem>(entity =>
+        {
+            entity.HasKey(di => di.Id);
+            entity.Property(di => di.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(di => di.TotalPrice).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(di => di.Delivery)
+                .WithMany(d => d.DeliveryItems)
+                .HasForeignKey(di => di.DeliveryId);
+                
+            entity.HasOne(di => di.Product)
+                .WithMany()
+                .HasForeignKey(di => di.ProductId);
+        });
+
+        // Consignment configuration
+        modelBuilder.Entity<Consignment>(entity =>
+        {
+            entity.HasKey(c => c.Id);
+            entity.Property(c => c.ConsignmentNumber).IsRequired().HasMaxLength(50);
+            entity.Property(c => c.TotalValueAtCost).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.TotalValueAtRetail).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.StorePercentage).HasColumnType("decimal(5,2)");
+            entity.Property(c => c.BernardPercentage).HasColumnType("decimal(5,2)");
+            entity.Property(c => c.TotalSold).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.AmountDueToBernard).HasColumnType("decimal(18,2)");
+            entity.Property(c => c.AmountDueToStore).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(c => c.ClientTenant)
+                .WithMany()
+                .HasForeignKey(c => c.ClientTenantId);
+                
+            entity.HasIndex(c => c.ConsignmentNumber).IsUnique();
+            entity.HasIndex(c => c.ConsignmentDate);
+            entity.HasIndex(c => c.Status);
+        });
+
+        // ConsignmentItem configuration
+        modelBuilder.Entity<ConsignmentItem>(entity =>
+        {
+            entity.HasKey(ci => ci.Id);
+            entity.Property(ci => ci.CostPrice).HasColumnType("decimal(18,2)");
+            entity.Property(ci => ci.RetailPrice).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(ci => ci.Consignment)
+                .WithMany(c => c.ConsignmentItems)
+                .HasForeignKey(ci => ci.ConsignmentId);
+                
+            entity.HasOne(ci => ci.Product)
+                .WithMany()
+                .HasForeignKey(ci => ci.ProductId);
+        });
+
+        // ConsignmentSale configuration
+        modelBuilder.Entity<ConsignmentSale>(entity =>
+        {
+            entity.HasKey(cs => cs.Id);
+            entity.Property(cs => cs.UnitPrice).HasColumnType("decimal(18,2)");
+            entity.Property(cs => cs.TotalSaleAmount).HasColumnType("decimal(18,2)");
+            entity.Property(cs => cs.StoreAmount).HasColumnType("decimal(18,2)");
+            entity.Property(cs => cs.BernardAmount).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(cs => cs.Consignment)
+                .WithMany(c => c.ConsignmentSales)
+                .HasForeignKey(cs => cs.ConsignmentId);
+                
+            entity.HasOne(cs => cs.ConsignmentItem)
+                .WithMany()
+                .HasForeignKey(cs => cs.ConsignmentItemId);
+                
+            entity.HasIndex(cs => cs.SaleDate);
         });
     }
 }

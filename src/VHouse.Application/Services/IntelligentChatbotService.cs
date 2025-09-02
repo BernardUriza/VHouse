@@ -300,6 +300,26 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
     {
         var systemMessage = _contextService.GenerateSystemMessage(session.Context);
         
+        // Enriquecer el mensaje del sistema con datos reales si están disponibles
+        if (session.Context.AdditionalData.ContainsKey("totalOrders"))
+        {
+            var totalOrders = session.Context.AdditionalData["totalOrders"];
+            var totalRevenue = session.Context.AdditionalData.ContainsKey("totalRevenue") ? 
+                session.Context.AdditionalData["totalRevenue"] : 0;
+                
+            systemMessage += $"\n\nDATOS REALES DEL SISTEMA:\n";
+            systemMessage += $"- Total de pedidos activos: {totalOrders}\n";
+            systemMessage += $"- Ingresos totales: ${totalRevenue:F2}\n";
+            
+            if (session.Context.AdditionalData.ContainsKey("lastOrder") && 
+                session.Context.AdditionalData["lastOrder"] != null)
+            {
+                systemMessage += "- Hay pedidos recientes en el sistema\n";
+            }
+            
+            systemMessage += "\nUSA ESTOS DATOS REALES EN TUS RESPUESTAS. Ayuda a Bernard con análisis de su negocio vegano.";
+        }
+        
         // Incluir historial reciente de la conversación para mejor contexto
         var conversationHistory = GetRecentConversationHistory(session);
         var enhancedPrompt = $"{conversationHistory}\n\nUsuario: {userMessage}";
@@ -540,19 +560,35 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
 
     private async Task<ChatbotResponse> ProcessStatsCommandAsync(ChatSession session)
     {
-        var stats = $@"📊 <strong>Estadísticas de tu Sesión</strong><br/><br/>
-• Mensajes intercambiados: {session.Messages.Count}<br/>
+        // Obtener estadísticas reales si están disponibles en el contexto
+        var ordersStats = "";
+        if (session.Context.AdditionalData.ContainsKey("totalOrders"))
+        {
+            var totalOrders = session.Context.AdditionalData["totalOrders"];
+            var totalRevenue = session.Context.AdditionalData.ContainsKey("totalRevenue") ? 
+                session.Context.AdditionalData["totalRevenue"] : 0;
+            var lastOrder = session.Context.AdditionalData.ContainsKey("lastOrder") ? 
+                session.Context.AdditionalData["lastOrder"] : null;
+                
+            ordersStats = $@"<br/><strong>📦 Estadísticas de tu Negocio:</strong><br/>
+• Total de pedidos: {totalOrders}<br/>
+• Ingresos totales: ${totalRevenue:F2}<br/>
+• Último pedido: {(lastOrder != null ? "Reciente" : "Sin pedidos recientes")}<br/>";
+        }
+        
+        var stats = $@"📊 <strong>Dashboard de Bernard - VHouse</strong><br/><br/>
+• Mensajes en sesión: {session.Messages.Count}<br/>
 • Sesión iniciada: {session.CreatedAt:HH:mm}<br/>
-• Última actividad: {session.LastActivity:HH:mm}<br/>
 • Contexto actual: {session.Context.PageTitle}<br/>
-• Productos disponibles: {session.Context.AvailableProducts.Count}<br/><br/>
-🌱 <em>¡Seguimos trabajando por los animales!</em>";
+• Productos disponibles: {session.Context.AvailableProducts.Count}
+{ordersStats}<br/>
+🌱 <em>Tu negocio vegano creciendo día a día!</em>";
 
         return new ChatbotResponse
         {
             Content = stats,
             IsSuccessful = true,
-            Suggestions = new List<string> { "Ver productos", "Hacer pedido", "Más información" }
+            Suggestions = new List<string> { "Analizar ventas", "Ver clientes", "Revisar inventario" }
         };
     }
 

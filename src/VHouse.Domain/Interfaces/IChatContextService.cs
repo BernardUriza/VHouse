@@ -48,6 +48,7 @@ public class ChatContext
     public string PageTitle { get; set; } = string.Empty;
     public string UserRole { get; set; } = "Guest";
     public Dictionary<string, object> Data { get; set; } = new();
+    public Dictionary<string, object> AdditionalData { get; set; } = new();
     public List<string> AvailableActions { get; set; } = new();
     public string PrimaryFocus { get; set; } = string.Empty;
     

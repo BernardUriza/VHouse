@@ -1,0 +1,284 @@
+@page "/deliveries"
+@using VHouse.Domain.Entities
+@using VHouse.Infrastructure.Data
+@using Microsoft.EntityFrameworkCore
+@inject VHouseDbContext DbContext
+@inject NavigationManager Navigation
+@rendermode @(new InteractiveServerRenderMode(false))
+
+<PageTitle>Entregas - VHouse</PageTitle>
+
+<div class="deliveries-container">
+    <div class="page-header">
+        <div class="header-content">
+            <h1>🚚 Tracking de Entregas</h1>
+            <p class="subtitle">Gestiona y monitorea todas tus entregas a clientes</p>
+        </div>
+        <div class="header-actions">
+            <div class="filter-buttons">
+                <button class="filter-btn @(selectedStatus == "all" ? "active" : "")" @onclick="@(() => FilterByStatus("all"))">
+                    📋 Todas
+                </button>
+                <button class="filter-btn @(selectedStatus == DeliveryStatus.Pending ? "active" : "")" @onclick="() => FilterByStatus(DeliveryStatus.Pending)">
+                    ⏳ Pendientes
+                </button>
+                <button class="filter-btn @(selectedStatus == DeliveryStatus.InTransit ? "active" : "")" @onclick="() => FilterByStatus(DeliveryStatus.InTransit)">
+                    🚚 En Camino
+                </button>
+                <button class="filter-btn @(selectedStatus == DeliveryStatus.Delivered ? "active" : "")" @onclick="() => FilterByStatus(DeliveryStatus.Delivered)">
+                    ✅ Entregadas
+                </button>
+            </div>
+            <button class="btn btn-success" @onclick="CreateNewDelivery">
+                ➕ Nueva Entrega
+            </button>
+        </div>
+    </div>
+
+    <div class="stats-cards">
+        <div class="stat-card">
+            <div class="stat-icon">⏳</div>
+            <div class="stat-value">@deliveries.Count(d => d.Status == DeliveryStatus.Pending)</div>
+            <div class="stat-label">Pendientes</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">🚚</div>
+            <div class="stat-value">@deliveries.Count(d => d.Status == DeliveryStatus.InTransit)</div>
+            <div class="stat-label">En Camino</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">@deliveries.Count(d => d.Status == DeliveryStatus.Delivered)</div>
+            <div class="stat-label">Entregadas Hoy</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon">💰</div>
+            <div class="stat-value">@filteredDeliveries.Where(d => d.Status == DeliveryStatus.Delivered).Sum(d => d.TotalAmount).ToString("C")</div>
+            <div class="stat-label">Total Entregado</div>
+        </div>
+    </div>
+
+    @if (isLoading)
+    {
+        <div class="loading-container">
+            <div class="spinner"></div>
+            <p>Cargando entregas...</p>
+        </div>
+    }
+    else if (!filteredDeliveries.Any())
+    {
+        <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            <h3>No hay entregas @(selectedStatus == "all" ? "" : "con este estado")</h3>
+            <p>@(selectedStatus == "all" ? "Crea tu primera entrega para comenzar el tracking" : "Cambia el filtro para ver otras entregas")</p>
+            @if (selectedStatus == "all")
+            {
+                <button class="btn btn-primary" @onclick="CreateNewDelivery">
+                    Crear Entrega
+                </button>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="deliveries-grid">
+            @foreach (var delivery in filteredDeliveries)
+            {
+                <div class="delivery-card @delivery.Status.ToLower()">
+                    <div class="delivery-header">
+                        <div class="delivery-number">
+                            <strong>@delivery.DeliveryNumber</strong>
+                        </div>
+                        <div class="delivery-status">
+                            <span class="status-badge @delivery.Status.ToLower()">
+                                @DeliveryStatusExtensions.GetEmoji(delivery.Status) @DeliveryStatusExtensions.ToSpanish(delivery.Status)
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="delivery-client">
+                        <div class="client-avatar">
+                            @GetClientEmoji(delivery.ClientTenant.BusinessName)
+                        </div>
+                        <div class="client-info">
+                            <h4>@delivery.ClientTenant.BusinessName</h4>
+                            <p>@delivery.ContactPerson</p>
+                        </div>
+                    </div>
+
+                    <div class="delivery-details">
+                        <div class="detail-row">
+                            <span class="label">📅 Fecha:</span>
+                            <span class="value">@delivery.DeliveryDate.ToString("dd/MM/yyyy")</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">⏰ Hora:</span>
+                            <span class="value">@delivery.PlannedDeliveryDate?.ToString("HH:mm") ?? "Por definir"</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">📍 Dirección:</span>
+                            <span class="value">@(string.IsNullOrEmpty(delivery.DeliveryAddress) ? "Dirección del cliente" : delivery.DeliveryAddress)</span>
+                        </div>
+                        <div class="detail-row">
+                            <span class="label">💰 Total:</span>
+                            <span class="value amount">@delivery.TotalAmount.ToString("C")</span>
+                        </div>
+                    </div>
+
+                    <div class="delivery-items">
+                        <h5>Items a entregar (@delivery.DeliveryItems.Count productos)</h5>
+                        <div class="items-list">
+                            @foreach (var item in delivery.DeliveryItems.Take(3))
+                            {
+                                <div class="delivery-item">
+                                    <span class="product-emoji">@GetProductEmoji(item.Product.ProductName)</span>
+                                    <span class="product-name">@item.Product.ProductName</span>
+                                    <span class="quantity">x@item.QuantityDelivered</span>
+                                </div>
+                            }
+                            @if (delivery.DeliveryItems.Count > 3)
+                            {
+                                <div class="more-items">
+                                    +@(delivery.DeliveryItems.Count - 3) productos más...
+                                </div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="delivery-actions">
+                        <button class="btn-action primary" @onclick="() => ViewDeliveryDetails(delivery.Id)">
+                            👁️ Ver Detalles
+                        </button>
+                        @if (delivery.Status == DeliveryStatus.Pending)
+                        {
+                            <button class="btn-action success" @onclick="() => StartDelivery(delivery)">
+                                🚚 Iniciar Entrega
+                            </button>
+                        }
+                        @if (delivery.Status == DeliveryStatus.InTransit)
+                        {
+                            <button class="btn-action success" @onclick="() => CompleteDelivery(delivery)">
+                                ✅ Completar
+                            </button>
+                        }
+                        <button class="btn-action secondary" @onclick="() => EditDelivery(delivery.Id)">
+                            ✏️ Editar
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@code {
+    private List<Delivery> deliveries = new();
+    private List<Delivery> filteredDeliveries = new();
+    private bool isLoading = true;
+    private string selectedStatus = "all";
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDeliveries();
+        FilterByStatus("all");
+    }
+
+    private async Task LoadDeliveries()
+    {
+        isLoading = true;
+        try
+        {
+            deliveries = await DbContext.Deliveries
+                .Include(d => d.ClientTenant)
+                .Include(d => d.Order)
+                .Include(d => d.DeliveryItems)
+                    .ThenInclude(di => di.Product)
+                .OrderByDescending(d => d.CreatedAt)
+                .ToListAsync();
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private void FilterByStatus(string status)
+    {
+        selectedStatus = status;
+        filteredDeliveries = status == "all" 
+            ? deliveries 
+            : deliveries.Where(d => d.Status == status).ToList();
+        StateHasChanged();
+    }
+
+
+    private string GetClientEmoji(string businessName)
+    {
+        var name = businessName.ToLower();
+        if (name.Contains("dona") || name.Contains("donut")) return "🍩";
+        if (name.Contains("sano") || name.Contains("market")) return "🥬";
+        if (name.Contains("papelería") || name.Contains("papel")) return "📚";
+        if (name.Contains("café") || name.Contains("coffee")) return "☕";
+        if (name.Contains("restaurante") || name.Contains("restaurant")) return "🍽️";
+        if (name.Contains("panadería") || name.Contains("bakery")) return "🥖";
+        return "🏪";
+    }
+
+    private string GetProductEmoji(string productName)
+    {
+        var name = productName.ToLower();
+        if (name.Contains("leche")) return "🥛";
+        if (name.Contains("queso")) return "🧀";
+        if (name.Contains("pan")) return "🍞";
+        if (name.Contains("hamburguesa")) return "🍔";
+        if (name.Contains("pizza")) return "🍕";
+        if (name.Contains("ensalada")) return "🥗";
+        if (name.Contains("fruta")) return "🍎";
+        if (name.Contains("verdura") || name.Contains("vegetal")) return "🥬";
+        return "🌱";
+    }
+
+    private void CreateNewDelivery()
+    {
+        Navigation.NavigateTo("/deliveries/new");
+    }
+
+    private void ViewDeliveryDetails(int deliveryId)
+    {
+        Navigation.NavigateTo($"/deliveries/{deliveryId}");
+    }
+
+    private void EditDelivery(int deliveryId)
+    {
+        Navigation.NavigateTo($"/deliveries/edit/{deliveryId}");
+    }
+
+    private async Task StartDelivery(Delivery delivery)
+    {
+        delivery.Status = DeliveryStatus.InTransit;
+        delivery.DepartureTime = DateTime.Now;
+        delivery.UpdatedAt = DateTime.Now;
+        
+        DbContext.Update(delivery);
+        await DbContext.SaveChangesAsync();
+        
+        await LoadDeliveries();
+        FilterByStatus(selectedStatus);
+        StateHasChanged();
+    }
+
+    private async Task CompleteDelivery(Delivery delivery)
+    {
+        delivery.Status = DeliveryStatus.Delivered;
+        delivery.ArrivalTime = DateTime.Now;
+        delivery.CompletionTime = DateTime.Now;
+        delivery.UpdatedAt = DateTime.Now;
+        
+        DbContext.Update(delivery);
+        await DbContext.SaveChangesAsync();
+        
+        await LoadDeliveries();
+        FilterByStatus(selectedStatus);
+        StateHasChanged();
+    }
+}

@@ -191,45 +191,49 @@
         font-weight: 500;
     }
 
-    /* Reutilizar estilos existentes del ClientPortal... */
-    .ai-assistant-toggle,
-    .ai-toggle-content,
-    .ai-ripple,
-    .ai-glow,
-    .ai-pulse,
-    .ai-tooltip,
-    .ai-tooltip-arrow,
-    .ai-notification,
-    .ai-assistant-panel,
-    .ai-header,
-    .ai-header-bg,
-    .ai-avatar,
-    .ai-emoji,
-    .ai-status-indicator,
-    .ai-avatar-glow,
-    .ai-info,
-    .ai-status,
-    .ai-brand,
-    .ai-header-actions,
-    .ai-minimize-btn,
-    .ai-close-icon,
-    .ai-chat-container,
-    .ai-message,
-    .ai-message-avatar,
-    .ai-message-content,
-    .typing-indicator,
-    .ai-suggestions,
-    .ai-suggestion-chip,
-    .ai-input-container,
-    .ai-input,
-    .ai-send-button,
-    .ai-loading {
-        /* Heredar estilos del ClientPortal existente */
+    /* Importar estilos externos del archivo CSS */
+    /* Los estilos están definidos en wwwroot/css/intelligent-chatbot.css */
+    
+    /* Estilos adicionales específicos para mensajes */
+    .ai-message-content {
+        max-width: 70% !important;
+        padding: 12px 16px !important;
+        background: 
+            linear-gradient(135deg, rgba(102, 126, 234, 0.15) 0%, rgba(118, 75, 162, 0.1) 100%),
+            rgba(15, 23, 42, 0.4) !important;
+        border-radius: 18px !important;
+        color: #e2e8f0 !important;
+        font-size: 14px !important;
+        line-height: 1.5 !important;
+        border: 1px solid rgba(102, 126, 234, 0.25) !important;
+        box-shadow: 
+            0 4px 12px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+        backdrop-filter: blur(10px) !important;
+    }
+    
+    .ai-message.user .ai-message-content {
+        background: 
+            linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(129, 199, 132, 0.1) 100%),
+            rgba(15, 23, 42, 0.4) !important;
+        border-color: rgba(76, 175, 80, 0.25) !important;
+        box-shadow: 
+            0 4px 12px rgba(76, 175, 80, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05) !important;
+    }
+    
+    .ai-message-content:hover {
+        transform: translateY(-1px) !important;
+        box-shadow: 
+            0 6px 16px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+        transition: all 0.2s ease !important;
     }
 </style>
 
 @code {
     [Parameter] public object? ContextData { get; set; }
+    [Parameter] public List<Order>? OrdersData { get; set; }
     [Parameter] public bool IsExpanded { get; set; } = false;
     [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
 
@@ -254,6 +258,18 @@
         {
             Console.WriteLine($"Error inicializando chatbot: {ex.Message}");
             await InitializeFallbackSession();
+        }
+    }
+    
+    protected override async Task OnParametersSetAsync()
+    {
+        // Actualizar datos cuando cambian los parámetros
+        if (OrdersData != null && currentSession != null)
+        {
+            currentSession.Context.AdditionalData["orders"] = OrdersData;
+            currentSession.Context.AdditionalData["totalOrders"] = OrdersData.Count;
+            currentSession.Context.AdditionalData["totalRevenue"] = OrdersData.Sum(o => o.Total);
+            currentSession.Context.AdditionalData["lastOrder"] = OrdersData.OrderByDescending(o => o.OrderDate).FirstOrDefault();
         }
     }
 
@@ -352,12 +368,31 @@
             StateHasChanged();
 
             // Procesar con chatbot inteligente
+            // Enriquecer contexto con datos de pedidos si están disponibles
+            var enrichedContext = ContextData;
+            if (OrdersData != null && OrdersData.Any())
+            {
+                enrichedContext = new 
+                {
+                    originalContext = ContextData,
+                    orders = OrdersData,
+                    statistics = new
+                    {
+                        totalOrders = OrdersData.Count,
+                        totalRevenue = OrdersData.Sum(o => o.Total),
+                        todayOrders = OrdersData.Count(o => o.OrderDate.Date == DateTime.Today),
+                        lastOrder = OrdersData.OrderByDescending(o => o.OrderDate).FirstOrDefault(),
+                        averageOrderValue = OrdersData.Any() ? OrdersData.Average(o => o.Total) : 0
+                    }
+                };
+            }
+            
             var request = new ChatbotRequest
             {
                 SessionId = sessionId,
                 UserMessage = userMessage,
                 CurrentUrl = Navigation.Uri,
-                ContextData = ContextData
+                ContextData = enrichedContext
             };
 
             var response = await ChatbotService.ProcessMessageAsync(request);
@@ -499,5 +534,22 @@
         public bool IsUser { get; set; }
         public bool IsTyping { get; set; }
         public DateTime Timestamp { get; set; }
+    }
+    
+    // Importar Order si no está disponible
+    public class Order
+    {
+        public int Id { get; set; }
+        public DateTime OrderDate { get; set; }
+        public string CustomerName { get; set; } = string.Empty;
+        public decimal Total { get; set; }
+        public List<OrderItem>? Items { get; set; }
+    }
+    
+    public class OrderItem
+    {
+        public string ProductName { get; set; } = string.Empty;
+        public int Quantity { get; set; }
+        public decimal Price { get; set; }
     }
 }

@@ -1,0 +1,236 @@
+/* ========================================
+   BUTTON STYLES
+   VHouse - Shared Button Components
+   ======================================== */
+
+/* Base Button Styles */
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: var(--radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-size: 1rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    text-decoration: none;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* Button Variants */
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, #81C784 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+}
+
+.btn-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+.btn-secondary:hover {
+    background: var(--secondary-dark);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+}
+
+.btn-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.btn-danger:hover {
+    background: #DC2626;
+    box-shadow: 0 8px 20px rgba(239, 68, 68, 0.3);
+}
+
+.btn-warning {
+    background: var(--warning);
+    color: white;
+}
+
+.btn-warning:hover {
+    background: #F59E0B;
+    box-shadow: 0 8px 20px rgba(251, 191, 36, 0.3);
+}
+
+.btn-info {
+    background: var(--info);
+    color: white;
+}
+
+.btn-info:hover {
+    background: #2563EB;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+/* Outline Buttons */
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--border-color);
+    color: var(--text-primary);
+}
+
+.btn-outline:hover {
+    background: var(--background-secondary);
+}
+
+.btn-outline-primary {
+    border-color: var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline-primary:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-outline-danger {
+    border-color: var(--danger);
+    color: var(--danger);
+}
+
+.btn-outline-danger:hover {
+    background: var(--danger);
+    color: white;
+}
+
+/* Button Sizes */
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    border-radius: var(--radius-sm);
+}
+
+.btn-lg {
+    padding: 1rem 2rem;
+    font-size: 1.125rem;
+    border-radius: var(--radius-lg);
+}
+
+.btn-xl {
+    padding: 1.25rem 2.5rem;
+    font-size: 1.25rem;
+    border-radius: var(--radius-lg);
+}
+
+/* Icon Buttons */
+.btn-icon {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    font-size: 1.25rem;
+}
+
+.btn-icon.btn-sm {
+    width: 32px;
+    height: 32px;
+    font-size: 1rem;
+}
+
+.btn-icon.btn-lg {
+    width: 48px;
+    height: 48px;
+    font-size: 1.5rem;
+}
+
+/* Floating Action Button */
+.fab {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--primary) 0%, #81C784 100%);
+    color: white;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+}
+
+.fab:hover {
+    transform: scale(1.1);
+    box-shadow: 0 12px 30px rgba(76, 175, 80, 0.4);
+}
+
+/* Button Groups */
+.btn-group {
+    display: inline-flex;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.btn-group .btn {
+    border-radius: 0;
+    border-right: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.btn-group .btn:first-child {
+    border-radius: var(--radius-md) 0 0 var(--radius-md);
+}
+
+.btn-group .btn:last-child {
+    border-radius: 0 var(--radius-md) var(--radius-md) 0;
+    border-right: none;
+}
+
+/* Loading State */
+.btn-loading {
+    position: relative;
+    color: transparent !important;
+}
+
+.btn-loading::after {
+    content: "";
+    position: absolute;
+    width: 20px;
+    height: 20px;
+    top: 50%;
+    left: 50%;
+    margin-left: -10px;
+    margin-top: -10px;
+    border: 2px solid white;
+    border-radius: 50%;
+    border-top-color: transparent;
+    animation: spinner 0.6s linear infinite;
+}
+
+@keyframes spinner {
+    to { transform: rotate(360deg); }
+}
