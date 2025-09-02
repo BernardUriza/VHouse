@@ -142,13 +142,13 @@ else
     private decimal DiscountAmount => (discount / 100) * Subtotal;
     private decimal TotalPrice => Subtotal - DiscountAmount + shippingCost;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
         // customers = await CustomerService.GetCustomersAsync(); // Commented out until CustomerService is available
         customers = new List<Customer>(); // Placeholder
     }
 
-    private async Task SaveOrder()
+    private void SaveOrder()
     {
         if (!deliveryDate.HasValue) return;
 

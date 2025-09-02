@@ -193,7 +193,7 @@ public class IntelligentChatbotService : IIntelligentChatbotService
         return session;
     }
 
-    public async Task<List<string>> GetContextualSuggestionsAsync(string sessionId, string? lastMessage = null)
+    public List<string> GetContextualSuggestions(string sessionId, string? lastMessage = null)
     {
         if (_activeSessions.TryGetValue(sessionId, out var session))
         {
@@ -202,7 +202,7 @@ public class IntelligentChatbotService : IIntelligentChatbotService
             // Personalizar sugerencias basado en el último mensaje
             if (!string.IsNullOrEmpty(lastMessage))
             {
-                var customSuggestions = await GenerateCustomSuggestionsAsync(lastMessage, session.Context);
+                var customSuggestions = GenerateCustomSuggestions(lastMessage, session.Context);
                 return customSuggestions.Any() ? customSuggestions : baseSuggestions;
             }
             
@@ -212,7 +212,7 @@ public class IntelligentChatbotService : IIntelligentChatbotService
         return _contextService.GetContextualSuggestions(new ChatContext());
     }
 
-    public async Task<ChatbotResponse> ProcessSpecialCommandAsync(string command, ChatSession session)
+    public ChatbotResponse ProcessSpecialCommand(string command, ChatSession session)
     {
         _logger.LogInformation("Procesando comando especial: {Command} para sesión {SessionId}", command, session.SessionId);
 
@@ -220,12 +220,12 @@ public class IntelligentChatbotService : IIntelligentChatbotService
         
         return lowerCommand switch
         {
-            "/productos" or "/catalog" => await ProcessProductsCommandAsync(session),
-            "/pedido" or "/order" => await ProcessOrderCommandAsync(session),
-            "/precios" or "/prices" => await ProcessPricesCommandAsync(session),
-            "/help" or "/ayuda" => await ProcessHelpCommandAsync(session),
-            "/stats" or "/estadisticas" => await ProcessStatsCommandAsync(session),
-            "/clear" or "/limpiar" => await ProcessClearCommandAsync(session),
+            "/productos" or "/catalog" => ProcessProductsCommand(session),
+            "/pedido" or "/order" => ProcessOrderCommand(session),
+            "/precios" or "/prices" => ProcessPricesCommand(session),
+            "/help" or "/ayuda" => ProcessHelpCommand(session),
+            "/stats" or "/estadisticas" => ProcessStatsCommand(session),
+            "/clear" or "/limpiar" => ProcessClearCommand(session),
             _ => new ChatbotResponse
             {
                 Content = $"🤔 No reconozco el comando <strong>{command}</strong><br/><br/>Comandos disponibles:<br/>• /productos - Ver catálogo<br/>• /pedido - Crear pedido<br/>• /precios - Consultar precios<br/>• /help - Mostrar ayuda<br/>• /clear - Limpiar chat",
@@ -374,7 +374,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<List<string>> GenerateCustomSuggestionsAsync(string lastMessage, ChatContext context)
+    private List<string> GenerateCustomSuggestions(string lastMessage, ChatContext context)
     {
         var lowerMessage = lastMessage.ToLowerInvariant();
         
@@ -489,7 +489,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
     }
 
     // Comandos especiales
-    private async Task<ChatbotResponse> ProcessProductsCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessProductsCommand(ChatSession session)
     {
         var productList = string.Join("<br/>", 
             session.Context.AvailableProducts.Take(10).Select(p => 
@@ -510,7 +510,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<ChatbotResponse> ProcessOrderCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessOrderCommand(ChatSession session)
     {
         return new ChatbotResponse
         {
@@ -520,7 +520,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<ChatbotResponse> ProcessPricesCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessPricesCommand(ChatSession session)
     {
         var priceList = string.Join("<br/>", 
             session.Context.AvailableProducts.Take(8).Select(p => 
@@ -534,7 +534,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<ChatbotResponse> ProcessHelpCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessHelpCommand(ChatSession session)
     {
         var availableCommands = @"🆘 <strong>Ayuda - VeganAI Assistant</strong><br/><br/>
 <strong>Comandos disponibles:</strong><br/>
@@ -558,7 +558,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<ChatbotResponse> ProcessStatsCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessStatsCommand(ChatSession session)
     {
         // Obtener estadísticas reales si están disponibles en el contexto
         var ordersStats = "";
@@ -592,7 +592,7 @@ Ejemplo: product-inquiry|leche de avena, 500ml|0.85";
         };
     }
 
-    private async Task<ChatbotResponse> ProcessClearCommandAsync(ChatSession session)
+    private ChatbotResponse ProcessClearCommand(ChatSession session)
     {
         // Mantener solo mensaje de bienvenida
         var welcomeMessage = session.Messages.FirstOrDefault(m => 

@@ -220,7 +220,7 @@ public class AIService : IAIService
         return await GenerateTextAsync(request);
     }
 
-    public async Task<Dictionary<string, bool>> CheckAIServicesHealthAsync()
+    public Dictionary<string, bool> CheckAIServicesHealth()
     {
         var healthStatus = new Dictionary<string, bool>();
 

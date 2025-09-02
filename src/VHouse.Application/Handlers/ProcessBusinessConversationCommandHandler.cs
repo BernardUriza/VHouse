@@ -381,7 +381,7 @@ Responde ahora:";
                 };
             }
 
-            var extractedItems = await ExtractOrderItems(aiResponse.Content);
+            var extractedItems = ExtractOrderItems(aiResponse.Content);
             var orderSummary = CalculateOrderSummary(extractedItems);
             var alerts = GenerateBusinessAlerts(extractedItems, context);
             var missingInfo = IdentifyMissingInformation(aiResponse.Content);
@@ -504,7 +504,7 @@ Procesa ahora:";
         };
     }
 
-    private async Task<List<OrderItem>> ExtractOrderItems(string aiContent)
+    private List<OrderItem> ExtractOrderItems(string aiContent)
     {
         var items = new List<OrderItem>();
         

@@ -232,7 +232,7 @@ namespace VHouse.Application.Services
             _aiService = aiService;
         }
 
-        public async Task<ChurnRisk> PredictChurnRisk(int customerId, Customer customer, List<Order> recentOrders)
+        public ChurnRisk PredictChurnRisk(int customerId, Customer customer, List<Order> recentOrders)
         {
             var riskFactors = new List<string>();
             var churnProbability = 0.0;

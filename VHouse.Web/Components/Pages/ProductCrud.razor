@@ -642,12 +642,12 @@
     private string aiGeneratedDescription = string.Empty;
     private bool isGeneratingDescription = false;
 
-    protected override async Task OnInitializedAsync()
+    protected override void OnInitialized()
     {
-        await LoadProductsAsync();
+        LoadProducts();
     }
 
-    private async Task LoadProductsAsync()
+    private void LoadProducts()
     {
         // products = await ProductService.GetProductsAsync(); // Commented out until ProductService is available
         products = new List<Product>(); // Placeholder

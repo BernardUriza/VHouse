@@ -1866,7 +1866,7 @@ else
             {
                 Console.WriteLine($"Error inicializando chatbot inteligente: {ex.Message}");
                 // Fallback al comportamiento anterior
-                await InitializeFallbackChat();
+                InitializeFallbackChat();
             }
         }
         StateHasChanged();
@@ -1988,7 +1988,7 @@ else
         }
     }
 
-    private async Task InitializeFallbackChat()
+    private void InitializeFallbackChat()
     {
         // Mensaje de bienvenida fallback si falla el sistema inteligente
         aiMessages.Add(new AiMessage

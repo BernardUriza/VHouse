@@ -257,11 +257,11 @@
         catch (Exception ex)
         {
             Console.WriteLine($"Error inicializando chatbot: {ex.Message}");
-            await InitializeFallbackSession();
+            InitializeFallbackSession();
         }
     }
     
-    protected override async Task OnParametersSetAsync()
+    protected override void OnParametersSet()
     {
         // Actualizar datos cuando cambian los parámetros
         if (OrdersData != null && currentSession != null)
@@ -295,7 +295,7 @@
         StateHasChanged();
     }
 
-    private async Task InitializeFallbackSession()
+    private void InitializeFallbackSession()
     {
         messages.Add(new ChatMessage
         {
