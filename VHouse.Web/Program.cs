@@ -17,7 +17,7 @@ if (File.Exists(envFile))
     Console.WriteLine($"📁 Loading .env file...");
     foreach (var line in File.ReadAllLines(envFile))
     {
-        if (string.IsNullOrWhiteSpace(line) || line.StartsWith("#")) continue;
+        if (string.IsNullOrWhiteSpace(line) || line.StartsWith('#')) continue;
         
         var parts = line.Split('=', 2);
         if (parts.Length == 2)
@@ -68,6 +68,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.UseAntiforgery();
 
+app.MapControllers();
 app.MapRazorPages();
 app.MapRazorComponents<VHouse.Web.Components.App>()
    .AddInteractiveServerRenderMode();

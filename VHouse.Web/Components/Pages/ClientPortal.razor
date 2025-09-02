@@ -3,13 +3,15 @@
 @using VHouse.Infrastructure.Data
 @using Microsoft.EntityFrameworkCore
 @using OrderItemEntity = VHouse.Domain.Entities.OrderItem
+@using System.Text.Json
+@using System.Text
 @using VHouse.Domain.Interfaces
-@using VHouse.Domain.ValueObjects
-@using VHouse.Domain.Enums
 @inject VHouseDbContext DbContext
 @inject IJSRuntime JSRuntime
 @inject NavigationManager Navigation
-@inject IAIService AIService
+@inject HttpClient HttpClient
+@inject IIntelligentChatbotService IntelligentChatbot
+@inject IChatContextService ChatContext
 @rendermode @(new InteractiveServerRenderMode(false))
 
 <PageTitle>@clientTenant?.BusinessName Portal - VHouse</PageTitle>
@@ -191,31 +193,53 @@ else
         ↑
     </div>
     
-    <!-- ASISTENTE IA FUTURISTA FLOTANTE 🤖 -->
+    <!-- 🤖 ASISTENTE IA VEGANO PROFESIONAL FLOTANTE -->
     <div class="ai-assistant-container @(isAiExpanded ? "expanded" : "collapsed")">
-        <div class="ai-assistant-toggle" @onclick="ToggleAiAssistant">
+        <!-- Botón flotante principal -->
+        <div class="ai-assistant-toggle" @onclick="@(async () => await ToggleAiAssistant())">
             @if (!isAiExpanded)
             {
-                <span class="ai-pulse">🧠</span>
+                <div class="ai-toggle-content">
+                    <span class="ai-pulse">🌱</span>
+                    <div class="ai-ripple"></div>
+                    <div class="ai-glow"></div>
+                </div>
                 <span class="ai-notification @(hasNewAiMessage ? "active" : "")"></span>
+                <div class="ai-tooltip">
+                    <span>Asistente Vegano IA</span>
+                    <div class="ai-tooltip-arrow"></div>
+                </div>
             }
             else
             {
-                <span>✕</span>
+                <div class="ai-close-icon">
+                    <span>✕</span>
+                </div>
             }
         </div>
         
         @if (isAiExpanded)
         {
             <div class="ai-assistant-panel">
+                <!-- Header mejorado -->
                 <div class="ai-header">
+                    <div class="ai-header-bg"></div>
                     <div class="ai-avatar">
                         <span class="ai-emoji">🌱</span>
-                        <div class="ai-status-indicator"></div>
+                        <div class="ai-status-indicator @(isAiThinking ? "thinking" : "ready")"></div>
+                        <div class="ai-avatar-glow"></div>
                     </div>
                     <div class="ai-info">
                         <h3>VeganAI Assistant</h3>
                         <p class="ai-status">@aiStatus</p>
+                        <div class="ai-brand">
+                            <span>Powered by Claude AI</span>
+                        </div>
+                    </div>
+                    <div class="ai-header-actions">
+                        <button class="ai-minimize-btn" @onclick="MinimizeChat" title="Minimizar">
+                            <span>−</span>
+                        </button>
                     </div>
                 </div>
                 
@@ -880,63 +904,166 @@ else
         position: relative;
     }
 
-    /* 🤖 ASISTENTE IA FUTURISTA FLOTANTE */
+    /* 🤖 ASISTENTE IA VEGANO PROFESIONAL FLOTANTE */
     .ai-assistant-container {
         position: fixed;
-        bottom: 30px;
-        right: 30px;
+        bottom: 25px;
+        right: 25px;
         z-index: 9999;
-        transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.15));
     }
 
     .ai-assistant-container.collapsed {
-        width: 70px;
-        height: 70px;
+        width: 75px;
+        height: 75px;
     }
 
     .ai-assistant-container.expanded {
-        width: 380px;
-        height: 600px;
-        max-height: 80vh;
+        width: 420px;
+        height: 650px;
+        max-height: 85vh;
     }
 
     .ai-assistant-toggle {
         position: absolute;
         top: 0;
         right: 0;
-        width: 70px;
-        height: 70px;
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        width: 75px;
+        height: 75px;
+        background: linear-gradient(135deg, #4CAF50 0%, #81C784 50%, #A5D6A7 100%);
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
         cursor: pointer;
-        box-shadow: 0 10px 40px rgba(102, 126, 234, 0.4);
-        transition: all 0.3s ease;
-        border: 3px solid rgba(255, 255, 255, 0.1);
-        animation: float 3s ease-in-out infinite;
+        box-shadow: 
+            0 15px 35px rgba(76, 175, 80, 0.4),
+            0 5px 15px rgba(0, 0, 0, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.2);
+        transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+        border: 2px solid rgba(255, 255, 255, 0.15);
+        overflow: hidden;
+        backdrop-filter: blur(10px);
     }
 
-    @@keyframes float {
-        0%, 100% { transform: translateY(0px); }
-        50% { transform: translateY(-10px); }
+    .ai-toggle-content {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        height: 100%;
+    }
+
+    .ai-ripple {
+        position: absolute;
+        border: 2px solid rgba(76, 175, 80, 0.6);
+        border-radius: 50%;
+        width: 100%;
+        height: 100%;
+        animation: ripple 2s infinite;
+        pointer-events: none;
+    }
+
+    @@keyframes ripple {
+        0% {
+            transform: scale(1);
+            opacity: 1;
+        }
+        100% {
+            transform: scale(1.5);
+            opacity: 0;
+        }
+    }
+
+    .ai-glow {
+        position: absolute;
+        width: 120%;
+        height: 120%;
+        background: radial-gradient(circle, rgba(76, 175, 80, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: glow 3s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @@keyframes glow {
+        0% {
+            transform: scale(0.8);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
     }
 
     .ai-assistant-toggle:hover {
-        transform: scale(1.1);
-        box-shadow: 0 15px 50px rgba(102, 126, 234, 0.6);
+        transform: scale(1.08) translateY(-2px);
+        box-shadow: 
+            0 20px 40px rgba(76, 175, 80, 0.5),
+            0 10px 20px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    }
+
+    .ai-assistant-toggle:active {
+        transform: scale(1.02);
+        transition: transform 0.1s ease;
     }
 
     .ai-pulse {
-        font-size: 28px;
-        animation: pulse 2s infinite;
+        font-size: 32px;
+        animation: pulse 2.5s ease-in-out infinite;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
     }
 
     @@keyframes pulse {
-        0% { transform: scale(1); }
-        50% { transform: scale(1.1); }
-        100% { transform: scale(1); }
+        0%, 100% { 
+            transform: scale(1); 
+            opacity: 0.9;
+        }
+        50% { 
+            transform: scale(1.15); 
+            opacity: 1;
+        }
+    }
+
+    /* Tooltip elegante */
+    .ai-tooltip {
+        position: absolute;
+        right: 85px;
+        top: 50%;
+        transform: translateY(-50%);
+        background: rgba(26, 32, 44, 0.95);
+        backdrop-filter: blur(10px);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        border-radius: 12px;
+        padding: 8px 12px;
+        font-size: 12px;
+        color: #E2E8F0;
+        white-space: nowrap;
+        opacity: 0;
+        visibility: hidden;
+        transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    }
+
+    .ai-tooltip-arrow {
+        position: absolute;
+        right: -6px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 0;
+        height: 0;
+        border-left: 6px solid rgba(26, 32, 44, 0.95);
+        border-top: 6px solid transparent;
+        border-bottom: 6px solid transparent;
+    }
+
+    .ai-assistant-toggle:hover .ai-tooltip {
+        opacity: 1;
+        visibility: visible;
+        transform: translateY(-50%) translateX(-5px);
     }
 
     .ai-notification {
@@ -968,15 +1095,18 @@ else
         right: 0;
         width: 100%;
         height: 100%;
-        background: linear-gradient(135deg, rgba(26, 32, 44, 0.98) 0%, rgba(45, 55, 72, 0.98) 100%);
-        backdrop-filter: blur(20px);
+        background: linear-gradient(135deg, rgba(26, 32, 44, 0.98) 0%, rgba(45, 55, 72, 0.95) 100%);
+        backdrop-filter: blur(25px);
         border-radius: 24px;
-        border: 1px solid rgba(102, 126, 234, 0.3);
-        box-shadow: 0 25px 60px rgba(0, 0, 0, 0.5);
+        border: 1px solid rgba(76, 175, 80, 0.25);
+        box-shadow: 
+            0 30px 60px rgba(0, 0, 0, 0.3),
+            0 15px 25px rgba(76, 175, 80, 0.1),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
         display: flex;
         flex-direction: column;
         overflow: hidden;
-        animation: slideIn 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        animation: slideIn 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
     }
 
     @@keyframes slideIn {
@@ -991,12 +1121,14 @@ else
     }
 
     .ai-header {
-        padding: 20px;
-        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-        border-bottom: 1px solid rgba(102, 126, 234, 0.2);
+        position: relative;
+        padding: 24px;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.08) 0%, rgba(129, 199, 132, 0.05) 100%);
+        border-bottom: 1px solid rgba(76, 175, 80, 0.15);
         display: flex;
         align-items: center;
-        gap: 15px;
+        gap: 16px;
+        backdrop-filter: blur(10px);
     }
 
     .ai-avatar {
@@ -1236,6 +1368,148 @@ else
         from { transform: rotate(0deg); }
         to { transform: rotate(360deg); }
     }
+
+    /* 🌟 NUEVOS ESTILOS MEJORADOS PARA EL HEADER */
+    .ai-header-bg {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: radial-gradient(circle at 20% 50%, rgba(76, 175, 80, 0.1) 0%, transparent 50%);
+        pointer-events: none;
+    }
+
+    .ai-close-icon {
+        font-size: 24px;
+        color: #E2E8F0;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .ai-close-icon:hover {
+        color: #F87171;
+        transform: rotate(90deg);
+    }
+
+    .ai-header-actions {
+        margin-left: auto;
+        display: flex;
+        gap: 8px;
+        z-index: 10;
+    }
+
+    .ai-minimize-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        background: rgba(76, 175, 80, 0.1);
+        color: #E2E8F0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 18px;
+        font-weight: bold;
+    }
+
+    .ai-minimize-btn:hover {
+        background: rgba(76, 175, 80, 0.2);
+        transform: scale(1.1);
+        box-shadow: 0 5px 15px rgba(76, 175, 80, 0.2);
+    }
+
+    .ai-brand {
+        font-size: 10px;
+        color: rgba(160, 174, 192, 0.7);
+        margin-top: 2px;
+        font-weight: 500;
+    }
+
+    .ai-avatar-glow {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        background: radial-gradient(circle, rgba(76, 175, 80, 0.3) 0%, transparent 70%);
+        border-radius: 50%;
+        animation: avatarGlow 3s ease-in-out infinite alternate;
+        pointer-events: none;
+    }
+
+    @@keyframes avatarGlow {
+        0% {
+            transform: scale(0.9);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(1.1);
+            opacity: 0.8;
+        }
+    }
+
+    .ai-status-indicator.thinking {
+        background: #FFA726;
+        animation: thinking 1.5s ease-in-out infinite;
+    }
+
+    .ai-status-indicator.ready {
+        background: #4CAF50;
+        animation: ready 2s ease-in-out infinite;
+    }
+
+    @@keyframes thinking {
+        0%, 100% { 
+            opacity: 0.8; 
+            transform: scale(1);
+        }
+        50% { 
+            opacity: 1; 
+            transform: scale(1.2);
+        }
+    }
+
+    @@keyframes ready {
+        0%, 100% { 
+            opacity: 0.9; 
+        }
+        50% { 
+            opacity: 0.6; 
+        }
+    }
+
+    /* Mejoras en el avatar principal */
+    .ai-avatar {
+        position: relative;
+        width: 54px;
+        height: 54px;
+        background: linear-gradient(135deg, #4CAF50 0%, #81C784 50%, #A5D6A7 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8px 20px rgba(76, 175, 80, 0.3);
+        border: 2px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .ai-emoji {
+        font-size: 26px;
+        filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.2));
+    }
+
+    /* Mejoras visuales generales */
+    .ai-info h3 {
+        margin: 0;
+        font-size: 16px;
+        font-weight: 700;
+        background: linear-gradient(135deg, #E2E8F0 0%, #81C784 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+    }
 </style>
 
 @code {
@@ -1257,20 +1531,16 @@ else
     private decimal totalSpent = 0;
     private decimal averageOrder = 0;
     
-    // AI Assistant State
+    // Intelligent AI Assistant State
     private bool isAiExpanded = false;
     private bool isAiThinking = false;
     private bool hasNewAiMessage = false;
     private string aiInput = "";
     private string aiStatus = "Online - Listo para ayudarte 🌱";
     private List<AiMessage> aiMessages = new();
-    private List<string> aiSuggestions = new()
-    {
-        "¿Qué productos son 100% veganos?",
-        "Recomienda para donas",
-        "¿Tienen leche de avena?",
-        "Información nutricional"
-    };
+    private List<string> aiSuggestions = new();
+    private ChatSession? currentChatSession;
+    private string currentSessionId = Guid.NewGuid().ToString();
 
     protected override async Task OnInitializedAsync()
     {
@@ -1551,21 +1821,60 @@ else
         ");
     }
 
-    private void ToggleAiAssistant()
+    private async Task ToggleAiAssistant()
     {
         isAiExpanded = !isAiExpanded;
         hasNewAiMessage = false;
         
-        if (isAiExpanded && aiMessages.Count == 0)
+        if (isAiExpanded && currentChatSession == null)
         {
-            // Mensaje de bienvenida inicial
-            aiMessages.Add(new AiMessage
+            try
             {
-                Content = "¡Hola! 👋 Soy tu asistente vegano especializado. Puedo ayudarte con:<br/>• Información sobre productos veganos<br/>• Recomendaciones para tu negocio<br/>• Nutrición y beneficios<br/>• Sustitutos lácteos perfectos<br/><br/>¿En qué puedo ayudarte hoy? 🌱",
-                IsUser = false,
-                Timestamp = DateTime.Now
-            });
+                // Inicializar sesión contextual con datos del cliente actual
+                var contextData = new
+                {
+                    clientTenant = clientTenant,
+                    availableProducts = availableProducts,
+                    recentOrders = clientOrders,
+                    totalSpent = totalSpent,
+                    averageOrder = averageOrder
+                };
+
+                currentChatSession = await IntelligentChatbot.InitializeChatSessionAsync(
+                    Navigation.Uri, contextData);
+                
+                currentSessionId = currentChatSession.SessionId;
+                
+                // Convertir mensajes de la sesión a formato de UI
+                aiMessages.Clear();
+                foreach (var msg in currentChatSession.Messages)
+                {
+                    aiMessages.Add(new AiMessage
+                    {
+                        Content = msg.Content,
+                        IsUser = msg.IsUser,
+                        Timestamp = msg.Timestamp
+                    });
+                }
+                
+                // Obtener sugerencias contextuales iniciales
+                aiSuggestions = await IntelligentChatbot.GetContextualSuggestionsAsync(currentSessionId);
+                
+                aiStatus = $"Conectado - {currentChatSession.Context.PageTitle} 🌱";
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error inicializando chatbot inteligente: {ex.Message}");
+                // Fallback al comportamiento anterior
+                await InitializeFallbackChat();
+            }
         }
+        StateHasChanged();
+    }
+
+    private void MinimizeChat()
+    {
+        isAiExpanded = false;
         StateHasChanged();
     }
 
@@ -1574,61 +1883,128 @@ else
         var userMessage = message ?? aiInput;
         if (string.IsNullOrWhiteSpace(userMessage)) return;
 
-        // Add user message
-        aiMessages.Add(new AiMessage
+        try
         {
-            Content = userMessage,
-            IsUser = true,
-            Timestamp = DateTime.Now
-        });
-
-        aiInput = "";
-        isAiThinking = true;
-        aiStatus = "Pensando... 🤔";
-        StateHasChanged();
-
-        // Add typing indicator
-        var typingMessage = new AiMessage
-        {
-            Content = "",
-            IsUser = false,
-            IsTyping = true,
-            Timestamp = DateTime.Now
-        };
-        aiMessages.Add(typingMessage);
-        StateHasChanged();
-
-        // Simulate AI thinking
-        await Task.Delay(1500);
-
-        // Remove typing indicator
-        aiMessages.Remove(typingMessage);
-
-        // Generate AI response using Claude
-        var response = await GenerateAiResponse(userMessage);
-        
-        aiMessages.Add(new AiMessage
-        {
-            Content = response,
-            IsUser = false,
-            Timestamp = DateTime.Now
-        });
-
-        isAiThinking = false;
-        aiStatus = "Online - Listo para ayudarte 🌱";
-        
-        // Update suggestions based on context
-        UpdateAiSuggestions(userMessage);
-        
-        StateHasChanged();
-        
-        // Scroll to bottom
-        await JSRuntime.InvokeVoidAsync("eval", @"
-            const chatContainer = document.getElementById('aiChatContainer');
-            if (chatContainer) {
-                chatContainer.scrollTop = chatContainer.scrollHeight;
+            // Asegurar que tenemos una sesión activa
+            if (currentChatSession == null)
+            {
+                await ToggleAiAssistant();
             }
-        ");
+
+            // Add user message to UI
+            aiMessages.Add(new AiMessage
+            {
+                Content = userMessage,
+                IsUser = true,
+                Timestamp = DateTime.Now
+            });
+
+            aiInput = "";
+            isAiThinking = true;
+            aiStatus = "Pensando... 🤔";
+            StateHasChanged();
+
+            // Add typing indicator
+            var typingMessage = new AiMessage
+            {
+                Content = "",
+                IsUser = false,
+                IsTyping = true,
+                Timestamp = DateTime.Now
+            };
+            aiMessages.Add(typingMessage);
+            StateHasChanged();
+
+            // Procesar mensaje con el chatbot inteligente
+            var chatRequest = new ChatbotRequest
+            {
+                SessionId = currentSessionId,
+                UserMessage = userMessage,
+                CurrentUrl = Navigation.Uri,
+                ContextData = new
+                {
+                    clientTenant = clientTenant,
+                    availableProducts = availableProducts,
+                    recentOrders = clientOrders,
+                    totalSpent = totalSpent,
+                    averageOrder = averageOrder
+                }
+            };
+
+            var response = await IntelligentChatbot.ProcessMessageAsync(chatRequest);
+
+            // Remove typing indicator
+            aiMessages.Remove(typingMessage);
+
+            // Add AI response
+            aiMessages.Add(new AiMessage
+            {
+                Content = response.Content,
+                IsUser = false,
+                Timestamp = DateTime.Now
+            });
+
+            // Actualizar sugerencias contextuales
+            aiSuggestions = response.Suggestions;
+            
+            // Actualizar estado
+            isAiThinking = false;
+            aiStatus = response.IsSuccessful ? 
+                $"Online - {response.UsedContext.PageTitle} 🌱" : 
+                "Error temporal - Reintentando... ⚠️";
+            
+            StateHasChanged();
+            
+            // Scroll to bottom
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                const chatContainer = document.getElementById('aiChatContainer');
+                if (chatContainer) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error enviando mensaje: {ex.Message}");
+            
+            // Remove typing indicator if it exists
+            var typingMsg = aiMessages.FirstOrDefault(m => m.IsTyping);
+            if (typingMsg != null)
+            {
+                aiMessages.Remove(typingMsg);
+            }
+
+            // Fallback response
+            aiMessages.Add(new AiMessage
+            {
+                Content = "🌱 Disculpa, tengo un problema técnico momentáneo. ¿Puedo ayudarte con algo específico sobre nuestros productos veganos?",
+                IsUser = false,
+                Timestamp = DateTime.Now
+            });
+
+            isAiThinking = false;
+            aiStatus = "Error temporal - Reiniciando... 🔄";
+            StateHasChanged();
+        }
+    }
+
+    private async Task InitializeFallbackChat()
+    {
+        // Mensaje de bienvenida fallback si falla el sistema inteligente
+        aiMessages.Add(new AiMessage
+        {
+            Content = "¡Hola! 👋 Soy tu asistente vegano. Puedo ayudarte con información sobre productos, precios y recomendaciones para tu negocio.<br/><br/>¿En qué puedo ayudarte hoy? 🌱",
+            IsUser = false,
+            Timestamp = DateTime.Now
+        });
+
+        aiSuggestions = new List<string>
+        {
+            "¿Qué productos son 100% veganos?",
+            "Recomienda para " + (clientTenant?.BusinessName ?? "mi negocio"),
+            "Consultar precios",
+            "Información nutricional"
+        };
     }
 
     private async Task<string> GenerateAiResponse(string userMessage)
@@ -1659,36 +2035,60 @@ INSTRUCCIONES:
 CLIENTE: {clientName}
 CONTEXTO: Portal B2B de distribución vegana premium";
 
-            var aiRequest = new AIRequest
+            var chatRequest = new
             {
-                Prompt = userMessage,
-                SystemMessage = systemMessage,
-                PreferredProvider = AIProvider.Claude,
-                MaxTokens = 500,
-                Temperature = 0.7
+                UserMessage = userMessage,
+                SystemMessage = systemMessage
             };
 
-            var response = await AIService.GenerateTextAsync(aiRequest);
+            var json = JsonSerializer.Serialize(chatRequest);
+            var content = new StringContent(json, Encoding.UTF8, "application/json");
+
+            var baseUrl = Navigation.BaseUri;
+            var apiUrl = $"{baseUrl}api/ai/chat";
+            var response = await HttpClient.PostAsync(apiUrl, content);
             
-            if (response.IsSuccessful && !string.IsNullOrWhiteSpace(response.Content))
+            if (response.IsSuccessStatusCode)
             {
-                return response.Content;
+                var responseContent = await response.Content.ReadAsStringAsync();
+                var chatResponse = JsonSerializer.Deserialize<ChatResponse>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                
+                return chatResponse?.Content ?? GetFallbackResponse(userMessage);
             }
             else
             {
-                // Fallback a respuesta básica si Claude falla
-                return $"🌱 Gracias por tu pregunta sobre <em>\"{userMessage}\"</em><br/><br/>" +
-                       $"Puedo ayudarte con información sobre nuestros {availableProducts.Count} productos veganos disponibles.<br/><br/>" +
-                       $"¿Te interesa algún producto específico? 💚";
+                return GetFallbackResponse(userMessage);
             }
         }
         catch (Exception ex)
         {
-            // Log del error y fallback
-            Console.WriteLine($"Error en AI: {ex.Message}");
-            return $"🌱 Disculpa, tengo problemas técnicos momentáneos.<br/><br/>" +
-                   $"Puedo ayudarte con nuestros {availableProducts.Count} productos veganos disponibles.<br/>" +
-                   $"¿Qué producto te interesa? 💚";
+            Console.WriteLine($"Error en AI API: {ex.Message}");
+            return GetFallbackResponse(userMessage);
+        }
+    }
+
+    private string GetFallbackResponse(string userMessage)
+    {
+        return $"🌱 Gracias por tu pregunta sobre <em>\"{userMessage}\"</em><br/><br/>" +
+               $"Puedo ayudarte con información sobre nuestros {availableProducts.Count} productos veganos disponibles.<br/><br/>" +
+               $"¿Te interesa algún producto específico? 💚";
+    }
+
+    private class ChatResponse
+    {
+        public string Content { get; set; } = "";
+        public bool IsSuccessful { get; set; }
+        public string? Provider { get; set; }
+        public string? Error { get; set; }
+        
+        public ChatResponse() { }
+        
+        public ChatResponse(string content, bool isSuccessful, string? provider = null, string? error = null)
+        {
+            Content = content;
+            IsSuccessful = isSuccessful;
+            Provider = provider;
+            Error = error;
         }
     }
 

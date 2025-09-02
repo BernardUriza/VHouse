@@ -2,6 +2,7 @@
 @using VHouse.Domain.Entities
 @using VHouse.Infrastructure.Data
 @using Microsoft.EntityFrameworkCore
+@using VHouse.Web.Components.Shared
 @inject VHouseDbContext DbContext
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(false))
@@ -355,6 +356,22 @@
             Console.WriteLine($"Error exporting CSV: {ex.Message}");
         }
     }
+
+    private object GetOrdersContextData()
+    {
+        return new
+        {
+            orders = orders,
+            totalRevenue = totalRevenue,
+            todayOrders = todayOrders,
+            averageOrderValue = averageOrderValue,
+            orderCount = orders.Count,
+            productsInOrders = orders.SelectMany(o => o.OrderItems).Select(oi => oi.Product).Distinct().ToList()
+        };
+    }
 }
+
+<!-- 🤖 CHATBOT CONTEXTUAL PARA ORDERS -->
+<IntelligentChatbot ContextData="@GetOrdersContextData()" />
 
 @* Created by Bernard Uriza Orozco *@

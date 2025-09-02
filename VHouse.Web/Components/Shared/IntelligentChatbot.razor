@@ -1,0 +1,503 @@
+@using VHouse.Domain.Interfaces
+@using VHouse.Domain.Entities
+@inject IIntelligentChatbotService ChatbotService
+@inject IChatContextService ContextService
+@inject IJSRuntime JSRuntime
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+<!-- 🤖 ASISTENTE IA VEGANO PROFESIONAL FLOTANTE UNIVERSAL -->
+<div class="ai-assistant-container @(IsExpanded ? "expanded" : "collapsed")" id="intelligent-chatbot">
+    <!-- Botón flotante principal -->
+    <div class="ai-assistant-toggle" @onclick="@(async () => await ToggleAiAssistant())">
+        @if (!IsExpanded)
+        {
+            <div class="ai-toggle-content">
+                <span class="ai-pulse">🌱</span>
+                <div class="ai-ripple"></div>
+                <div class="ai-glow"></div>
+            </div>
+            <span class="ai-notification @(hasNewMessage ? "active" : "")"></span>
+            <div class="ai-tooltip">
+                <span>@GetTooltipText()</span>
+                <div class="ai-tooltip-arrow"></div>
+            </div>
+        }
+        else
+        {
+            <div class="ai-close-icon">
+                <span>✕</span>
+            </div>
+        }
+    </div>
+    
+    @if (IsExpanded)
+    {
+        <div class="ai-assistant-panel">
+            <!-- Header contextual -->
+            <div class="ai-header">
+                <div class="ai-header-bg"></div>
+                <div class="ai-avatar">
+                    <span class="ai-emoji">🌱</span>
+                    <div class="ai-status-indicator @(isThinking ? "thinking" : "ready")"></div>
+                    <div class="ai-avatar-glow"></div>
+                </div>
+                <div class="ai-info">
+                    <h3>VeganAI Assistant</h3>
+                    <p class="ai-status">@currentStatus</p>
+                    <div class="ai-brand">
+                        <span>Powered by Claude AI</span>
+                    </div>
+                </div>
+                <div class="ai-header-actions">
+                    <button class="ai-minimize-btn" @onclick="MinimizeChat" title="Minimizar">
+                        <span>−</span>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="ai-chat-container" id="aiChatContainer">
+                @foreach (var message in messages)
+                {
+                    <div class="ai-message @(message.IsUser ? "user" : "assistant") @(message.IsTyping ? "typing" : "")">
+                        @if (!message.IsUser)
+                        {
+                            <div class="ai-message-avatar">🤖</div>
+                        }
+                        <div class="ai-message-content">
+                            @if (message.IsTyping)
+                            {
+                                <div class="typing-indicator">
+                                    <span></span>
+                                    <span></span>
+                                    <span></span>
+                                </div>
+                            }
+                            else
+                            {
+                                @((MarkupString)message.Content)
+                            }
+                        </div>
+                        @if (message.IsUser)
+                        {
+                            <div class="ai-message-avatar">👤</div>
+                        }
+                    </div>
+                }
+            </div>
+            
+            <!-- Sugerencias contextuales dinámicas -->
+            <div class="ai-suggestions">
+                @foreach (var suggestion in suggestions)
+                {
+                    <button class="ai-suggestion-chip" @onclick="() => SendMessage(suggestion)">
+                        @suggestion
+                    </button>
+                }
+            </div>
+            
+            <!-- Comandos rápidos contextuals -->
+            @if (quickActions.Any())
+            {
+                <div class="ai-quick-actions">
+                    @foreach (var action in quickActions)
+                    {
+                        <button class="ai-action-btn" @onclick="() => ExecuteAction(action)">
+                            <span class="action-icon">@action.Icon</span>
+                            <span class="action-label">@action.Label</span>
+                        </button>
+                    }
+                </div>
+            }
+            
+            <div class="ai-input-container">
+                <input type="text" @bind="inputMessage" @bind:event="oninput" 
+                       @onkeypress="@(async (e) => { if (e.Code == "Enter" && !e.ShiftKey) await SendMessage(); })"
+                       placeholder="@GetPlaceholderText()" 
+                       class="ai-input" disabled="@isThinking" />
+                <button class="ai-send-button" @onclick="@(async () => await SendMessage())" 
+                        disabled="@(isThinking || string.IsNullOrWhiteSpace(inputMessage))">
+                    @if (isThinking)
+                    {
+                        <span class="ai-loading">⏳</span>
+                    }
+                    else
+                    {
+                        <span>➤</span>
+                    }
+                </button>
+            </div>
+        </div>
+    }
+</div>
+
+<style>
+    /* Usar los estilos existentes del ClientPortal pero con mejoras */
+    .ai-assistant-container {
+        position: fixed;
+        bottom: 25px;
+        right: 25px;
+        z-index: 9999;
+        transition: all 0.5s cubic-bezier(0.25, 0.8, 0.25, 1);
+        filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.15));
+    }
+
+    .ai-assistant-container.collapsed {
+        width: 75px;
+        height: 75px;
+    }
+
+    .ai-assistant-container.expanded {
+        width: 420px;
+        height: 650px;
+        max-height: 85vh;
+    }
+
+    .ai-quick-actions {
+        padding: 10px 15px;
+        border-top: 1px solid rgba(102, 126, 234, 0.1);
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        background: rgba(15, 20, 25, 0.2);
+    }
+
+    .ai-action-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.15) 0%, rgba(129, 199, 132, 0.15) 100%);
+        border: 1px solid rgba(76, 175, 80, 0.3);
+        border-radius: 16px;
+        color: #e2e8f0;
+        font-size: 12px;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .ai-action-btn:hover {
+        background: linear-gradient(135deg, rgba(76, 175, 80, 0.25) 0%, rgba(129, 199, 132, 0.25) 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(76, 175, 80, 0.2);
+    }
+
+    .action-icon {
+        font-size: 14px;
+    }
+
+    .action-label {
+        font-weight: 500;
+    }
+
+    /* Reutilizar estilos existentes del ClientPortal... */
+    .ai-assistant-toggle,
+    .ai-toggle-content,
+    .ai-ripple,
+    .ai-glow,
+    .ai-pulse,
+    .ai-tooltip,
+    .ai-tooltip-arrow,
+    .ai-notification,
+    .ai-assistant-panel,
+    .ai-header,
+    .ai-header-bg,
+    .ai-avatar,
+    .ai-emoji,
+    .ai-status-indicator,
+    .ai-avatar-glow,
+    .ai-info,
+    .ai-status,
+    .ai-brand,
+    .ai-header-actions,
+    .ai-minimize-btn,
+    .ai-close-icon,
+    .ai-chat-container,
+    .ai-message,
+    .ai-message-avatar,
+    .ai-message-content,
+    .typing-indicator,
+    .ai-suggestions,
+    .ai-suggestion-chip,
+    .ai-input-container,
+    .ai-input,
+    .ai-send-button,
+    .ai-loading {
+        /* Heredar estilos del ClientPortal existente */
+    }
+</style>
+
+@code {
+    [Parameter] public object? ContextData { get; set; }
+    [Parameter] public bool IsExpanded { get; set; } = false;
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+
+    private ChatSession? currentSession;
+    private string sessionId = Guid.NewGuid().ToString();
+    private bool isThinking = false;
+    private bool hasNewMessage = false;
+    private string inputMessage = "";
+    private string currentStatus = "Inicializando... 🔄";
+    
+    private List<ChatMessage> messages = new();
+    private List<string> suggestions = new();
+    private List<ChatAction> quickActions = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try 
+        {
+            await InitializeChatSession();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error inicializando chatbot: {ex.Message}");
+            await InitializeFallbackSession();
+        }
+    }
+
+    private async Task InitializeChatSession()
+    {
+        currentSession = await ChatbotService.InitializeChatSessionAsync(
+            Navigation.Uri, ContextData);
+        
+        sessionId = currentSession.SessionId;
+        
+        // Convertir mensajes de sesión a formato UI
+        messages = currentSession.Messages.Select(m => new ChatMessage
+        {
+            Content = m.Content,
+            IsUser = m.IsUser,
+            Timestamp = m.Timestamp
+        }).ToList();
+        
+        suggestions = await ChatbotService.GetContextualSuggestionsAsync(sessionId);
+        quickActions = GenerateQuickActions(currentSession.Context);
+        
+        currentStatus = $"Online - {currentSession.Context.PageTitle} 🌱";
+        StateHasChanged();
+    }
+
+    private async Task InitializeFallbackSession()
+    {
+        messages.Add(new ChatMessage
+        {
+            Content = "🌱 ¡Hola! Soy tu asistente vegano. Puedo ayudarte con información sobre productos y recomendaciones.<br/><br/>¿En qué puedo ayudarte hoy?",
+            IsUser = false,
+            Timestamp = DateTime.UtcNow
+        });
+
+        suggestions = new List<string>
+        {
+            "Ver productos disponibles",
+            "Información nutricional",
+            "Hacer pedido",
+            "Contactar soporte"
+        };
+
+        currentStatus = "Online - Modo básico 🌱";
+        StateHasChanged();
+    }
+
+    private async Task ToggleAiAssistant()
+    {
+        IsExpanded = !IsExpanded;
+        await IsExpandedChanged.InvokeAsync(IsExpanded);
+        hasNewMessage = false;
+        
+        if (IsExpanded && currentSession == null)
+        {
+            await InitializeChatSession();
+        }
+        
+        StateHasChanged();
+    }
+
+    private void MinimizeChat()
+    {
+        IsExpanded = false;
+        InvokeAsync(async () => await IsExpandedChanged.InvokeAsync(false));
+        StateHasChanged();
+    }
+
+    private async Task SendMessage(string? message = null)
+    {
+        var userMessage = message ?? inputMessage;
+        if (string.IsNullOrWhiteSpace(userMessage)) return;
+
+        try
+        {
+            // Agregar mensaje del usuario
+            messages.Add(new ChatMessage
+            {
+                Content = userMessage,
+                IsUser = true,
+                Timestamp = DateTime.UtcNow
+            });
+
+            inputMessage = "";
+            isThinking = true;
+            currentStatus = "Pensando... 🤔";
+            
+            // Indicador de escritura
+            var typingMessage = new ChatMessage
+            {
+                Content = "",
+                IsUser = false,
+                IsTyping = true,
+                Timestamp = DateTime.UtcNow
+            };
+            messages.Add(typingMessage);
+            StateHasChanged();
+
+            // Procesar con chatbot inteligente
+            var request = new ChatbotRequest
+            {
+                SessionId = sessionId,
+                UserMessage = userMessage,
+                CurrentUrl = Navigation.Uri,
+                ContextData = ContextData
+            };
+
+            var response = await ChatbotService.ProcessMessageAsync(request);
+
+            // Remover indicador de escritura
+            messages.Remove(typingMessage);
+
+            // Agregar respuesta
+            messages.Add(new ChatMessage
+            {
+                Content = response.Content,
+                IsUser = false,
+                Timestamp = DateTime.UtcNow
+            });
+
+            // Actualizar sugerencias y acciones
+            suggestions = response.Suggestions;
+            if (response.RecommendedActions.Any())
+            {
+                quickActions = response.RecommendedActions;
+            }
+
+            isThinking = false;
+            currentStatus = response.IsSuccessful ? 
+                $"Online - {response.UsedContext.PageTitle} 🌱" : 
+                "Error temporal ⚠️";
+
+            StateHasChanged();
+            
+            // Scroll al final
+            await JSRuntime.InvokeVoidAsync("eval", @"
+                const chatContainer = document.getElementById('aiChatContainer');
+                if (chatContainer) {
+                    chatContainer.scrollTop = chatContainer.scrollHeight;
+                }
+            ");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error enviando mensaje: {ex.Message}");
+            
+            var errorMessage = messages.FirstOrDefault(m => m.IsTyping);
+            if (errorMessage != null)
+            {
+                messages.Remove(errorMessage);
+            }
+
+            messages.Add(new ChatMessage
+            {
+                Content = "🌱 Disculpa, tengo un problema técnico momentáneo. ¿Puedo ayudarte con algo específico?",
+                IsUser = false,
+                Timestamp = DateTime.UtcNow
+            });
+
+            isThinking = false;
+            currentStatus = "Error - Reintentando... 🔄";
+            StateHasChanged();
+        }
+    }
+
+    private async Task ExecuteAction(ChatAction action)
+    {
+        switch (action.ActionType)
+        {
+            case ActionTypes.ShowProducts:
+                await SendMessage("/productos");
+                break;
+            case ActionTypes.CreateOrder:
+                await SendMessage("/pedido");
+                break;
+            case ActionTypes.ShowPrices:
+                await SendMessage("/precios");
+                break;
+            case ActionTypes.ContactSupport:
+                await SendMessage("¿Cómo puedo contactar a Bernard?");
+                break;
+            default:
+                await SendMessage(action.Label);
+                break;
+        }
+    }
+
+    private List<ChatAction> GenerateQuickActions(ChatContext context)
+    {
+        return context.PageType switch
+        {
+            PageTypes.ClientPortal => new List<ChatAction>
+            {
+                new ChatAction { ActionType = ActionTypes.ShowProducts, Label = "Ver Catálogo", Icon = "🛒" },
+                new ChatAction { ActionType = ActionTypes.CreateOrder, Label = "Nuevo Pedido", Icon = "🛍️" },
+                new ChatAction { ActionType = ActionTypes.ShowPrices, Label = "Precios", Icon = "💰" }
+            },
+            PageTypes.Orders => new List<ChatAction>
+            {
+                new ChatAction { ActionType = ActionTypes.ViewOrders, Label = "Analizar Pedidos", Icon = "📊" },
+                new ChatAction { ActionType = "optimize-inventory", Label = "Optimizar Stock", Icon = "📦" }
+            },
+            PageTypes.AdminDashboard => new List<ChatAction>
+            {
+                new ChatAction { ActionType = "generate-report", Label = "Generar Reporte", Icon = "📈" },
+                new ChatAction { ActionType = "business-insights", Label = "Insights", Icon = "💡" }
+            },
+            _ => new List<ChatAction>()
+        };
+    }
+
+    private string GetTooltipText()
+    {
+        return currentSession?.Context.PageType switch
+        {
+            PageTypes.ClientPortal => "Asistente B2B Vegano",
+            PageTypes.Orders => "Análisis de Pedidos IA",
+            PageTypes.AdminDashboard => "Consultor de Negocio IA",
+            _ => "Asistente Vegano IA"
+        };
+    }
+
+    private string GetPlaceholderText()
+    {
+        return currentSession?.Context.PageType switch
+        {
+            PageTypes.ClientPortal => "Pregúntame sobre productos o pedidos...",
+            PageTypes.Orders => "Analiza pedidos, optimiza inventario...",
+            PageTypes.AdminDashboard => "Consulta insights de negocio...",
+            _ => "¿Cómo puedo ayudarte?"
+        };
+    }
+
+    public async ValueTask DisposeAsync()
+    {
+        // Cleanup si es necesario
+        await Task.CompletedTask;
+    }
+
+    // Clases auxiliares para UI
+    private class ChatMessage
+    {
+        public string Content { get; set; } = string.Empty;
+        public bool IsUser { get; set; }
+        public bool IsTyping { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+}

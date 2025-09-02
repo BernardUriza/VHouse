@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Globalization;
 using VHouse.Domain.Enums;
 using VHouse.Domain.Interfaces;
@@ -68,9 +69,9 @@ public class AIService : IAIService
         LoggerMessage.Define<string>(LogLevel.Error, new EventId(16, "GenerateAlternativeProductsParseError"), "Failed to parse alternative products response: {Content}");
 
     // Configuration keys
-    private const string CLAUDE_API_KEY = "Claude:ApiKey";
+    private const string CLAUDE_API_KEY = "CLAUDE_API_KEY";
     private const string CLAUDE_BASE_URL = "https://api.anthropic.com/v1/messages";
-    private const string OPENAI_API_KEY = "OpenAI:ApiKey";
+    private const string OPENAI_API_KEY = "OPENAI_API_KEY";
     private const string OPENAI_BASE_URL = "https://api.openai.com/v1/chat/completions";
     private const string DALLE_BASE_URL = "https://api.openai.com/v1/images/generations";
 
@@ -303,7 +304,15 @@ public class AIService : IAIService
             if (httpResponse.IsSuccessStatusCode)
             {
                 var responseContent = await httpResponse.Content.ReadAsStringAsync();
+                
+                // DEBUG: Log raw Claude response
+                Console.WriteLine($"🔍 Claude Raw Response: {responseContent}");
+                
                 var claudeResponse = JsonSerializer.Deserialize<ClaudeAPIResponse>(responseContent);
+                
+                // DEBUG: Log parsed response
+                Console.WriteLine($"🔍 Claude Parsed Content Count: {claudeResponse?.Content?.Count ?? 0}");
+                Console.WriteLine($"🔍 Claude First Content: {claudeResponse?.Content?.FirstOrDefault()?.Text ?? "NULL"}");
                 
                 return new AIResponse
                 {
@@ -513,12 +522,25 @@ public class AIService : IAIService
     #region API Response Models
 
     private sealed record ClaudeAPIResponse(
-        List<ClaudeContent> Content,
-        ClaudeUsage Usage
+        [property: JsonPropertyName("id")] string Id,
+        [property: JsonPropertyName("type")] string Type,
+        [property: JsonPropertyName("role")] string Role,
+        [property: JsonPropertyName("content")] List<ClaudeContent> Content,
+        [property: JsonPropertyName("model")] string Model,
+        [property: JsonPropertyName("stop_reason")] string StopReason,
+        [property: JsonPropertyName("stop_sequence")] object? StopSequence,
+        [property: JsonPropertyName("usage")] ClaudeUsage Usage
     );
 
-    private sealed record ClaudeContent(string Text, string Type);
-    private sealed record ClaudeUsage(int InputTokens, int OutputTokens);
+    private sealed record ClaudeContent(
+        [property: JsonPropertyName("type")] string Type, 
+        [property: JsonPropertyName("text")] string Text
+    );
+    
+    private sealed record ClaudeUsage(
+        [property: JsonPropertyName("input_tokens")] int InputTokens,
+        [property: JsonPropertyName("output_tokens")] int OutputTokens
+    );
 
     private sealed record OpenAIAPIResponse(
         List<OpenAIChoice> Choices,

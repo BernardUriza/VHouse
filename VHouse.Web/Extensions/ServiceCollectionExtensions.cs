@@ -15,6 +15,7 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddVHouseServices(this IServiceCollection services, IConfiguration configuration, IWebHostEnvironment environment)
     {
+        services.AddControllers();
         services.AddBlazorServerServices(environment);
         services.AddCachingServices(configuration);
         services.AddApplicationArchitectureServices();
@@ -74,6 +75,10 @@ public static class ServiceCollectionExtensions
     {
         // Clean Architecture Services
         services.AddScoped<IAIService, VHouse.Infrastructure.Services.AIService>();
+
+        // Intelligent Chatbot Services
+        services.AddScoped<IChatContextService, ChatContextService>();
+        services.AddScoped<IIntelligentChatbotService, IntelligentChatbotService>();
 
         // Add MediatR
         services.AddMediatR(cfg => {
