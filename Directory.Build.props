@@ -3,8 +3,8 @@
     <TargetFramework>net8.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
-    <TreatWarningsAsErrors>false</TreatWarningsAsErrors> <!-- Temporalmente desactivado para migración gradual -->
-    <WarningsNotAsErrors>CS1591;CS8618</WarningsNotAsErrors> <!-- doc-comments y nullable no bloquean -->
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsNotAsErrors>CS1591;CS8618;CS1998;CS8604;CS8600;CA1051;CA1304;CA1305;CA1310;CA1311;CA1707;CA1805;CA1822;CA1848;CA1860;CA1861;CA1862;CA1869;xUnit2012</WarningsNotAsErrors>
     <AnalysisMode>Recommended</AnalysisMode>
     <_SkipUpgradeNetAnalyzersNuGetWarning>true</_SkipUpgradeNetAnalyzersNuGetWarning>
   </PropertyGroup>

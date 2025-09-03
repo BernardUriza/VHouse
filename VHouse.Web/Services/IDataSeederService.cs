@@ -32,7 +32,8 @@ public class DataSeederService : IDataSeederService
 
         _logger.LogInformation("📦 Applying seeds...");
         await SeedBasicProducts(context);
-        await VHouse.Web.Data.DbSeeder.SeedMonaLaDonaAsync(context);
+        var passwordService = services.GetRequiredService<VHouse.Domain.Interfaces.IPasswordService>();
+        await VHouse.Web.Data.DbSeeder.SeedMonaLaDonaAsync(context, passwordService);
         _logger.LogInformation("✅ Seeds applied successfully.");
     }
 

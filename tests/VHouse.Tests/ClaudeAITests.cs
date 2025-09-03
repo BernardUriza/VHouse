@@ -51,10 +51,6 @@ public class ClaudeAITests : IClassFixture<CustomWebApplicationFactory>
         var aiService = scope.ServiceProvider.GetRequiredService<IAIService>();
         var configuration = scope.ServiceProvider.GetRequiredService<IConfiguration>();
         
-        // DEBUG: Check configuration sources
-        Console.WriteLine($"🔍 IConfiguration Claude:ApiKey: {configuration["Claude:ApiKey"]}");
-        Console.WriteLine($"🔍 Environment CLAUDE_API_KEY: {Environment.GetEnvironmentVariable("CLAUDE_API_KEY")}");
-        Console.WriteLine($"🔍 Environment OPENAI_API_KEY: {Environment.GetEnvironmentVariable("OPENAI_API_KEY")}");
         
         var request = new AIRequest
         {
@@ -67,24 +63,14 @@ public class ClaudeAITests : IClassFixture<CustomWebApplicationFactory>
 
         var response = await aiService.GenerateTextAsync(request);
         
-        // DEBUG: Print actual response for analysis
-        Console.WriteLine($"Claude API Response - Success: {response.IsSuccessful}");
-        Console.WriteLine($"Claude API Response - Error: {response.ErrorMessage}");
-        Console.WriteLine($"Claude API Response - Content: '{response.Content}'");
-        Console.WriteLine($"Claude API Response - Content Length: {response.Content?.Length ?? 0}");
-        Console.WriteLine($"Claude API Response - Used Provider: {response.UsedProvider}");
-        Console.WriteLine($"Claude API Response - Tokens Used: {response.TokensUsed}");
         
         Assert.True(response.IsSuccessful, $"AI request should succeed. Error: {response.ErrorMessage}");
         
-        // Temporary: Let's just verify Claude is being used, not content yet
         Assert.Equal(AIProvider.Claude, response.UsedProvider);
         
         // If we get here, Claude API is working! Let's debug the empty content issue
         if (string.IsNullOrWhiteSpace(response.Content))
         {
-            Console.WriteLine("⚠️ WARNING: Claude API returned successfully but with empty content. This needs investigation but the integration is working!");
-            Console.WriteLine("🎉 CLAUDE API INTEGRATION IS WORKING!");
         }
         else
         {
@@ -107,9 +93,6 @@ public class ClaudeAITests : IClassFixture<CustomWebApplicationFactory>
         var response = await _client.PostAsync("/api/ai/chat", content);
         var responseContent = await response.Content.ReadAsStringAsync();
 
-        // DEBUG: Print response for analysis
-        Console.WriteLine($"Chat API Response Status: {response.StatusCode}");
-        Console.WriteLine($"Chat API Response Content: {responseContent}");
 
         Assert.True(response.IsSuccessStatusCode, $"Chat endpoint should return success. Status: {response.StatusCode}, Content: {responseContent}");
         
@@ -151,8 +134,6 @@ INSTRUCCIONES:
         var response = await _client.PostAsync("/api/ai/chat", content);
         var responseContent = await response.Content.ReadAsStringAsync();
 
-        Console.WriteLine($"Product Context Test - Status: {response.StatusCode}");
-        Console.WriteLine($"Product Context Test - Content: {responseContent}");
 
         Assert.True(response.IsSuccessStatusCode);
         

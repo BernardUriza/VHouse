@@ -20,7 +20,7 @@ public interface IRepository<T> where T : BaseEntity
 public interface IProductRepository : IRepository<Product>
 {
     Task<IEnumerable<Product>> GetActiveProductsAsync();
-    Task<IEnumerable<Product>> GetProductsByScoreAsync(int minScore);
+    Task<IEnumerable<Product>> GetVeganProductsAsync();
 }
 
 public interface ICustomerRepository : IRepository<Customer>

@@ -230,7 +230,7 @@ else
     private void IncrementQuantity(VHouse.Domain.Entities.OrderItem item)
     {
         item.Quantity++;
-        UpdateTotal(null);
+        UpdateTotal();
     }
 
     private void DecrementQuantity(VHouse.Domain.Entities.OrderItem item)
@@ -238,7 +238,7 @@ else
         if (item.Quantity > 1)
         {
             item.Quantity--;
-            UpdateTotal(null);
+            UpdateTotal();
         }
     }
 
@@ -262,7 +262,7 @@ else
         StateHasChanged();
     }
 
-    private void UpdateTotal(ChangeEventArgs args) => StateHasChanged();
+    private void UpdateTotal() => StateHasChanged();
 
     private void RemoveFromTicket(Product product)
     {

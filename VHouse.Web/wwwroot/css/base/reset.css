@@ -1,0 +1,77 @@
+/* VHouse Reset - Base limpia sin conflictos */
+
+/* Reset básico */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+/* HTML y Body base */
+html {
+    height: 100%;
+    scroll-behavior: smooth;
+}
+
+body {
+    height: 100%;
+    font-family: var(--font-family);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    transition: background-color var(--transition-base), color var(--transition-base);
+}
+
+/* Links */
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+/* Buttons */
+button {
+    font-family: inherit;
+    cursor: pointer;
+    border: none;
+    background: none;
+}
+
+/* Lists */
+ul,
+ol {
+    list-style: none;
+}
+
+/* Images */
+img {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Forms */
+input,
+textarea,
+select {
+    font-family: inherit;
+}
+
+/* Tables */
+table {
+    border-collapse: collapse;
+    width: 100%;
+}
+
+/* Remove default focus styles - componentes los definirán */
+:focus {
+    outline: none;
+}
+
+/* Accessibility: restore focus for keyboard users */
+:focus-visible {
+    outline: 2px solid var(--vegan-green);
+    outline-offset: 2px;
+}

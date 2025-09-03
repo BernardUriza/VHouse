@@ -18,9 +18,9 @@ public class ProductRepository : Repository<Product>, IProductRepository
                           .ToListAsync();
     }
 
-    public async Task<IEnumerable<Product>> GetProductsByScoreAsync(int minScore)
+    public async Task<IEnumerable<Product>> GetVeganProductsAsync()
     {
-        return await _dbSet.Where(p => p.Score >= minScore)
+        return await _dbSet.Where(p => p.IsVegan && p.IsActive)
                           .AsNoTracking()
                           .ToListAsync();
     }

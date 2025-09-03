@@ -36,8 +36,8 @@ public class ClientTenant
     public string LoginUsername { get; set; } = string.Empty;
     
     [Required]
-    [MaxLength(100)]
-    public string LoginPassword { get; set; } = string.Empty;
+    [MaxLength(255)]
+    public string LoginPasswordHash { get; set; } = string.Empty;
     
     public bool IsActive { get; set; } = true;
     

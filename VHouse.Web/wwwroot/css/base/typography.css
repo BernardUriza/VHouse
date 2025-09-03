@@ -1,0 +1,159 @@
+/* VHouse Typography - Sistema tipográfico vegano */
+
+/* ========================================
+   📝 HEADINGS
+   ======================================== */
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: var(--font-bold);
+    line-height: 1.2;
+    margin-bottom: var(--space-md);
+}
+
+h1 {
+    font-size: var(--font-4xl);
+    font-weight: var(--font-black);
+    letter-spacing: -0.025em;
+}
+
+h2 {
+    font-size: var(--font-3xl);
+    font-weight: var(--font-black);
+}
+
+h3 {
+    font-size: var(--font-2xl);
+    font-weight: var(--font-bold);
+}
+
+h4 {
+    font-size: var(--font-xl);
+    font-weight: var(--font-bold);
+}
+
+h5 {
+    font-size: var(--font-lg);
+    font-weight: var(--font-semibold);
+}
+
+h6 {
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* ========================================
+   📄 PARAGRAPH & TEXT
+   ======================================== */
+
+p {
+    color: var(--text-primary);
+    line-height: 1.6;
+    margin-bottom: var(--space-md);
+}
+
+.lead {
+    font-size: var(--font-lg);
+    font-weight: var(--font-light);
+    color: var(--text-secondary);
+}
+
+.small {
+    font-size: var(--font-sm);
+}
+
+/* ========================================
+   🔗 LINKS
+   ======================================== */
+
+a {
+    color: var(--vegan-green);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+}
+
+a:hover {
+    color: var(--vegan-green-hover);
+    text-decoration: underline;
+}
+
+/* ========================================
+   📝 CODE & MONOSPACE
+   ======================================== */
+
+code, pre, .font-mono {
+    font-family: var(--font-mono);
+}
+
+code {
+    font-size: 0.875em;
+    background: var(--bg-secondary);
+    padding: 0.125rem 0.25rem;
+    border-radius: var(--border-radius-sm);
+    color: var(--vegan-green);
+}
+
+pre {
+    background: var(--bg-secondary);
+    padding: var(--space-md);
+    border-radius: var(--border-radius-md);
+    overflow-x: auto;
+    border: 1px solid var(--border-color);
+}
+
+/* ========================================
+   📋 LISTS
+   ======================================== */
+
+ul, ol {
+    margin-bottom: var(--space-md);
+    padding-left: var(--space-lg);
+}
+
+ul {
+    list-style-type: disc;
+}
+
+ol {
+    list-style-type: decimal;
+}
+
+li {
+    margin-bottom: var(--space-xs);
+    color: var(--text-primary);
+}
+
+/* ========================================
+   📊 BLOCKQUOTE
+   ======================================== */
+
+blockquote {
+    border-left: 4px solid var(--vegan-green);
+    padding-left: var(--space-lg);
+    margin: var(--space-lg) 0;
+    font-style: italic;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   🎯 SPECIAL TEXT CLASSES
+   ======================================== */
+
+.text-vegan-motto {
+    font-family: var(--font-mono);
+    font-size: var(--font-sm);
+    color: var(--text-muted);
+    font-style: italic;
+    text-align: center;
+    margin: var(--space-lg) 0;
+}
+
+.text-vegan-motto::before {
+    content: "🌱 ";
+}
+
+.text-vegan-motto::after {
+    content: " 🌱";
+}

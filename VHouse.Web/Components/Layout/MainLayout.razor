@@ -1,27 +1,26 @@
-@* Created by Bernard Orozco - Modern VHouse Layout *@
+@* VHouse Layout - Sistema Vegano Modular *@
 @inherits LayoutComponentBase
 
 <div class="page">
     <div class="sidebar">
-        <div class="mb-6">
-            <div style="color: var(--accent-green); font-size: var(--font-size-lg); font-weight: 700; margin-bottom: var(--spacing-4);">
-                🌱 VHouse POS
-            </div>
-            <p style="font-size: var(--font-size-sm); color: var(--text-muted); margin: 0;">
-                Clean Architecture System
-            </p>
+        <div class="sidebar-logo">
+            <div class="logo-text">VHouse</div>
+            <div class="logo-subtitle">Por la Liberación Animal</div>
         </div>
+        
         <NavMenu />
+        
+        <div class="sidebar-footer">
+            <div class="text-vegan-motto">
+                Por los animales. Por la liberación. Por un mundo sin sufrimiento.
+            </div>
+            <div class="mt-3">
+                <span class="badge bg-success">Clean Architecture</span>
+                <span class="badge bg-success">CQRS</span>
+                <span class="badge bg-success">DDD</span>
+            </div>
+        </div>
     </div>
-
-    <header class="top-row">
-        <div style="margin: 0; font-size: var(--font-size-2xl); font-weight: 700;">
-            🌱 VHouse - Clean Architecture POS
-        </div>
-        <div style="font-size: var(--font-size-sm); color: var(--text-muted);">
-            Modern Vegan Point of Sale
-        </div>
-    </header>
 
     <main>
         <article class="content">

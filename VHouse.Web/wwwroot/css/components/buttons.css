@@ -1,0 +1,217 @@
+/* VHouse Buttons - Sistema de botones veganos
+   Especificidad controlada sin sobreescribir */
+
+/* ========================================
+   🔘 BOTONES BASE
+   ======================================== */
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+    padding: var(--space-md) var(--space-lg);
+    border: 2px solid transparent;
+    border-radius: var(--border-radius-md);
+    font-weight: var(--font-semibold);
+    font-size: var(--font-sm);
+    text-decoration: none;
+    cursor: pointer;
+    transition: all var(--transition-base);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-family: var(--font-family);
+    background: none;
+    position: relative;
+    overflow: hidden;
+}
+
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none !important;
+}
+
+/* ========================================
+   🌱 VARIANTES VEGANAS
+   ======================================== */
+
+/* Primary - Verde vegano */
+.btn-primary {
+    background: var(--vegan-green);
+    color: white;
+    border-color: var(--vegan-green);
+}
+
+.btn-primary:hover:not(:disabled) {
+    background: var(--vegan-green-hover);
+    border-color: var(--vegan-green-hover);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-vegan);
+}
+
+/* Secondary - Outline */
+.btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    border-color: var(--border-color);
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background: var(--bg-secondary);
+    border-color: var(--vegan-green);
+    color: var(--vegan-green);
+}
+
+/* Success - Verde planta */
+.btn-success {
+    background: var(--plant-green);
+    color: white;
+    border-color: var(--plant-green);
+}
+
+.btn-success:hover:not(:disabled) {
+    background: var(--leaf-green);
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+}
+
+/* Danger */
+.btn-danger {
+    background: var(--danger);
+    color: white;
+    border-color: var(--danger);
+}
+
+.btn-danger:hover:not(:disabled) {
+    background: #dc2626;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
+}
+
+/* Warning */
+.btn-warning {
+    background: var(--warning);
+    color: white;
+    border-color: var(--warning);
+}
+
+.btn-warning:hover:not(:disabled) {
+    background: #d97706;
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(245, 158, 11, 0.4);
+}
+
+/* ========================================
+   📏 TAMAÑOS
+   ======================================== */
+
+.btn-sm {
+    padding: var(--space-sm) var(--space-md);
+    font-size: var(--font-xs);
+}
+
+.btn-lg {
+    padding: var(--space-lg) var(--space-xl);
+    font-size: var(--font-base);
+}
+
+.btn-xl {
+    padding: var(--space-xl) var(--space-2xl);
+    font-size: var(--font-lg);
+    border-radius: var(--border-radius-lg);
+}
+
+/* ========================================
+   🎨 VARIANTES ESPECIALES
+   ======================================== */
+
+/* Ghost button */
+.btn-ghost {
+    background: transparent;
+    color: var(--text-secondary);
+    border-color: transparent;
+}
+
+.btn-ghost:hover:not(:disabled) {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Link button */
+.btn-link {
+    background: transparent;
+    color: var(--vegan-green);
+    border-color: transparent;
+    text-transform: none;
+    letter-spacing: normal;
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    transition: text-decoration-color var(--transition-base);
+}
+
+.btn-link:hover:not(:disabled) {
+    text-decoration-color: var(--vegan-green);
+    transform: none;
+}
+
+/* ========================================
+   ⚡ EFECTOS DE ANIMACIÓN
+   ======================================== */
+
+/* Ripple effect */
+.btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transition: width 0.3s ease, height 0.3s ease;
+    transform: translate(-50%, -50%);
+    pointer-events: none;
+}
+
+.btn:active::before {
+    width: 120%;
+    height: 120%;
+}
+
+/* Loading state */
+.btn-loading {
+    pointer-events: none;
+}
+
+.btn-loading::after {
+    content: "";
+    width: 16px;
+    height: 16px;
+    border: 2px solid transparent;
+    border-top: 2px solid currentColor;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-left: var(--space-xs);
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* ========================================
+   📱 RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .btn {
+        padding: var(--space-sm) var(--space-md);
+        font-size: var(--font-xs);
+    }
+    
+    .btn-lg {
+        padding: var(--space-md) var(--space-lg);
+        font-size: var(--font-sm);
+    }
+}

@@ -1,0 +1,37 @@
+/* VHouse Tables - Tablas con tema vegano */
+
+.table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    overflow: hidden;
+}
+
+.table th,
+.table td {
+    padding: var(--space-md);
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.table th {
+    background: var(--vegan-green);
+    color: white;
+    font-weight: var(--font-bold);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: var(--font-sm);
+}
+
+.table tr:nth-child(even) td {
+    background: var(--bg-secondary);
+}
+
+.table tr:hover td {
+    background: var(--vegan-green-light) !important;
+    color: var(--vegan-green-dark) !important;
+}

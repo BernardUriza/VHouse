@@ -1,0 +1,33 @@
+/* VHouse Alerts - Alertas con tema vegano */
+
+.alert {
+    padding: var(--space-lg);
+    border-radius: var(--border-radius-md);
+    margin-bottom: var(--space-lg);
+    border: 2px solid;
+    font-weight: var(--font-semibold);
+}
+
+.alert-success {
+    background: rgba(22, 163, 74, 0.1);
+    color: var(--vegan-green);
+    border-color: var(--vegan-green);
+}
+
+.alert-danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--danger);
+    border-color: var(--danger);
+}
+
+.alert-warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--warning);
+    border-color: var(--warning);
+}
+
+.alert-info {
+    background: rgba(59, 130, 246, 0.1);
+    color: var(--info);
+    border-color: var(--info);
+}

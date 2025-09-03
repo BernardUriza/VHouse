@@ -1,0 +1,119 @@
+/* VHouse Dark Mode - Sistema completo de tema oscuro */
+
+/* ========================================
+   🌙 DARK MODE GLOBAL OVERRIDES
+   Bootstrap y otros frameworks
+   ======================================== */
+
+/* Forzar modo oscuro en elementos problemáticos */
+[data-theme="dark"] * {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .container,
+[data-theme="dark"] .container-fluid,
+[data-theme="dark"] .row,
+[data-theme="dark"] .col,
+[data-theme="dark"] [class*="col-"] {
+    background: transparent !important;
+    color: var(--text-primary) !important;
+}
+
+/* Bootstrap navbar overrides */
+[data-theme="dark"] .navbar,
+[data-theme="dark"] .navbar-expand,
+[data-theme="dark"] .navbar-light,
+[data-theme="dark"] .bg-light,
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .text-dark {
+    background: var(--bg-primary) !important;
+    background-color: var(--bg-primary) !important;
+    color: var(--text-primary) !important;
+}
+
+/* ========================================
+   🎯 DARK MODE TOGGLE BUTTON
+   ======================================== */
+
+.dark-mode-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: var(--z-toast);
+    background: var(--vegan-green);
+    color: white;
+    border: none;
+    border-radius: var(--border-radius-full);
+    width: 50px;
+    height: 50px;
+    font-size: var(--font-xl);
+    cursor: pointer;
+    transition: all var(--transition-base);
+    box-shadow: var(--shadow-vegan);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.dark-mode-toggle:hover {
+    transform: rotate(180deg);
+    box-shadow: var(--shadow-vegan-lg);
+    background: var(--vegan-green-hover);
+}
+
+.dark-mode-toggle:focus-visible {
+    outline: 2px solid var(--vegan-green-light);
+    outline-offset: 2px;
+}
+
+/* ========================================
+   💫 TRANSICIONES SUAVES
+   ======================================== */
+
+/* Elementos que deben tener transición suave */
+*,
+*::before,
+*::after {
+    transition: background-color var(--transition-base), 
+                color var(--transition-base), 
+                border-color var(--transition-base);
+}
+
+/* Excepciones que no necesitan transición */
+.btn,
+.nav-link,
+.card,
+.form-control {
+    /* Ya tienen sus propias transiciones definidas */
+}
+
+/* ========================================
+   🎨 COMPONENTES ESPECÍFICOS DARK MODE
+   ======================================== */
+
+/* Scrollbars en modo oscuro */
+[data-theme="dark"] ::-webkit-scrollbar {
+    width: 8px;
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: var(--border-radius-md);
+}
+
+[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--vegan-green);
+}
+
+/* Selection en modo oscuro */
+[data-theme="dark"] ::selection {
+    background: var(--vegan-green);
+    color: white;
+}
+
+/* Placeholders en modo oscuro */
+[data-theme="dark"] ::placeholder {
+    color: var(--text-muted);
+    opacity: 0.7;
+}

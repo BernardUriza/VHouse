@@ -56,7 +56,7 @@ public static class DatabaseConfigurationExtensions
         else
         {
             Log.DbPasswordNotSet(logger);
-            databaseUrl = databaseUrl?.Replace("${DB_PASSWORD}", "mysecretpassword");
+            throw new InvalidOperationException("DB_PASSWORD environment variable is required for production");
         }
 
         Log.UsingSqliteDatabase(logger, databaseUrl ?? string.Empty);

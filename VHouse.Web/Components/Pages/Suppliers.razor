@@ -1,0 +1,321 @@
+@page "/suppliers"
+@using VHouse.Domain.Entities
+@using VHouse.Domain.Interfaces
+@inject ISupplierRepository SupplierRepository
+@inject IUnitOfWork unitOfWork
+@inject IJSRuntime JS
+@rendermode @(new InteractiveServerRenderMode())
+
+<div class="content">
+    <div class="mb-6 flex justify-between items-center">
+        <h1>🌱 Proveedores</h1>
+        <button class="btn btn-primary" @onclick="ShowAddModal">
+            ➕ Agregar Proveedor
+        </button>
+    </div>
+
+    @if (suppliers == null)
+    {
+        <div class="text-center">
+            <div class="spinner-border" role="status">
+                <span class="visually-hidden">Cargando...</span>
+            </div>
+        </div>
+    }
+    else if (!suppliers.Any())
+    {
+        <div class="alert alert-warning">
+            No hay proveedores registrados. Agrega tu primer proveedor.
+        </div>
+    }
+    else
+    {
+        <div class="card">
+            <div class="card-body">
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Nombre</th>
+                            <th>Contacto</th>
+                            <th>Teléfono</th>
+                            <th>Email</th>
+                            <th>Certificación Vegana</th>
+                            <th>Estado</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var supplier in suppliers)
+                        {
+                            <tr>
+                                <td><strong>@supplier.Name</strong></td>
+                                <td>@(supplier.ContactName ?? "-")</td>
+                                <td>@(supplier.Phone ?? "-")</td>
+                                <td>@(supplier.Email ?? "-")</td>
+                                <td>
+                                    @if (supplier.IsVeganCertified)
+                                    {
+                                        <span class="badge bg-success">✓ Certificado</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-secondary">No certificado</span>
+                                    }
+                                </td>
+                                <td>
+                                    @if (supplier.IsActive)
+                                    {
+                                        <span class="badge bg-success">Activo</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge bg-danger">Inactivo</span>
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn btn-sm btn-primary" @onclick="() => EditSupplier(supplier)">
+                                        Editar
+                                    </button>
+                                    <button class="btn btn-sm btn-danger" @onclick="() => DeleteSupplier(supplier)">
+                                        Eliminar
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Modal para Agregar/Editar Proveedor -->
+@if (showModal)
+{
+    <div class="modal fade show" style="display: block; background: rgba(0,0,0,0.5);" @onclick="CloseModal">
+        <div class="modal-dialog modal-lg" @onclick:stopPropagation="true">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">@(isEdit ? "Editar" : "Agregar") Proveedor</h5>
+                    <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Nombre *</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.Name" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Contacto</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.ContactName" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Email</label>
+                            <input type="email" class="form-control" @bind="currentSupplier.Email" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Teléfono</label>
+                            <input type="tel" class="form-control" @bind="currentSupplier.Phone" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Dirección</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.Address" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Ciudad</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.City" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Código Postal</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.PostalCode" />
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">País</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.Country" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Términos de Pago</label>
+                            <input type="text" class="form-control" @bind="currentSupplier.PaymentTerms" />
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="form-label">Pedido Mínimo</label>
+                            <input type="number" step="0.01" class="form-control" @bind="currentSupplier.MinimumOrderAmount" />
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @bind="currentSupplier.IsVeganCertified" id="veganCert">
+                                <label class="form-check-label" for="veganCert">
+                                    🌱 Certificación Vegana
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    @if (currentSupplier.IsVeganCertified)
+                    {
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Número de Certificación</label>
+                                <input type="text" class="form-control" @bind="currentSupplier.CertificationNumber" />
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Vencimiento</label>
+                                <input type="date" class="form-control" @bind="currentSupplier.CertificationExpiry" />
+                            </div>
+                        </div>
+                    }
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <label class="form-label">Notas</label>
+                            <textarea class="form-control" rows="3" @bind="currentSupplier.Notes"></textarea>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" @bind="currentSupplier.IsActive" id="isActive">
+                                <label class="form-check-label" for="isActive">
+                                    Activo
+                                </label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" @onclick="CloseModal">Cancelar</button>
+                    <button type="button" class="btn btn-primary" @onclick="SaveSupplier">
+                        @(isEdit ? "Actualizar" : "Guardar")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<Supplier>? suppliers;
+    private Supplier currentSupplier = new();
+    private bool showModal = false;
+    private bool isEdit = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadSuppliers();
+    }
+
+    private async Task LoadSuppliers()
+    {
+        suppliers = (await SupplierRepository.GetAllAsync()).ToList();
+    }
+
+    private void ShowAddModal()
+    {
+        currentSupplier = new Supplier { IsActive = true };
+        isEdit = false;
+        showModal = true;
+    }
+
+    private void EditSupplier(Supplier supplier)
+    {
+        currentSupplier = new Supplier
+        {
+            Id = supplier.Id,
+            Name = supplier.Name,
+            ContactName = supplier.ContactName,
+            Email = supplier.Email,
+            Phone = supplier.Phone,
+            Address = supplier.Address,
+            City = supplier.City,
+            PostalCode = supplier.PostalCode,
+            Country = supplier.Country,
+            Notes = supplier.Notes,
+            IsActive = supplier.IsActive,
+            IsVeganCertified = supplier.IsVeganCertified,
+            CertificationNumber = supplier.CertificationNumber,
+            CertificationExpiry = supplier.CertificationExpiry,
+            PaymentTerms = supplier.PaymentTerms,
+            MinimumOrderAmount = supplier.MinimumOrderAmount
+        };
+        isEdit = true;
+        showModal = true;
+    }
+
+    private async Task SaveSupplier()
+    {
+        if (string.IsNullOrWhiteSpace(currentSupplier.Name))
+        {
+            await JS.InvokeVoidAsync("alert", "El nombre del proveedor es requerido");
+            return;
+        }
+
+        try
+        {
+            if (isEdit)
+            {
+                SupplierRepository.Update(currentSupplier);
+                await unitOfWork.SaveChangesAsync();
+            }
+            else
+            {
+                await SupplierRepository.AddAsync(currentSupplier);
+            }
+            
+            await LoadSuppliers();
+            CloseModal();
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteSupplier(Supplier supplier)
+    {
+        bool hasProducts = await SupplierRepository.HasActiveProducts(supplier.Id);
+        
+        if (hasProducts)
+        {
+            await JS.InvokeVoidAsync("alert", "No se puede eliminar el proveedor porque tiene productos activos");
+            return;
+        }
+        
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", $"¿Eliminar proveedor {supplier.Name}?");
+        
+        if (confirmed)
+        {
+            try
+            {
+                SupplierRepository.Remove(supplier);
+                await unitOfWork.SaveChangesAsync();
+                await LoadSuppliers();
+            }
+            catch (Exception ex)
+            {
+                await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+            }
+        }
+    }
+
+    private void CloseModal()
+    {
+        showModal = false;
+        currentSupplier = new();
+    }
+}

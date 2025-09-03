@@ -73,29 +73,15 @@ public static class ServiceCollectionExtensions
 
     private static IServiceCollection AddApplicationArchitectureServices(this IServiceCollection services)
     {
-        // Clean Architecture Services
-        services.AddScoped<IAIService, VHouse.Infrastructure.Services.AIService>();
-
-        // Intelligent Chatbot Services
-        services.AddScoped<IChatContextService, ChatContextService>();
-        services.AddScoped<IIntelligentChatbotService, IntelligentChatbotService>();
-
-        // Add MediatR
-        services.AddMediatR(cfg => {
-            cfg.RegisterServicesFromAssembly(typeof(VHouse.Application.Commands.GenerateProductDescriptionCommand).Assembly);
-        });
-
-        // Register Infrastructure Services
+        // Core MVP Services Only - NO Phase 2 AI features
         services.AddScoped<IUnitOfWork, VHouse.Infrastructure.Repositories.UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(VHouse.Infrastructure.Repositories.Repository<>));
+        services.AddScoped<IPasswordService, VHouse.Infrastructure.Services.PasswordService>();
 
-        // TODO: Add Application and Infrastructure Services when available
-        // services.AddApplicationServices();
-        // services.AddInfrastructureServices(configuration);
-
-        // Register Command Handlers
-        services.AddScoped<VHouse.Application.Handlers.ProcessBusinessConversationCommandHandler>();
-        services.AddScoped<VHouse.Application.Handlers.GenerateBusinessEmailCommandHandler>();
+        // Basic MediatR for CQRS (keeping core architecture)
+        services.AddMediatR(cfg => {
+            cfg.RegisterServicesFromAssembly(typeof(VHouse.Application.Commands.CreateProductCommand).Assembly);
+        });
 
         return services;
     }

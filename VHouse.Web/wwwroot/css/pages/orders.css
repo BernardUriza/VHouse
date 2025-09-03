@@ -1,270 +1,219 @@
+/* VHouse Orders - Alto Contraste para Empleadas
+   Especificidad alta con prefijo .orders-page */
+
+/* ============================================================
+   📊 ORDERS - ALTO CONTRASTE PARA MONA LA DONA
+   Diseñado para empleadas de tienda con visibilidad máxima
+   ============================================================ */
+
+/* Header principal */
+.orders-page .orders-header {
+    background: var(--bg-primary);
+    border: 3px solid var(--text-primary);
+    border-radius: 0;
+    padding: var(--space-xl);
+    margin-bottom: var(--space-xl);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .orders-page .orders-header {
+    box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
+}
+
+.orders-page .orders-header h1 {
+    margin: 0;
+    font-size: var(--font-4xl);
+    font-weight: var(--font-black);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
 /* ========================================
-   ORDERS PAGE STYLES
-   VHouse - Orders Management
+   📋 SECCIONES DE ÓRDENES
    ======================================== */
 
-.container-fluid {
-    padding: 2rem;
-}
-
-/* Page Header */
-.page-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.page-header h1 {
-    color: var(--text-primary);
-    margin: 0;
-    font-size: 2rem;
-    font-weight: 700;
-}
-
-.header-actions {
-    display: flex;
-    gap: 1rem;
-}
-
-/* Statistics Cards */
-.stats-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.stat-card {
-    background: var(--background);
-    border-radius: var(--radius-lg);
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    transition: transform 0.2s, box-shadow 0.2s;
-}
-
-.stat-card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.stat-value {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    margin-bottom: 0.5rem;
-}
-
-.stat-label {
-    font-size: 0.875rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-/* Table Styles */
-.table {
-    background: var(--background);
-    border-radius: var(--radius-md);
+.orders-page .orders-section {
+    background: var(--bg-primary);
+    border: 3px solid var(--text-primary);
+    margin-bottom: var(--space-xl);
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-radius: 0;
     overflow: hidden;
 }
 
-.table thead {
-    background: var(--background-secondary);
+[data-theme="dark"] .orders-page .orders-section {
+    box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
 }
 
-.table th {
-    font-weight: 600;
-    text-transform: uppercase;
-    font-size: 0.875rem;
-    letter-spacing: 0.5px;
-    padding: 1rem;
-    border: none;
-}
-
-.table td {
-    padding: 1rem;
-    vertical-align: middle;
-    border-color: var(--border-color);
-}
-
-/* Badge Styles */
-.badge {
-    padding: 0.5rem 1rem;
-    font-weight: 500;
-    border-radius: var(--radius-sm);
-}
-
-.badge-success {
-    background-color: var(--success);
-    color: white;
-}
-
-.badge-warning {
-    background-color: var(--warning);
-    color: white;
-}
-
-.badge-info {
-    background-color: var(--info);
-    color: white;
-}
-
-.badge-danger {
-    background-color: var(--danger);
-    color: white;
-}
-
-/* Order Details Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1050;
-    backdrop-filter: blur(5px);
-}
-
-.modal-content {
-    background: var(--bg-primary);
-    border: 2px solid var(--text-primary);
-    color: var(--text-primary);
-    border-radius: var(--radius-lg);
-    width: 90%;
-    max-width: 600px;
-    max-height: 80vh;
-    overflow-y: auto;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    animation: modalSlideIn 0.3s ease;
-}
-
-@keyframes modalSlideIn {
-    from {
-        transform: translateY(-30px);
-        opacity: 0;
-    }
-    to {
-        transform: translateY(0);
-        opacity: 1;
-    }
-}
-
-.modal-header {
-    background: linear-gradient(135deg, var(--primary) 0%, #81C784 100%);
-    color: white;
-    padding: 1.5rem;
-    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.modal-header h2 {
+.orders-page .orders-section h3 {
+    background: var(--text-primary);
+    color: var(--bg-primary);
     margin: 0;
-    font-size: 1.5rem;
+    padding: var(--space-lg) var(--space-xl);
+    font-size: var(--font-2xl);
+    font-weight: var(--font-black);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.close-button {
-    background: rgba(255, 255, 255, 0.2);
-    border: none;
-    color: white;
-    font-size: 1.5rem;
-    width: 36px;
-    height: 36px;
-    border-radius: 50%;
-    cursor: pointer;
-    transition: background 0.2s;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+.orders-page .orders-content {
+    padding: var(--space-xl);
 }
 
-.close-button:hover {
-    background: rgba(255, 255, 255, 0.3);
-}
+/* ========================================
+   📊 TABLAS DE ALTO CONTRASTE
+   ======================================== */
 
-.modal-body {
-    padding: 1.5rem;
-}
-
-.order-info-section {
-    margin-bottom: 1.5rem;
-}
-
-.order-info-section h3 {
-    color: var(--text-primary);
-    font-size: 1.125rem;
-    margin-bottom: 1rem;
-    padding-bottom: 0.5rem;
-    border-bottom: 2px solid var(--border-color);
-}
-
-.info-row {
-    display: flex;
-    justify-content: space-between;
-    padding: 0.5rem 0;
-}
-
-.info-label {
-    color: var(--text-muted);
-    font-weight: 500;
-}
-
-.info-value {
-    color: var(--text-primary);
-    font-weight: 600;
-}
-
-/* Order Items Table */
-.items-table {
+.orders-page .orders-table {
     width: 100%;
-    margin-top: 1rem;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 3px solid var(--text-primary);
+    margin-bottom: var(--space-xl);
 }
 
-.items-table thead {
-    background: var(--background-secondary);
-}
-
-.items-table th {
-    padding: 0.75rem;
+.orders-page .orders-table th,
+.orders-page .orders-table td {
+    padding: var(--space-lg);
     text-align: left;
-    font-weight: 600;
-    font-size: 0.875rem;
-    color: var(--text-muted);
+    border-bottom: 2px solid var(--text-primary);
+    border-right: 2px solid var(--text-primary);
+    font-size: var(--font-lg);
+    font-weight: var(--font-semibold);
 }
 
-.items-table td {
-    padding: 0.75rem;
-    border-top: 1px solid var(--border-color);
+.orders-page .orders-table th:last-child,
+.orders-page .orders-table td:last-child {
+    border-right: none;
 }
 
-.order-total-row {
-    font-weight: 700;
-    background: rgba(76, 175, 80, 0.05);
+.orders-page .orders-table tr:last-child td {
+    border-bottom: none;
 }
 
-/* Alert Styles */
-.alert {
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius-md);
-    margin-bottom: 1.5rem;
+.orders-page .orders-table th {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-weight: var(--font-black);
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
-.alert-info {
-    background-color: rgba(59, 130, 246, 0.1);
-    border: 1px solid rgba(59, 130, 246, 0.3);
-    color: #1e40af;
+.orders-page .orders-table tr {
+    background: var(--bg-primary);
+    transition: background-color var(--transition-fast);
 }
 
-.alert-heading {
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
+.orders-page .orders-table tr:nth-child(even) {
+    background: var(--bg-secondary);
+}
+
+.orders-page .orders-table tr:hover {
+    background: var(--vegan-green-light) !important;
+    color: var(--vegan-green-dark) !important;
+}
+
+/* ========================================
+   📈 CARDS DE ESTADÍSTICAS
+   ======================================== */
+
+.orders-page .orders-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: var(--space-xl);
+    margin-bottom: var(--space-3xl);
+}
+
+.orders-page .stat-card {
+    background: var(--bg-primary);
+    border: 3px solid var(--vegan-green);
+    padding: var(--space-xl);
+    text-align: center;
+    box-shadow: var(--shadow-vegan-lg);
+    border-radius: 0;
+}
+
+.orders-page .stat-number {
+    font-size: var(--font-4xl);
+    font-weight: var(--font-black);
+    color: var(--vegan-green);
+    font-family: var(--font-mono);
+    display: block;
+    margin-bottom: var(--space-sm);
+}
+
+.orders-page .stat-label {
+    font-size: var(--font-lg);
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* ========================================
+   🔍 FILTROS DE ALTO CONTRASTE
+   ======================================== */
+
+.orders-page .orders-filters {
+    display: flex;
+    gap: var(--space-md);
+    margin-bottom: var(--space-xl);
+    padding: var(--space-lg);
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+.orders-page .filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.orders-page .filter-label {
+    font-weight: var(--font-bold);
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: var(--font-sm);
+    letter-spacing: 1px;
+}
+
+.orders-page .filter-input {
+    padding: var(--space-md);
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    font-size: var(--font-base);
+    font-weight: var(--font-semibold);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.orders-page .filter-input:focus {
+    outline: none;
+    border-color: var(--vegan-green);
+    box-shadow: 0 0 10px rgba(22, 163, 74, 0.5);
+}
+
+/* ========================================
+   📱 RESPONSIVE PARA TABLETS
+   ======================================== */
+
+@media (max-width: 768px) {
+    .orders-page .orders-stats {
+        grid-template-columns: 1fr;
+    }
+    
+    .orders-page .orders-filters {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    .orders-page .orders-table th,
+    .orders-page .orders-table td {
+        padding: var(--space-sm);
+        font-size: var(--font-base);
+    }
 }

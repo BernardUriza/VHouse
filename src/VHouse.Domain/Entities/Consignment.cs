@@ -69,8 +69,8 @@ public class ConsignmentItem
     public virtual Product Product { get; set; } = null!;
     
     public int QuantityConsigned { get; set; } // Cantidad dejada
-    public int QuantitySold { get; set; } = 0; // Cantidad vendida
-    public int QuantityReturned { get; set; } = 0; // Cantidad devuelta
+    public int QuantitySold { get; set; } // Cantidad vendida
+    public int QuantityReturned { get; set; } // Cantidad devuelta
     
     public decimal CostPrice { get; set; } // Precio de costo para Bernard
     public decimal RetailPrice { get; set; } // Precio de venta al público

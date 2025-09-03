@@ -1,0 +1,92 @@
+/* VHouse Responsive - Breakpoints y adaptabilidad */
+
+/* ========================================
+   📱 RESPONSIVE UTILITIES
+   ======================================== */
+
+/* Responsive display */
+@media (max-width: 640px) {
+    .sm\:d-none { display: none !important; }
+    .sm\:d-block { display: block !important; }
+    .sm\:d-flex { display: flex !important; }
+}
+
+@media (max-width: 768px) {
+    .md\:d-none { display: none !important; }
+    .md\:d-block { display: block !important; }
+    .md\:d-flex { display: flex !important; }
+    
+    /* Layout adaptativo */
+    .page {
+        flex-direction: column !important;
+    }
+    
+    .content {
+        padding: var(--space-md) !important;
+    }
+}
+
+@media (max-width: 1024px) {
+    .lg\:d-none { display: none !important; }
+    .lg\:d-block { display: block !important; }
+    .lg\:d-flex { display: flex !important; }
+}
+
+/* ========================================
+   🎯 PAGE-SPECIFIC RESPONSIVE
+   ======================================== */
+
+/* POS responsive */
+@media (max-width: 768px) {
+    .pos-page .pos-grid {
+        grid-template-columns: 1fr !important;
+        gap: var(--space-md) !important;
+        padding: var(--space-md) !important;
+    }
+    
+    .pos-page .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
+        gap: var(--space-sm) !important;
+    }
+}
+
+/* Orders responsive */
+@media (max-width: 768px) {
+    .orders-page .orders-header h1 {
+        font-size: var(--font-2xl) !important;
+    }
+    
+    .orders-page .orders-table {
+        font-size: var(--font-sm) !important;
+    }
+    
+    .orders-page .orders-table th,
+    .orders-page .orders-table td {
+        padding: var(--space-sm) !important;
+    }
+}
+
+/* Dark mode toggle responsive */
+@media (max-width: 768px) {
+    .dark-mode-toggle {
+        width: 40px !important;
+        height: 40px !important;
+        font-size: var(--font-base) !important;
+        top: 10px !important;
+        right: 10px !important;
+    }
+}
+
+/* ========================================
+   🖥️ DESKTOP OPTIMIZATIONS
+   ======================================== */
+
+@media (min-width: 1280px) {
+    .content {
+        padding: var(--space-3xl) !important;
+    }
+    
+    .pos-page .pos-grid {
+        padding: var(--space-3xl) !important;
+    }
+}

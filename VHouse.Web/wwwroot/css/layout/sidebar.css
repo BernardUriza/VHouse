@@ -1,0 +1,70 @@
+/* VHouse Sidebar - Navegación lateral */
+
+/* ========================================
+   📧 SIDEBAR BASE
+   ======================================== */
+
+.sidebar {
+    width: 250px;
+    background: var(--bg-primary);
+    border-right: 2px solid var(--border-color);
+    padding: var(--space-md);
+    transition: all var(--transition-base);
+    display: flex;
+    flex-direction: column;
+}
+
+/* ========================================
+   📱 SCROLLABLE NAVIGATION
+   ======================================== */
+
+.nav-scrollable {
+    height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: var(--space-md) 0;
+    flex: 1;
+}
+
+/* ========================================
+   🎯 LOGO Y BRANDING
+   ======================================== */
+
+.sidebar-logo {
+    text-align: center;
+    padding: var(--space-xl) var(--space-md);
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: var(--space-xl);
+}
+
+.logo-text {
+    font-size: var(--font-xl);
+    font-weight: var(--font-black);
+    color: var(--vegan-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: var(--space-sm);
+}
+
+.logo-subtitle {
+    font-size: var(--font-xs);
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: var(--font-semibold);
+}
+
+/* ========================================
+   📂 FOOTER DEL SIDEBAR
+   ======================================== */
+
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: var(--space-xl);
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+.sidebar-footer .badge {
+    margin: var(--space-xs);
+    font-size: var(--font-xs);
+}

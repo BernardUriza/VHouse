@@ -1,12 +1,13 @@
 using VHouse.Domain.Entities;
 using VHouse.Infrastructure.Data;
 using Microsoft.EntityFrameworkCore;
+using VHouse.Domain.Interfaces;
 
 namespace VHouse.Web.Data;
 
 public static class DbSeeder
 {
-    public static async Task SeedMonaLaDonaAsync(VHouseDbContext context)
+    public static async Task SeedMonaLaDonaAsync(VHouseDbContext context, IPasswordService passwordService)
     {
         // Verificar si Mona la Dona ya existe
         var existingClient = await context.ClientTenants
@@ -31,7 +32,7 @@ public static class DbSeeder
             Email = "ana@monaladorona.com.mx",
             Phone = "+52 33 1234 5678",
             LoginUsername = "monadona",
-            LoginPassword = "vegandoñas2024#",
+            LoginPasswordHash = passwordService.HashPassword(Environment.GetEnvironmentVariable("MONA_DONA_PASSWORD") ?? "VeganaPoderosa2024!"),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

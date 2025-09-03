@@ -2,7 +2,6 @@
 @using VHouse.Domain.Entities
 @using VHouse.Infrastructure.Data
 @using Microsoft.EntityFrameworkCore
-@using VHouse.Web.Components.Shared
 @inject VHouseDbContext DbContext
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(false))
@@ -371,7 +370,6 @@
     }
 }
 
-<!-- 🤖 CHATBOT CONTEXTUAL PARA ORDERS -->
-<IntelligentChatbot ContextData="@GetOrdersContextData()" />
+<!-- Chatbot removed for MVP - keeping core functionality only -->
 
 @* Created by Bernard Uriza Orozco *@

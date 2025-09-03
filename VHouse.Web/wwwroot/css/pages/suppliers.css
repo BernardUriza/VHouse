@@ -1,0 +1,37 @@
+/* VHouse Suppliers - Página de proveedores */
+
+.suppliers-page .suppliers-header {
+    margin-bottom: var(--space-xl);
+}
+
+.suppliers-page .suppliers-header h1 {
+    color: var(--vegan-green);
+    font-weight: var(--font-black);
+    margin-bottom: var(--space-sm);
+}
+
+.suppliers-page .supplier-card {
+    border-left: 4px solid var(--vegan-green);
+    transition: all var(--transition-base);
+}
+
+.suppliers-page .supplier-card:hover {
+    border-left-color: var(--plant-green);
+    transform: translateX(5px);
+}
+
+.suppliers-page .certification-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    padding: var(--space-xs) var(--space-sm);
+    background: var(--vegan-green-light);
+    color: var(--vegan-green-dark);
+    border-radius: var(--border-radius-full);
+    font-size: var(--font-xs);
+    font-weight: var(--font-bold);
+}
+
+.suppliers-page .certification-badge.certified::before {
+    content: "🌱";
+}

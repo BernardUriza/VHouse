@@ -33,8 +33,9 @@ public class Product : BaseEntity
     
     public bool IsActive { get; set; } = true;
     
-    // Recommendation scoring for Phase 2 AI features
-    public double Score { get; set; }
+    // Supplier relationship
+    public int? SupplierId { get; set; }
+    public virtual Supplier? Supplier { get; set; }
     
     // Navigation properties
     public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();

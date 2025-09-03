@@ -1,0 +1,1042 @@
+/* VHouse - Sistema CSS Completo
+   Por los animales. Por la liberación. Por un mundo sin sufrimiento. */
+
+/* ========== VARIABLES VEGANAS ========== */
+:root {
+    /* Colores Veganos */
+    --vegan-green: #16a34a;
+    --vegan-green-hover: #15803d;
+    --vegan-green-light: #bbf7d0;
+    --plant-green: #10b981;
+    --earth-brown: #92400e;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    
+    /* Sistema de colores */
+    --primary: var(--vegan-green);
+    --primary-hover: var(--vegan-green-hover);
+    --secondary: #6b7280;
+    --success: var(--plant-green);
+    
+    /* Modo Claro */
+    --bg-primary: #ffffff;
+    --bg-secondary: #f9fafb;
+    --text-primary: #111827;
+    --text-secondary: #6b7280;
+    --border-color: #e5e7eb;
+    
+    /* Modo Oscuro */
+    --dark-bg-primary: #000000;
+    --dark-bg-secondary: #1a1a1a;
+    --dark-text-primary: #ffffff;
+    --dark-text-secondary: #cccccc;
+    --dark-border: #333333;
+    
+    /* Efectos */
+    --shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    --border-radius: 0.375rem;
+    --font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'JetBrains Mono', 'Consolas', monospace;
+}
+
+/* ========== MODO OSCURO ========== */
+[data-theme="dark"] {
+    --bg-primary: var(--dark-bg-primary);
+    --bg-secondary: var(--dark-bg-secondary);
+    --text-primary: var(--dark-text-primary);
+    --text-secondary: var(--dark-text-secondary);
+    --border-color: var(--dark-border);
+}
+
+/* ========== RESET & BASE ========== */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: var(--font-family); }
+body { 
+    background: var(--bg-primary); 
+    color: var(--text-primary); 
+    line-height: 1.6; 
+    transition: background-color 0.3s, color 0.3s;
+}
+
+/* ========== LAYOUT ========== */
+.page { 
+    display: flex; 
+    height: 100vh; 
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+.sidebar { 
+    width: 250px; 
+    background: var(--bg-primary); 
+    border-right: 2px solid var(--border-color); 
+    padding: 1rem;
+    transition: all 0.3s;
+}
+
+[data-theme="dark"] .sidebar {
+    background: var(--dark-bg-primary);
+    border-color: var(--dark-border);
+}
+
+.top-row { 
+    background: var(--bg-primary); 
+    border-bottom: 2px solid var(--border-color); 
+    padding: 1rem;
+    transition: all 0.3s;
+}
+
+[data-theme="dark"] .top-row {
+    background: var(--dark-bg-primary);
+    border-color: var(--dark-border);
+}
+
+main { 
+    flex: 1; 
+    overflow-y: auto; 
+    background: var(--bg-secondary);
+    transition: background-color 0.3s;
+}
+
+[data-theme="dark"] main {
+    background: var(--dark-bg-secondary);
+}
+
+.content { 
+    padding: 2rem;
+    min-height: 100%;
+}
+
+/* ========== COMPONENTES VEGANOS ========== */
+
+/* Botones con temas */
+.btn {
+    display: inline-flex; 
+    align-items: center; 
+    gap: 0.5rem;
+    padding: 0.75rem 1.5rem; 
+    border: 2px solid transparent;
+    border-radius: var(--border-radius); 
+    font-weight: 600;
+    text-decoration: none; 
+    cursor: pointer; 
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-size: 0.9rem;
+}
+
+.btn-primary { 
+    background: var(--vegan-green); 
+    color: white; 
+    border-color: var(--vegan-green);
+}
+.btn-primary:hover { 
+    background: var(--vegan-green-hover); 
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4);
+}
+
+.btn-secondary { 
+    background: transparent; 
+    color: var(--text-primary); 
+    border-color: var(--border-color);
+}
+.btn-secondary:hover { 
+    background: var(--bg-secondary); 
+    border-color: var(--vegan-green);
+}
+
+.btn-success { 
+    background: var(--plant-green); 
+    color: white; 
+    border-color: var(--plant-green);
+}
+
+.btn-danger { 
+    background: var(--danger); 
+    color: white; 
+    border-color: var(--danger);
+}
+
+.btn-sm {
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+}
+
+/* Cards con modo oscuro */
+.card {
+    background: var(--bg-primary); 
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius); 
+    box-shadow: var(--shadow-md);
+    transition: all 0.3s;
+}
+
+[data-theme="dark"] .card {
+    background: var(--dark-bg-primary);
+    border-color: var(--dark-border);
+}
+
+.card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header { 
+    padding: 1.5rem; 
+    border-bottom: 2px solid var(--border-color); 
+    font-weight: 700;
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card-header {
+    background: var(--dark-bg-secondary);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+.card-body { 
+    padding: 1.5rem;
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .card-body {
+    color: var(--dark-text-primary);
+}
+
+/* Forms con modo oscuro */
+.form-control {
+    width: 100%; 
+    padding: 0.75rem; 
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius); 
+    font-size: 1rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    transition: all 0.3s;
+    font-weight: 500;
+}
+
+[data-theme="dark"] .form-control {
+    background: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+.form-control:focus { 
+    outline: none;
+    border-color: var(--vegan-green);
+    box-shadow: 0 0 0 3px rgba(22, 163, 74, 0.2);
+}
+
+.form-label {
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+[data-theme="dark"] .form-label {
+    color: var(--dark-text-primary);
+}
+
+.form-check-input {
+    width: 1.2rem;
+    height: 1.2rem;
+    accent-color: var(--vegan-green);
+}
+
+/* Tables con modo oscuro */
+.table { 
+    width: 100%; 
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+    overflow: hidden;
+}
+
+[data-theme="dark"] .table {
+    border-color: var(--dark-border);
+}
+
+.table th, .table td { 
+    padding: 1rem; 
+    text-align: left; 
+    border-bottom: 1px solid var(--border-color);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .table th, 
+[data-theme="dark"] .table td {
+    background: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+.table th { 
+    background: var(--vegan-green);
+    color: white;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.table tr:nth-child(even) td {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .table tr:nth-child(even) td {
+    background: var(--dark-bg-secondary);
+}
+
+.table tr:hover td {
+    background: var(--vegan-green-light) !important;
+    color: var(--dark-bg-primary) !important;
+}
+
+/* Alerts con modo oscuro */
+.alert { 
+    padding: 1.5rem; 
+    border-radius: var(--border-radius); 
+    margin-bottom: 1.5rem;
+    border: 2px solid;
+    font-weight: 600;
+}
+
+.alert-success { 
+    background: rgba(22, 163, 74, 0.1); 
+    color: var(--vegan-green); 
+    border-color: var(--vegan-green);
+}
+
+[data-theme="dark"] .alert-success {
+    background: rgba(22, 163, 74, 0.2);
+    color: var(--vegan-green-light);
+}
+
+.alert-danger { 
+    background: rgba(239, 68, 68, 0.1); 
+    color: var(--danger); 
+    border-color: var(--danger);
+}
+
+.alert-warning { 
+    background: rgba(245, 158, 11, 0.1); 
+    color: var(--warning); 
+    border-color: var(--warning);
+}
+
+/* Badges */
+.badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.bg-success {
+    background: var(--plant-green);
+    color: white;
+}
+
+.bg-danger {
+    background: var(--danger);
+    color: white;
+}
+
+.bg-secondary {
+    background: var(--secondary);
+    color: white;
+}
+
+/* Modal Overrides */
+.modal-content {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius);
+}
+
+[data-theme="dark"] .modal-content {
+    background: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+.modal-header {
+    background: var(--vegan-green);
+    color: white;
+    border-bottom: none;
+    padding: 1.5rem;
+}
+
+.modal-body {
+    padding: 2rem;
+}
+
+.modal-footer {
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--border-color);
+    padding: 1.5rem;
+}
+
+[data-theme="dark"] .modal-footer {
+    background: var(--dark-bg-secondary);
+    border-color: var(--dark-border);
+}
+
+.btn-close {
+    filter: var(--bs-btn-close-white-filter, invert(1) grayscale(100%) brightness(200%));
+}
+
+/* Dark Mode Toggle Button */
+.dark-mode-toggle {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+    background: var(--vegan-green);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4);
+}
+
+.dark-mode-toggle:hover {
+    transform: rotate(180deg);
+    box-shadow: 0 8px 25px rgba(22, 163, 74, 0.6);
+}
+
+/* ========================================
+   🚀 POS FUTURISTA - PUNTO DE VENTA VEGANO
+   ======================================== */
+
+.futuristic-pos {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    overflow: hidden;
+}
+
+/* 🌟 Ambient Animation Background */
+.futuristic-pos::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: radial-gradient(circle at 20% 80%, rgba(22, 163, 74, 0.05) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(16, 185, 129, 0.05) 0%, transparent 50%);
+    animation: ambientGlow 15s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+}
+
+@keyframes ambientGlow {
+    0%, 100% { opacity: 0.4; }
+    50% { opacity: 0.8; }
+}
+
+/* 🎯 SMART HEADER - CONTROL CENTER */
+.pos-smart-header {
+    background: var(--bg-primary);
+    border-bottom: 2px solid var(--vegan-green);
+    padding: 1rem 2rem;
+    display: flex;
+    align-items: center;
+    gap: 2rem;
+    position: relative;
+    z-index: 1;
+    box-shadow: 0 2px 10px rgba(22, 163, 74, 0.2);
+}
+
+.pos-logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    color: var(--vegan-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+}
+
+/* 🛒 GRID LAYOUT */
+.pos-grid { 
+    display: grid; 
+    grid-template-columns: 2fr 1fr; 
+    gap: 2rem; 
+    height: calc(100vh - 8rem);
+    position: relative;
+    z-index: 1;
+    padding: 2rem;
+}
+
+/* 📦 PRODUCT GRID */
+.product-grid { 
+    display: grid; 
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); 
+    gap: 1.5rem;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+/* 🌱 PRODUCT CARD VEGANO */
+.product-card { 
+    background: var(--bg-primary);
+    border: 2px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+}
+
+.product-card::before {
+    content: "";
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(45deg, transparent 30%, rgba(22, 163, 74, 0.1) 50%, transparent 70%);
+    transform: translateX(-100%);
+    transition: transform 0.6s;
+}
+
+.product-card:hover::before {
+    transform: translateX(100%);
+}
+
+.product-card:hover { 
+    transform: translateY(-5px);
+    box-shadow: 0 15px 30px rgba(22, 163, 74, 0.3);
+    border-color: var(--vegan-green);
+}
+
+.product-emoji {
+    font-size: 3rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.product-name {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: 0.5rem;
+}
+
+.product-price {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--vegan-green);
+    font-family: var(--font-mono);
+}
+
+/* 🛒 CART FUTURISTA */
+.cart { 
+    background: var(--bg-primary);
+    border: 2px solid var(--vegan-green);
+    border-radius: 15px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(22, 163, 74, 0.2);
+    position: relative;
+    max-height: 100%;
+    overflow-y: auto;
+}
+
+.cart-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.cart-title {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+}
+
+/* 📱 CART ITEMS */
+.cart-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--bg-secondary);
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+    transition: all 0.3s;
+}
+
+.cart-item:hover {
+    border-color: var(--vegan-green);
+    box-shadow: var(--shadow-md);
+}
+
+/* 💰 CART TOTAL */
+.cart-total {
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: 2px solid var(--vegan-green);
+    text-align: center;
+}
+
+.total-amount {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--vegan-green);
+    font-family: var(--font-mono);
+    margin-bottom: 1rem;
+}
+
+/* ✅ CHECKOUT BUTTON */
+.checkout-btn {
+    width: 100%;
+    padding: 1.5rem;
+    background: linear-gradient(45deg, var(--vegan-green), var(--plant-green));
+    color: white;
+    border: none;
+    border-radius: 12px;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.checkout-btn:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+}
+
+.checkout-btn::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 0;
+    height: 0;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    transition: width 0.6s, height 0.6s;
+    transform: translate(-50%, -50%);
+}
+
+.checkout-btn:active::before {
+    width: 300px;
+    height: 300px;
+}
+
+/* ============================================================
+   📊 ORDERS - ALTO CONTRASTE PARA DEPENDIENTAS
+   Diseñado para Mona la Dona y empleadas de tienda
+   ============================================================ */
+
+/* Orders Header - Alto contraste */
+.orders-header {
+    background: var(--bg-primary);
+    border: 3px solid var(--text-primary);
+    border-radius: 0;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+}
+
+[data-theme="dark"] .orders-header {
+    background: var(--dark-bg-primary);
+    border-color: var(--dark-text-primary);
+    box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
+}
+
+.orders-header h1 {
+    margin: 0;
+    font-size: 2.5rem;
+    font-weight: 900;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    text-align: center;
+}
+
+/* Orders Section - Alto Contraste */
+.orders-section {
+    background: var(--bg-primary);
+    border: 3px solid var(--text-primary);
+    margin-bottom: 2rem;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+    border-radius: 0;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .orders-section {
+    background: var(--dark-bg-primary);
+    border-color: var(--dark-text-primary);
+    box-shadow: 0 8px 16px rgba(255, 255, 255, 0.3);
+}
+
+.orders-section h3 {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    margin: 0;
+    padding: 1.5rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+[data-theme="dark"] .orders-section h3 {
+    background: var(--dark-text-primary);
+    color: var(--dark-bg-primary);
+}
+
+/* Orders Content */
+.orders-content {
+    padding: 2rem;
+}
+
+/* Orders Table - Máximo contraste */
+.orders-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    border: 3px solid var(--text-primary);
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .orders-table {
+    border-color: var(--dark-text-primary);
+}
+
+.orders-table th,
+.orders-table td {
+    padding: 1.5rem;
+    text-align: left;
+    border-bottom: 2px solid var(--text-primary);
+    border-right: 2px solid var(--text-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .orders-table th,
+[data-theme="dark"] .orders-table td {
+    border-color: var(--dark-text-primary);
+}
+
+.orders-table th:last-child,
+.orders-table td:last-child {
+    border-right: none;
+}
+
+.orders-table tr:last-child td {
+    border-bottom: none;
+}
+
+.orders-table th {
+    background: var(--text-primary);
+    color: var(--bg-primary);
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+[data-theme="dark"] .orders-table th {
+    background: var(--dark-text-primary);
+    color: var(--dark-bg-primary);
+}
+
+.orders-table tr {
+    background: var(--bg-primary);
+    transition: background-color 0.2s;
+}
+
+[data-theme="dark"] .orders-table tr {
+    background: var(--dark-bg-primary);
+}
+
+.orders-table tr:nth-child(even) {
+    background: var(--bg-secondary);
+}
+
+[data-theme="dark"] .orders-table tr:nth-child(even) {
+    background: var(--dark-bg-secondary);
+}
+
+.orders-table tr:hover {
+    background: var(--vegan-green-light) !important;
+    color: var(--dark-bg-primary) !important;
+}
+
+[data-theme="dark"] .orders-table tr:hover {
+    background: var(--vegan-green) !important;
+    color: var(--dark-text-primary) !important;
+}
+
+/* Orders Stats Cards */
+.orders-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 2rem;
+    margin-bottom: 3rem;
+}
+
+.stat-card {
+    background: var(--bg-primary);
+    border: 3px solid var(--vegan-green);
+    padding: 2rem;
+    text-align: center;
+    box-shadow: 0 8px 16px rgba(22, 163, 74, 0.3);
+    border-radius: 0;
+}
+
+[data-theme="dark"] .stat-card {
+    background: var(--dark-bg-primary);
+}
+
+.stat-number {
+    font-size: 3rem;
+    font-weight: 900;
+    color: var(--vegan-green);
+    font-family: var(--font-mono);
+    display: block;
+    margin-bottom: 0.5rem;
+}
+
+.stat-label {
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Orders Filters - Alto contraste */
+.orders-filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background: var(--bg-secondary);
+    border: 2px solid var(--border-color);
+    align-items: center;
+    flex-wrap: wrap;
+}
+
+[data-theme="dark"] .orders-filters {
+    background: var(--dark-bg-secondary);
+    border-color: var(--dark-border);
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.filter-label {
+    font-weight: 700;
+    color: var(--text-primary);
+    text-transform: uppercase;
+    font-size: 0.9rem;
+    letter-spacing: 1px;
+}
+
+.filter-input {
+    padding: 0.75rem;
+    border: 2px solid var(--border-color);
+    border-radius: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+[data-theme="dark"] .filter-input {
+    background: var(--dark-bg-primary);
+    color: var(--dark-text-primary);
+    border-color: var(--dark-border);
+}
+
+.filter-input:focus {
+    outline: none;
+    border-color: var(--vegan-green);
+    box-shadow: 0 0 10px rgba(22, 163, 74, 0.5);
+}
+
+/* ========== NAVIGATION VEGANA ========== */
+.nav-scrollable {
+    height: calc(100vh - 2rem);
+    overflow-y: auto;
+    padding: 1rem 0;
+}
+
+.nav-menu, 
+nav.flex-column { 
+    list-style: none; 
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.nav-item {
+    margin: 0;
+}
+
+.nav-link,
+.nav-menu a {
+    display: flex; 
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.5rem; 
+    color: var(--text-primary);
+    text-decoration: none; 
+    border-radius: var(--border-radius);
+    transition: all 0.3s;
+    font-weight: 500;
+    border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+[data-theme="dark"] .nav-link,
+[data-theme="dark"] .nav-menu a {
+    color: var(--dark-text-primary);
+}
+
+.nav-link::before,
+.nav-menu a::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(22, 163, 74, 0.1), transparent);
+    transition: left 0.5s;
+}
+
+.nav-link:hover::before,
+.nav-menu a:hover::before {
+    left: 100%;
+}
+
+.nav-link:hover,
+.nav-menu a:hover { 
+    background: var(--bg-secondary);
+    border-color: var(--vegan-green);
+    color: var(--vegan-green);
+    transform: translateX(5px);
+}
+
+[data-theme="dark"] .nav-link:hover,
+[data-theme="dark"] .nav-menu a:hover {
+    background: var(--dark-bg-secondary);
+    color: var(--vegan-green-light);
+}
+
+.nav-link.active,
+.nav-menu a.active { 
+    background: linear-gradient(135deg, var(--vegan-green), var(--plant-green));
+    color: white;
+    border-color: var(--vegan-green);
+    font-weight: 700;
+    box-shadow: 0 5px 15px rgba(22, 163, 74, 0.4);
+}
+
+.nav-link span:first-child,
+.nav-menu a span:first-child {
+    font-size: 1.2rem;
+    min-width: 1.5rem;
+    text-align: center;
+}
+
+/* Logo y branding en sidebar */
+.sidebar-logo {
+    text-align: center;
+    padding: 2rem 1rem;
+    border-bottom: 2px solid var(--border-color);
+    margin-bottom: 2rem;
+}
+
+[data-theme="dark"] .sidebar-logo {
+    border-color: var(--dark-border);
+}
+
+.logo-text {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--vegan-green);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-bottom: 0.5rem;
+}
+
+.logo-subtitle {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 600;
+}
+
+[data-theme="dark"] .logo-subtitle {
+    color: var(--dark-text-secondary);
+}
+
+/* Footer del sidebar */
+.sidebar-footer {
+    margin-top: auto;
+    padding-top: 2rem;
+    border-top: 1px solid var(--border-color);
+    text-align: center;
+}
+
+[data-theme="dark"] .sidebar-footer {
+    border-color: var(--dark-border);
+}
+
+.sidebar-footer .badge {
+    margin: 0.2rem;
+    font-size: 0.7rem;
+}
+
+/* ========== UTILITIES ========== */
+.text-center { text-align: center; }
+.text-muted { color: var(--text-muted); }
+.mb-4 { margin-bottom: 1rem; }
+.mb-6 { margin-bottom: 1.5rem; }
+.flex { display: flex; }
+.justify-between { justify-content: space-between; }
+.items-center { align-items: center; }
+.gap-2 { gap: 0.5rem; }
+.hidden { display: none; }
+
+/* ========== RESPONSIVE ========== */
+@media (max-width: 768px) {
+    .page { flex-direction: column; }
+    .sidebar { width: 100%; height: auto; }
+    .pos-grid { grid-template-columns: 1fr; }
+    .content { padding: 1rem; }
+}

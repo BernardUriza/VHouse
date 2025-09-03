@@ -1,0 +1,43 @@
+/* VHouse Layout Grid - Sistema base de layout */
+
+/* Layout principal de la aplicación */
+.page {
+    display: flex;
+    height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+}
+
+/* Main content area */
+main {
+    flex: 1;
+    overflow-y: auto;
+    background: var(--bg-secondary);
+    transition: background-color var(--transition-base);
+}
+
+/* Content wrapper */
+.content {
+    padding: var(--space-xl);
+    min-height: 100%;
+}
+
+/* Top row para breadcrumbs/toolbar */
+.top-row {
+    background: var(--bg-primary);
+    border-bottom: 2px solid var(--border-color);
+    padding: var(--space-md);
+    transition: all var(--transition-base);
+}
+
+/* Container system */
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 0 var(--space-md);
+}
+
+.container-fluid {
+    width: 100%;
+    padding: 0 var(--space-md);
+}

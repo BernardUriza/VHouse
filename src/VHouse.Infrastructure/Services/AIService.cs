@@ -305,14 +305,7 @@ public class AIService : IAIService
             {
                 var responseContent = await httpResponse.Content.ReadAsStringAsync();
                 
-                // DEBUG: Log raw Claude response
-                Console.WriteLine($"🔍 Claude Raw Response: {responseContent}");
-                
                 var claudeResponse = JsonSerializer.Deserialize<ClaudeAPIResponse>(responseContent);
-                
-                // DEBUG: Log parsed response
-                Console.WriteLine($"🔍 Claude Parsed Content Count: {claudeResponse?.Content?.Count ?? 0}");
-                Console.WriteLine($"🔍 Claude First Content: {claudeResponse?.Content?.FirstOrDefault()?.Text ?? "NULL"}");
                 
                 return new AIResponse
                 {

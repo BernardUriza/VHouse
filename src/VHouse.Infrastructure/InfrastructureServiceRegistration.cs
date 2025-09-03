@@ -19,9 +19,11 @@ public static class InfrastructureServiceRegistration
         // Repositories
         services.AddScoped(typeof(IRepository<>), typeof(Repository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
+        services.AddScoped<IPasswordService, PasswordService>();
+        services.AddScoped<ISupplierRepository, SupplierRepository>();
 
         // AI Services - Claude priority with OpenAI fallback
-        services.AddHttpClient<IAIService, AIService>(client =>
+        services.AddHttpClient<AIService>(client =>
         {
             client.Timeout = TimeSpan.FromMilliseconds(
                 configuration.GetValue<int>("AI:RequestTimeout", 30000));

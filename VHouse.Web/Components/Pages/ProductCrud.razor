@@ -73,7 +73,7 @@
             </div>
             
             <div class="form-actions">
-                <button class="btn-create" @onclick="async () => await AddProduct()">
+                <button class="btn-create" @onclick="AddProduct">
                     ✨ Crear Producto
                 </button>
             </div>
@@ -366,13 +366,13 @@
                     <div class="product-actions">
                         @if (product == productBeingEdited)
                         {
-                            <button class="btn-save" @onclick="async () => await SaveEdit(product)">💾</button>
+                            <button class="btn-save" @onclick="() => SaveEdit(product)">💾</button>
                             <button class="btn-cancel" @onclick="CancelEdit">❌</button>
                         }
                         else
                         {
                             <button class="btn-edit" @onclick="() => EditProduct(product)">✏️</button>
-                            <button class="btn-delete" @onclick="async () => await DeleteProduct(product)">🗑️</button>
+                            <button class="btn-delete" @onclick="() => DeleteProduct(product)">🗑️</button>
                         }
                     </div>
                 </div>
@@ -649,11 +649,10 @@
 
     private void LoadProducts()
     {
-        // products = await ProductService.GetProductsAsync(); // Commented out until ProductService is available
-        products = new List<Product>(); // Placeholder
+        products = new List<Product>(); // MVP: Load from DB when ready
     }
 
-    private async Task AddProduct()
+    private void AddProduct()
     {
         if (string.IsNullOrWhiteSpace(newProductName) || newPricePublic <= 0 || newPriceRetail <= 0 || newPriceCost <= 0)
         {
@@ -668,7 +667,6 @@
                 PriceCost = newPriceCost
             };
 
-        // await ProductService.AddProductAsync(newProduct); // Commented out until ProductService is available
         LoadProducts();
 
         newProductName = string.Empty;
@@ -682,9 +680,8 @@
         productBeingEdited = product;
     }
 
-    private async Task SaveEdit(Product product)
+    private void SaveEdit(Product product)
     {
-        // await ProductService.UpdateProductAsync(product); // Commented out until ProductService is available
         productBeingEdited = null;
         LoadProducts();
     }
@@ -694,9 +691,8 @@
         productBeingEdited = null;
     }
 
-    private async Task DeleteProduct(Product product)
+    private void DeleteProduct(Product product)
     {
-        // await ProductService.DeleteProductAsync(product.Id); // Commented out until ProductService is available
         LoadProducts();
     }
 

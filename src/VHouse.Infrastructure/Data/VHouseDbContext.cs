@@ -14,6 +14,7 @@ public class VHouseDbContext : DbContext
     public DbSet<Order> Orders { get; set; }
     public DbSet<OrderItem> OrderItems { get; set; }
     public DbSet<Customer> Customers { get; set; }
+    public DbSet<Supplier> Suppliers { get; set; }
     
     // B2B Client Portal entities
     public DbSet<ClientTenant> ClientTenants { get; set; }
@@ -41,6 +42,20 @@ public class VHouseDbContext : DbContext
             entity.Property(p => p.PriceRetail).HasColumnType("decimal(18,2)");
             entity.Property(p => p.PriceSuggested).HasColumnType("decimal(18,2)");
             entity.Property(p => p.PricePublic).HasColumnType("decimal(18,2)");
+            
+            entity.HasOne(p => p.Supplier)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.SetNull);
+        });
+
+        // Supplier configuration
+        modelBuilder.Entity<Supplier>(entity =>
+        {
+            entity.HasKey(s => s.Id);
+            entity.Property(s => s.Name).IsRequired().HasMaxLength(100);
+            entity.Property(s => s.Email).HasMaxLength(100);
+            entity.Property(s => s.MinimumOrderAmount).HasColumnType("decimal(18,2)");
         });
 
         // Customer configuration

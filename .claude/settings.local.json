@@ -29,7 +29,8 @@
       "Bash(start http://localhost:5000/client/MONA_DONA)",
       "Bash(sqlite3:*)",
       "Bash(dotnet ef migrations:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(move:*)"
     ],
     "deny": [],
     "ask": [],

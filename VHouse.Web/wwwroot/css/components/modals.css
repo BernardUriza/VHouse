@@ -1,0 +1,39 @@
+/* VHouse Modals - Modales con tema vegano */
+
+.modal-content {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    border-radius: var(--border-radius-md);
+    box-shadow: var(--shadow-xl);
+}
+
+.modal-header {
+    background: var(--vegan-green);
+    color: white;
+    border-bottom: none;
+    padding: var(--space-lg);
+    border-top-left-radius: calc(var(--border-radius-md) - 2px);
+    border-top-right-radius: calc(var(--border-radius-md) - 2px);
+}
+
+.modal-title {
+    font-weight: var(--font-bold);
+    font-size: var(--font-lg);
+}
+
+.modal-body {
+    padding: var(--space-xl);
+}
+
+.modal-footer {
+    background: var(--bg-secondary);
+    border-top: 2px solid var(--border-color);
+    padding: var(--space-lg);
+    border-bottom-left-radius: calc(var(--border-radius-md) - 2px);
+    border-bottom-right-radius: calc(var(--border-radius-md) - 2px);
+}
+
+.btn-close {
+    filter: invert(1) grayscale(100%) brightness(200%);
+}
