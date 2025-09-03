@@ -31,7 +31,7 @@ namespace VHouse.Infrastructure.Migrations
                     Email = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
                     Phone = table.Column<string>(type: "TEXT", maxLength: 20, nullable: false),
                     LoginUsername = table.Column<string>(type: "TEXT", maxLength: 50, nullable: false),
-                    LoginPassword = table.Column<string>(type: "TEXT", maxLength: 100, nullable: false),
+                    LoginPasswordHash = table.Column<string>(type: "TEXT", maxLength: 255, nullable: false),
                     IsActive = table.Column<bool>(type: "INTEGER", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "TEXT", nullable: false),
                     LastLoginAt = table.Column<DateTime>(type: "TEXT", nullable: true)

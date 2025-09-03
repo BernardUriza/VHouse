@@ -25,7 +25,11 @@
       "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Interfaces/**)",
       "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse/**)",
       "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\tests\\VHouse.Tests/**)",
-      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)"
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Domain\\Entities/**)",
+      "Read(C:\\Users\\Bernard\\Documents\\GitHub\\VHouse\\src\\VHouse.Infrastructure/**)",
+      "Bash(dotnet ef migrations add:*)",
+      "Bash(dotnet ef database update:*)"
     ],
     "deny": [],
     "ask": []
