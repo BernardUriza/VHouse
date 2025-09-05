@@ -47,6 +47,19 @@ public static class ServiceCollectionExtensions
 
         services.AddHttpClient();
         
+        // Configure HttpClient for Blazor Server with base address
+        services.AddScoped(sp =>
+        {
+            var httpClient = new HttpClient();
+            var httpContext = sp.GetService<IHttpContextAccessor>()?.HttpContext;
+            if (httpContext != null)
+            {
+                var request = httpContext.Request;
+                httpClient.BaseAddress = new Uri($"{request.Scheme}://{request.Host}");
+            }
+            return httpClient;
+        });
+        
         // Add Markdown service
         services.AddScoped<VHouse.Web.Services.IMarkdownService, VHouse.Web.Services.MarkdownService>();
         

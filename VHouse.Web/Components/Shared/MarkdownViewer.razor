@@ -1,5 +1,4 @@
 @using VHouse.Web.Services
-@using Blazorade.Mermaid.Components
 @inject IMarkdownService MarkdownService
 @inject IJSRuntime JSRuntime
 
@@ -13,18 +12,8 @@
     }
     else if (!string.IsNullOrEmpty(Content))
     {
-        <div class="markdown-content">
+        <div class="markdown-content" id="markdown-content">
             @((MarkupString)_renderedHtml)
-            
-            @if (_mermaidDiagrams.Count > 0)
-            {
-                @foreach (var (diagram, index) in _mermaidDiagrams.Select((d, i) => (d, i)))
-                {
-                    <div class="mermaid-container" data-diagram-id="@index">
-                        <MermaidDiagram Code="@diagram" />
-                    </div>
-                }
-            }
         </div>
     }
     else
@@ -287,14 +276,8 @@
             _renderedHtml = html;
             _mermaidDiagrams = diagrams;
 
-            // Replace mermaid placeholders with actual diagram containers
-            for (int i = 0; i < diagrams.Count; i++)
-            {
-                _renderedHtml = _renderedHtml.Replace(
-                    $"<div class=\"mermaid-placeholder\" data-diagram-id=\"{i}\"></div>",
-                    $"<div class=\"mermaid-diagram-placeholder\" data-diagram-id=\"{i}\"></div>"
-                );
-            }
+            // Mermaid diagrams are already embedded as <div class="mermaid"> in the HTML
+            // No additional processing needed
 
             if (OnContentProcessed.HasDelegate)
             {
@@ -316,12 +299,20 @@
         {
             try
             {
-                // Initialize Mermaid diagrams after render
-                await JSRuntime.InvokeVoidAsync("mermaid.init", null, ".mermaid-diagram-placeholder");
+                // Initialize Mermaid diagrams after render - use native mermaid initialization
+                await JSRuntime.InvokeVoidAsync("mermaid.run");
             }
             catch (Exception)
             {
-                // Mermaid initialization failed - this is expected in some cases
+                // Fallback to init if run is not available
+                try
+                {
+                    await JSRuntime.InvokeVoidAsync("mermaid.init");
+                }
+                catch (Exception)
+                {
+                    // Mermaid initialization failed - continue without diagrams
+                }
             }
         }
     }

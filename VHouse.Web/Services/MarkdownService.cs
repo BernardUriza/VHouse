@@ -37,7 +37,7 @@ public class MarkdownService : IMarkdownService
         var mermaidDiagrams = new List<string>();
         var mermaidId = 0;
 
-        // Extract Mermaid diagrams and replace with placeholders
+        // Extract Mermaid diagrams and replace with native mermaid divs
         var processedMarkdown = Regex.Replace(
             markdownContent,
             @"```mermaid\s*(.*?)\s*```",
@@ -45,7 +45,7 @@ public class MarkdownService : IMarkdownService
             {
                 var diagramCode = match.Groups[1].Value.Trim();
                 mermaidDiagrams.Add(diagramCode);
-                return $"<div class=\"mermaid-placeholder\" data-diagram-id=\"{mermaidId++}\"></div>";
+                return $"<div class=\"mermaid\" id=\"mermaid-{mermaidId++}\">{diagramCode}</div>";
             },
             RegexOptions.Singleline | RegexOptions.IgnoreCase
         );
