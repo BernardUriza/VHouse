@@ -46,6 +46,10 @@ public static class ServiceCollectionExtensions
         });
 
         services.AddHttpClient();
+        
+        // Add Markdown service
+        services.AddScoped<VHouse.Web.Services.IMarkdownService, VHouse.Web.Services.MarkdownService>();
+        
         return services;
     }
 

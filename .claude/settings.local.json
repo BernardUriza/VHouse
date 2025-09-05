@@ -30,7 +30,8 @@
       "Bash(sqlite3:*)",
       "Bash(dotnet ef migrations:*)",
       "Bash(grep:*)",
-      "Bash(move:*)"
+      "Bash(move:*)",
+      "Bash(dotnet add:*)"
     ],
     "deny": [],
     "ask": [],
