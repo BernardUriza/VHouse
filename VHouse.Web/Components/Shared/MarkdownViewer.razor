@@ -1,5 +1,5 @@
 @using VHouse.Web.Services
-@using Blazorade.Mermaid
+@using Blazorade.Mermaid.Components
 @inject IMarkdownService MarkdownService
 @inject IJSRuntime JSRuntime
 
@@ -16,7 +16,7 @@
         <div class="markdown-content">
             @((MarkupString)_renderedHtml)
             
-            @if (_mermaidDiagrams.Any())
+            @if (_mermaidDiagrams.Count > 0)
             {
                 @foreach (var (diagram, index) in _mermaidDiagrams.Select((d, i) => (d, i)))
                 {
@@ -55,7 +55,7 @@
     margin-bottom: var(--spacing-4);
 }
 
-@keyframes spin {
+@@keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
@@ -242,8 +242,8 @@
     font-size: var(--font-size-sm);
 }
 
-/* Dark mode adjustments */
-@media (prefers-color-scheme: dark) {
+/* Dark mode adjustments - CSS media query */
+@@media (prefers-color-scheme: dark) {
     .markdown-content code {
         background: var(--gray-800);
     }
@@ -312,12 +312,12 @@
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
-        if (!firstRender && _mermaidDiagrams.Any())
+        if (!firstRender && _mermaidDiagrams.Count > 0)
         {
             try
             {
                 // Initialize Mermaid diagrams after render
-                await JSRuntime.InvokeVoidAsync("mermaid.init", undefined, ".mermaid-diagram-placeholder");
+                await JSRuntime.InvokeVoidAsync("mermaid.init", null, ".mermaid-diagram-placeholder");
             }
             catch (Exception)
             {

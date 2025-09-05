@@ -32,10 +32,17 @@
     <script src="js/vhouse-global.js"></script>
     
     <!-- Mermaid.js for diagram rendering -->
-    <script type="module">
-        import mermaid from 'https://cdn.skypack.dev/mermaid@10';
-        mermaid.initialize({ startOnLoad: true });
-        window.mermaid = mermaid;
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10.6.1/dist/mermaid.min.js"></script>
+    <script>
+        mermaid.initialize({ 
+            startOnLoad: true,
+            theme: 'default',
+            securityLevel: 'loose',
+            flowchart: {
+                useMaxWidth: true,
+                htmlLabels: true
+            }
+        });
     </script>
 </body>
 

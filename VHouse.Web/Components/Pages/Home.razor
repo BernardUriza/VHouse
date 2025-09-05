@@ -18,17 +18,17 @@
                 @foreach (var section in manualSections)
                 {
                     <li class="nav-item @(currentFile == section.File ? "active" : "")">
-                        <button @onclick="() => LoadSection(section.File)" class="nav-link">
-                            <span class="nav-icon">@section.Icon</span>
-                            <span class="nav-title">@section.Title</span>
+                        <button @onclick="@(() => LoadSection(section.File))" class="nav-link">
+                            <span class="nav-icon">@(section.Icon)</span>
+                            <span class="nav-title">@(section.Title)</span>
                         </button>
-                        @if (section.SubSections?.Any() == true && (currentFile == section.File || section.SubSections.Any(s => s.File == currentFile)))
+                        @if (section.SubSections?.Count > 0 && (currentFile == section.File || section.SubSections.Any(s => s.File == currentFile)))
                         {
                             <ul class="nav-subsections">
                                 @foreach (var sub in section.SubSections)
                                 {
                                     <li class="nav-subitem">
-                                        <button @onclick="() => LoadSection(sub.File)" class="nav-sublink @(currentFile == sub.File ? "active" : "")">
+                                        <button @onclick="@(() => LoadSection(sub.File))" class="nav-sublink @(currentFile == sub.File ? "active" : "")">
                                             <span class="nav-subicon">@sub.Icon</span>
                                             <span class="nav-subtitle">@sub.Title</span>
                                         </button>
@@ -66,25 +66,25 @@
                 </div>
                 
                 <div class="quick-start-grid">
-                    <div class="quick-start-card" @onclick="() => LoadSection(\"introduction\")">
+                    <div class="quick-start-card" @onclick="@(() => LoadSection("introduction"))">
                         <div class="card-icon">🚀</div>
                         <h3>Inicio Rápido</h3>
                         <p>Configura tu tienda vegana en minutos</p>
                     </div>
                     
-                    <div class="quick-start-card" @onclick="() => LoadSection(\"pos-system\")">
+                    <div class="quick-start-card" @onclick="@(() => LoadSection("pos-system"))">
                         <div class="card-icon">🎫</div>
                         <h3>Sistema POS</h3>
                         <p>Procesa ventas como Mona la Dona</p>
                     </div>
                     
-                    <div class="quick-start-card" @onclick="() => LoadSection(\"inventory\")">
+                    <div class="quick-start-card" @onclick="@(() => LoadSection("inventory"))">
                         <div class="card-icon">📦</div>
                         <h3>Inventario</h3>
                         <p>Gestiona productos como Sano Market</p>
                     </div>
                     
-                    <div class="quick-start-card" @onclick="() => LoadSection(\"clients\")">
+                    <div class="quick-start-card" @onclick="@(() => LoadSection("clients"))">
                         <div class="card-icon">👥</div>
                         <h3>Clientes</h3>
                         <p>Administra tu red de distribución</p>
@@ -215,7 +215,7 @@
     animation: spin 2s linear infinite;
 }
 
-@keyframes spin {
+@@keyframes spin {
     from { transform: rotate(0deg); }
     to { transform: rotate(360deg); }
 }
