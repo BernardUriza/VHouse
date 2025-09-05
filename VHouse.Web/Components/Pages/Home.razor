@@ -1,154 +1,37 @@
-@* Created by Bernard Orozco - Modern VHouse Home Page *@
+@* Created by Bernard Orozco - VHouse Home Page with Manual Viewer *@
 @page "/"
 
-<PageTitle>VHouse - Modern Vegan POS System</PageTitle>
+<PageTitle>📚 VHouse - Manual de Usuario</PageTitle>
 
-<div class="welcome-section">
-    <h1>🌱 Welcome to VHouse</h1>
-    <p>
-        The next-generation <strong>Clean Architecture</strong> vegan Point of Sale system that accelerates your business operations with modern design principles and enterprise-grade architecture.
-    </p>
+<div class="manual-iframe-container">
+    <iframe src="/manual" 
+            class="manual-iframe" 
+            title="Manual de Usuario VHouse"
+            frameborder="0">
+        <p>Tu navegador no soporta iframes. <a href="/manual">Accede al manual directamente</a>.</p>
+    </iframe>
 </div>
 
-<div class="grid grid-2 mb-8">
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <span style="font-size: 2rem;">🏗️</span>
-                <span>Architecture Layers</span>
-            </div>
-            <div class="card-subtitle">Built with Clean Architecture principles</div>
-        </div>
-        
-        <div style="display: grid; gap: var(--spacing-4);">
-            <div style="display: flex; align-items: center; padding: var(--spacing-3); background: var(--surface-bg); border-radius: var(--radius-md); border-left: 3px solid var(--primary-green);">
-                <span style="margin-right: var(--spacing-3); font-size: var(--font-size-lg);">🎯</span>
-                <div>
-                    <strong style="color: var(--text-primary);">Domain Layer</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Core entities and business rules</div>
-                </div>
-            </div>
-            
-            <div style="display: flex; align-items: center; padding: var(--spacing-3); background: var(--surface-bg); border-radius: var(--radius-md); border-left: 3px solid var(--secondary-green);">
-                <span style="margin-right: var(--spacing-3); font-size: var(--font-size-lg);">⚡</span>
-                <div>
-                    <strong style="color: var(--text-primary);">Application Layer</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Use cases with CQRS and MediatR</div>
-                </div>
-            </div>
-            
-            <div style="display: flex; align-items: center; padding: var(--spacing-3); background: var(--surface-bg); border-radius: var(--radius-md); border-left: 3px solid var(--accent-green);">
-                <span style="margin-right: var(--spacing-3); font-size: var(--font-size-lg);">🔧</span>
-                <div>
-                    <strong style="color: var(--text-primary);">Infrastructure Layer</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Data persistence with EF Core</div>
-                </div>
-            </div>
-            
-            <div style="display: flex; align-items: center; padding: var(--spacing-3); background: var(--surface-bg); border-radius: var(--radius-md); border-left: 3px solid var(--light-green);">
-                <span style="margin-right: var(--spacing-3); font-size: var(--font-size-lg);">🌐</span>
-                <div>
-                    <strong style="color: var(--text-primary);">Web Layer</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted);">Modern Blazor Server UI</div>
-                </div>
-            </div>
-        </div>
-    </div>
+<style>
+.manual-iframe-container {
+    width: 100%;
+    height: calc(100vh - 60px);
+    margin: 0;
+    padding: 0;
+    background: var(--bg-primary);
+}
 
-    <div class="card">
-        <div class="card-header">
-            <div class="card-title">
-                <span style="font-size: 2rem;">✨</span>
-                <span>Architecture Highlights</span>
-            </div>
-            <div class="card-subtitle">Enterprise-grade features and patterns</div>
-        </div>
-        
-        <ul class="architecture-list">
-            <li>
-                <span style="color: var(--accent-green); font-weight: bold;">✅</span>
-                <div>
-                    <strong>Clean separation of concerns</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-1);">Modular and maintainable codebase</div>
-                </div>
-            </li>
-            <li>
-                <span style="color: var(--accent-green); font-weight: bold;">✅</span>
-                <div>
-                    <strong>CQRS pattern with MediatR</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-1);">Command Query Responsibility Segregation</div>
-                </div>
-            </li>
-            <li>
-                <span style="color: var(--accent-green); font-weight: bold;">✅</span>
-                <div>
-                    <strong>Repository and Unit of Work patterns</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-1);">Data access abstraction and consistency</div>
-                </div>
-            </li>
-            <li>
-                <span style="color: var(--accent-green); font-weight: bold;">✅</span>
-                <div>
-                    <strong>Health checks and security headers</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-1);">Production-ready monitoring and security</div>
-                </div>
-            </li>
-            <li>
-                <span style="color: var(--accent-green); font-weight: bold;">✅</span>
-                <div>
-                    <strong>Dependency injection throughout</strong>
-                    <div style="font-size: var(--font-size-sm); color: var(--text-muted); margin-top: var(--spacing-1);">Testable and loosely coupled design</div>
-                </div>
-            </li>
-        </ul>
-    </div>
-</div>
+.manual-iframe {
+    width: 100%;
+    height: 100%;
+    border: none;
+    display: block;
+}
 
-<div class="grid grid-3">
-    <div class="card">
-        <div class="card-title">
-            <span style="font-size: 1.5rem;">🌱</span>
-            <span>Vegan Focus</span>
-        </div>
-        <p style="margin: 0; color: var(--text-secondary);">
-            Specialized features for plant-based businesses, sustainable practices, and eco-conscious operations.
-        </p>
-    </div>
-
-    <div class="card">
-        <div class="card-title">
-            <span style="font-size: 1.5rem;">🚀</span>
-            <span>Performance</span>
-        </div>
-        <p style="margin: 0; color: var(--text-secondary);">
-            Blazor Server with SignalR for real-time updates, optimized for speed and responsiveness.
-        </p>
-    </div>
-
-    <div class="card">
-        <div class="card-title">
-            <span style="font-size: 1.5rem;">🔒</span>
-            <span>Security</span>
-        </div>
-        <p style="margin: 0; color: var(--text-secondary);">
-            Built-in security headers, authentication, authorization, and data protection mechanisms.
-        </p>
-    </div>
-</div>
-
-<div class="text-center mt-8">
-    <div style="padding: var(--spacing-6); background: var(--card-bg); border-radius: var(--radius-xl); border: 1px solid var(--border-color);">
-        <h3 style="color: var(--accent-green); margin-bottom: var(--spacing-4);">Ready to Get Started?</h3>
-        <p style="color: var(--text-secondary); margin-bottom: var(--spacing-6);">
-            Explore our products catalog or jump straight into the Point of Sale system.
-        </p>
-        <div style="display: flex; gap: var(--spacing-4); justify-content: center; flex-wrap: wrap;">
-            <a href="/products" style="display: inline-flex; align-items: center; gap: var(--spacing-2); padding: var(--spacing-3) var(--spacing-6); background: var(--primary-green); color: var(--text-primary); text-decoration: none; border-radius: var(--radius-md); font-weight: 600; transition: all var(--transition-fast);">
-                <span>🌱</span> Browse Products
-            </a>
-            <a href="/pos" style="display: inline-flex; align-items: center; gap: var(--spacing-2); padding: var(--spacing-3) var(--spacing-6); background: var(--surface-bg); color: var(--text-primary); text-decoration: none; border-radius: var(--radius-md); font-weight: 600; border: 1px solid var(--border-color); transition: all var(--transition-fast);">
-                <span>🎫</span> Open POS
-            </a>
-        </div>
-    </div>
-</div>
+/* Hide main container padding when showing iframe */
+.container {
+    padding: 0 !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+}
+</style>

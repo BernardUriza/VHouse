@@ -316,9 +316,16 @@
     protected override async Task OnInitializedAsync()
     {
         await LoadProducts();
-        
-        // Register this component for chatbot callbacks
-        await JSRuntime.InvokeVoidAsync("registerPOSComponent", DotNetObjectReference.Create(this));
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Register this component for chatbot callbacks after first render
+            await JSRuntime.InvokeVoidAsync("registerPOSComponent", DotNetObjectReference.Create(this));
+        }
+        await base.OnAfterRenderAsync(firstRender);
     }
 
     private async Task LoadProducts()
