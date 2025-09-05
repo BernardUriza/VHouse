@@ -2,6 +2,7 @@
 @page "/"
 @using VHouse.Web.Components.Shared
 @inject HttpClient Http
+@inject NavigationManager Navigation
 @inject IJSRuntime JS
 
 <PageTitle>📚 VHouse - Manual de Usuario</PageTitle>
@@ -379,7 +380,11 @@ body .container {
             currentFile = fileName;
             StateHasChanged();
             
-            var response = await Http.GetAsync($"/manual/{fileName}.md");
+            // Use NavigationManager to get the base URI
+            var baseUri = Navigation.BaseUri;
+            var fullUri = new Uri(new Uri(baseUri), $"manual/{fileName}.md");
+            
+            var response = await Http.GetAsync(fullUri);
             if (response.IsSuccessStatusCode)
             {
                 markdownContent = await response.Content.ReadAsStringAsync();
