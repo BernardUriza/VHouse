@@ -37,12 +37,12 @@ public class SecurityHeadersMiddleware
         var path = request.Path.Value?.ToLowerInvariant() ?? string.Empty;
         
         // Skip security headers for static files and Blazor framework files
-        if (ExcludedPaths.Any(excludedPath => path.StartsWith(excludedPath)))
+        if (ExcludedPaths.Any(excludedPath => path.StartsWith(excludedPath, StringComparison.Ordinal)))
         {
             return false;
         }
         
-        if (StaticFileExtensions.Any(ext => path.EndsWith(ext)))
+        if (StaticFileExtensions.Any(ext => path.EndsWith(ext, StringComparison.Ordinal)))
         {
             return false;
         }

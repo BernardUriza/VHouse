@@ -77,6 +77,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork, VHouse.Infrastructure.Repositories.UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(VHouse.Infrastructure.Repositories.Repository<>));
         services.AddScoped<IPasswordService, VHouse.Infrastructure.Services.PasswordService>();
+        
+        // Client Inventory System - REAL business logic
+        services.AddScoped<VHouse.Application.Services.IClientInventoryService, VHouse.Infrastructure.Services.ClientInventoryService>();
+        
+        
+        // Enterprise Audit and Monitoring - PROFESSIONAL grade
+        services.AddScoped<VHouse.Application.Services.IAuditService, VHouse.Infrastructure.Services.AuditService>();
+        services.AddScoped<VHouse.Application.Services.IBusinessMetricsService, VHouse.Infrastructure.Services.BusinessMetricsService>();
 
         // Basic MediatR for CQRS (keeping core architecture)
         services.AddMediatR(cfg => {

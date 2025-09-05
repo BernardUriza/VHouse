@@ -28,6 +28,11 @@ public class VHouseDbContext : DbContext
     public DbSet<Consignment> Consignments { get; set; }
     public DbSet<ConsignmentItem> ConsignmentItems { get; set; }
     public DbSet<ConsignmentSale> ConsignmentSales { get; set; }
+    
+    // Enterprise audit and monitoring entities
+    public DbSet<AuditLog> AuditLogs { get; set; }
+    public DbSet<SystemMetric> SystemMetrics { get; set; }
+    public DbSet<BusinessAlert> BusinessAlerts { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -217,6 +222,71 @@ public class VHouseDbContext : DbContext
                 .HasForeignKey(cs => cs.ConsignmentItemId);
                 
             entity.HasIndex(cs => cs.SaleDate);
+        });
+
+        // AuditLog configuration
+        modelBuilder.Entity<AuditLog>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.Action).IsRequired().HasMaxLength(50);
+            entity.Property(a => a.EntityType).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.UserId).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.UserName).IsRequired().HasMaxLength(200);
+            entity.Property(a => a.IPAddress).HasMaxLength(50);
+            entity.Property(a => a.UserAgent).HasMaxLength(200);
+            entity.Property(a => a.Changes).HasMaxLength(500);
+            entity.Property(a => a.Severity).HasMaxLength(20);
+            entity.Property(a => a.Module).HasMaxLength(50);
+            entity.Property(a => a.AmountInvolved).HasColumnType("decimal(18,2)");
+            entity.Property(a => a.ClientTenant).HasMaxLength(100);
+            entity.Property(a => a.ErrorMessage).HasMaxLength(500);
+            
+            entity.HasIndex(a => a.Timestamp);
+            entity.HasIndex(a => a.EntityType);
+            entity.HasIndex(a => a.UserId);
+            entity.HasIndex(a => a.Severity);
+            entity.HasIndex(a => a.Module);
+        });
+
+        // SystemMetric configuration
+        modelBuilder.Entity<SystemMetric>(entity =>
+        {
+            entity.HasKey(m => m.Id);
+            entity.Property(m => m.MetricName).IsRequired().HasMaxLength(100);
+            entity.Property(m => m.MetricType).IsRequired().HasMaxLength(50);
+            entity.Property(m => m.Value).HasColumnType("decimal(18,4)");
+            entity.Property(m => m.Unit).HasMaxLength(20);
+            entity.Property(m => m.Source).HasMaxLength(100);
+            entity.Property(m => m.ClientTenant).HasMaxLength(100);
+            entity.Property(m => m.Severity).HasMaxLength(20);
+            entity.Property(m => m.ActionRequired).HasMaxLength(500);
+            
+            entity.HasIndex(m => m.Timestamp);
+            entity.HasIndex(m => m.MetricType);
+            entity.HasIndex(m => m.MetricName);
+            entity.HasIndex(m => m.ClientTenant);
+            entity.HasIndex(m => m.Severity);
+        });
+
+        // BusinessAlert configuration
+        modelBuilder.Entity<BusinessAlert>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.AlertType).IsRequired().HasMaxLength(20);
+            entity.Property(a => a.Title).IsRequired().HasMaxLength(200);
+            entity.Property(a => a.Description).IsRequired().HasMaxLength(1000);
+            entity.Property(a => a.Severity).IsRequired().HasMaxLength(20);
+            entity.Property(a => a.ClientTenant).HasMaxLength(100);
+            entity.Property(a => a.RelatedEntity).HasMaxLength(100);
+            entity.Property(a => a.AmountInvolved).HasColumnType("decimal(18,2)");
+            entity.Property(a => a.ResolvedBy).HasMaxLength(200);
+            entity.Property(a => a.ResolutionNotes).HasMaxLength(500);
+            
+            entity.HasIndex(a => a.CreatedAt);
+            entity.HasIndex(a => a.Severity);
+            entity.HasIndex(a => a.IsResolved);
+            entity.HasIndex(a => a.ClientTenant);
+            entity.HasIndex(a => a.AlertType);
         });
     }
 }

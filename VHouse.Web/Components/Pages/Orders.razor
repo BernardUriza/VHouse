@@ -2,6 +2,7 @@
 @using VHouse.Domain.Entities
 @using VHouse.Infrastructure.Data
 @using Microsoft.EntityFrameworkCore
+@using VHouse.Web.Models
 @inject VHouseDbContext DbContext
 @inject IJSRuntime JSRuntime
 @rendermode @(new InteractiveServerRenderMode(false))
@@ -18,6 +19,43 @@
             <button class="btn btn-success" @onclick="ExportToCSV">
                 📥 Export CSV
             </button>
+            <button class="btn btn-info @(showReportsChat ? "active" : "")" @onclick="ToggleReportsChat">
+                🤖 AI Reports
+            </button>
+        </div>
+    </div>
+
+    <!-- FILTROS REALES -->
+    <div class="filters-section mb-4">
+        <div class="row">
+            <div class="col-md-3">
+                <label class="form-label">Cliente:</label>
+                <select class="form-select" @bind="selectedClientFilter" @bind:after="OnFilterChanged">
+                    <option value="">Todos los clientes</option>
+                    <option value="Mona la Dona">🍩 Mona la Dona</option>
+                    <option value="Sano Market">🥬 Sano Market</option>
+                    <option value="La Papelería">📚 La Papelería</option>
+                    <option value="Walk-in">👤 Walk-in Customer</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Desde:</label>
+                <input type="date" class="form-control" @bind="dateFrom" @bind:after="OnFilterChanged" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Hasta:</label>
+                <input type="date" class="form-control" @bind="dateTo" @bind:after="OnFilterChanged" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Estado:</label>
+                <select class="form-select" @bind="selectedStatusFilter" @bind:after="OnFilterChanged">
+                    <option value="">Todos los estados</option>
+                    <option value="Completed">✅ Completado</option>
+                    <option value="Pending">⏳ Pendiente</option>
+                    <option value="Processing">🔄 Procesando</option>
+                    <option value="Cancelled">❌ Cancelado</option>
+                </select>
+            </div>
         </div>
     </div>
 
@@ -41,7 +79,7 @@
     {
         <div class="stats-cards mb-4">
             <div class="stat-card">
-                <div class="stat-value">@orders.Count</div>
+                <div class="stat-value">@filteredOrders.Count</div>
                 <div class="stat-label">Total Orders</div>
             </div>
             <div class="stat-card">
@@ -72,7 +110,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var order in orders)
+                    @foreach (var order in filteredOrders)
                     {
                         <tr>
                             <td><strong>#@order.Id</strong></td>
@@ -105,6 +143,20 @@
             </table>
         </div>
     }
+
+    <!-- 🤖 CHATBOT UNIVERSAL PARA REPORTES -->
+    <VHouse.Web.Components.Shared.UniversalChatbot 
+        IsVisible="@showReportsChat"
+        Title="@reportsConfig.Title"
+        Subtitle="@reportsConfig.Subtitle"
+        HeaderIcon="@reportsConfig.HeaderIcon"
+        WelcomeMessage="@reportsConfig.WelcomeMessage"
+        PlaceholderText="@reportsConfig.PlaceholderText"
+        QuickSuggestions="@reportsConfig.QuickSuggestions"
+        ContextBuilder="@BuildReportsContext"
+        ConversationType="@reportsConfig.ConversationType"
+        OnClose="@CloseReportsChat"
+        OnResponseReceived="@HandleReportsResponse" />
 </div>
 
 @if (selectedOrder != null)
@@ -246,15 +298,27 @@
 
 @code {
     private List<Order> orders = new();
+    private List<Order> filteredOrders = new();
     private Order? selectedOrder;
     private bool isLoading = true;
     private decimal totalRevenue;
     private int todayOrders;
     private decimal averageOrderValue;
+    
+    // Filtros
+    private string selectedClientFilter = "";
+    private DateTime? dateFrom;
+    private DateTime? dateTo;
+    private string selectedStatusFilter = "";
+    
+    // Universal Chatbot for Reports
+    private bool showReportsChat = false;
+    private ChatbotConfiguration reportsConfig = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadOrders();
+        UpdateReportsConfig();
     }
 
     private async Task LoadOrders()
@@ -271,7 +335,7 @@
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();
 
-            CalculateStatistics();
+            ApplyFilters();
         }
         catch (Exception ex)
         {
@@ -282,6 +346,54 @@
             isLoading = false;
             StateHasChanged();
         }
+    }
+
+    private async Task OnFilterChanged()
+    {
+        ApplyFilters();
+        StateHasChanged();
+    }
+
+    private void ApplyFilters()
+    {
+        filteredOrders = orders.AsQueryable().ToList();
+
+        // Filtro por cliente
+        if (!string.IsNullOrEmpty(selectedClientFilter))
+        {
+            if (selectedClientFilter == "Walk-in")
+            {
+                filteredOrders = filteredOrders.Where(o => o.Customer == null).ToList();
+            }
+            else
+            {
+                filteredOrders = filteredOrders.Where(o => o.Customer != null && o.Customer.CustomerName.Contains(selectedClientFilter)).ToList();
+            }
+        }
+        else
+        {
+            filteredOrders = orders;
+        }
+
+        // Filtro por fecha desde
+        if (dateFrom.HasValue)
+        {
+            filteredOrders = filteredOrders.Where(o => o.OrderDate.Date >= dateFrom.Value.Date).ToList();
+        }
+
+        // Filtro por fecha hasta
+        if (dateTo.HasValue)
+        {
+            filteredOrders = filteredOrders.Where(o => o.OrderDate.Date <= dateTo.Value.Date).ToList();
+        }
+
+        // Filtro por estado
+        if (!string.IsNullOrEmpty(selectedStatusFilter))
+        {
+            filteredOrders = filteredOrders.Where(o => o.Status.ToString() == selectedStatusFilter).ToList();
+        }
+
+        CalculateStatistics();
     }
 
     private void CalculateStatistics()
@@ -367,6 +479,89 @@
             orderCount = orders.Count,
             productsInOrders = orders.SelectMany(o => o.OrderItems).Select(oi => oi.Product).Distinct().ToList()
         };
+    }
+
+    // ============= UNIVERSAL CHATBOT METHODS FOR REPORTS =============
+    
+    private void UpdateReportsConfig()
+    {
+        reportsConfig = ChatbotConfigurations.ForReports(orders.Cast<object>().ToList());
+    }
+    
+    private void ToggleReportsChat()
+    {
+        if (!showReportsChat)
+        {
+            UpdateReportsConfig(); // Refresh with latest data
+        }
+        showReportsChat = !showReportsChat;
+        StateHasChanged();
+    }
+    
+    private async Task CloseReportsChat()
+    {
+        showReportsChat = false;
+        StateHasChanged();
+    }
+    
+    private async Task HandleReportsResponse(BusinessConversationResponseDto response)
+    {
+        // Handle specific actions from AI reports responses
+        await Task.CompletedTask;
+    }
+    
+    private string BuildReportsContext()
+    {
+        var context = "ANÁLISIS DE PEDIDOS VHOUSE - DATOS REALES:\n\n";
+        
+        // Estadísticas generales
+        context += $"📊 ESTADÍSTICAS GENERALES:\n";
+        context += $"- Total de pedidos: {filteredOrders.Count}\n";
+        context += $"- Ingresos totales: {filteredOrders.Sum(o => o.TotalAmount):C}\n";
+        context += $"- Pedidos hoy: {filteredOrders.Count(o => o.OrderDate.Date == DateTime.Today)}\n";
+        context += $"- Valor promedio de pedido: {(filteredOrders.Any() ? filteredOrders.Average(o => o.TotalAmount) : 0):C}\n\n";
+        
+        // Análisis por cliente
+        context += $"👥 ANÁLISIS POR CLIENTE:\n";
+        var clientStats = filteredOrders.GroupBy(o => o.Customer?.CustomerName ?? "Walk-in")
+                               .Select(g => new { 
+                                   Cliente = g.Key, 
+                                   Pedidos = g.Count(), 
+                                   Total = g.Sum(o => o.TotalAmount) 
+                               })
+                               .OrderByDescending(x => x.Total)
+                               .ToList();
+        
+        foreach (var client in clientStats.Take(5))
+        {
+            context += $"- {client.Cliente}: {client.Pedidos} pedidos, {client.Total:C} total\n";
+        }
+        
+        // Top productos
+        context += $"\n🏆 TOP PRODUCTOS VENDIDOS:\n";
+        var productStats = filteredOrders.SelectMany(o => o.OrderItems)
+                                .GroupBy(oi => oi.Product.ProductName)
+                                .Select(g => new { 
+                                    Producto = g.Key, 
+                                    Cantidad = g.Sum(oi => oi.Quantity),
+                                    Ingresos = g.Sum(oi => oi.UnitPrice * oi.Quantity)
+                                })
+                                .OrderByDescending(x => x.Cantidad)
+                                .Take(5)
+                                .ToList();
+        
+        foreach (var product in productStats)
+        {
+            context += $"- {product.Producto}: {product.Cantidad} unidades vendidas, {product.Ingresos:C}\n";
+        }
+        
+        context += $"\n🎯 INSTRUCCIONES PARA IA:\n";
+        context += $"- Usa SOLO los datos reales proporcionados arriba\n";
+        context += $"- Proporciona insights específicos para el negocio vegano\n";
+        context += $"- Sugiere acciones concretas basadas en los datos\n";
+        context += $"- Responde en español, de forma profesional\n";
+        
+        return context;
     }
 }
 

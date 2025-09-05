@@ -32,7 +32,8 @@ public static class DbSeeder
             Email = "ana@monaladorona.com.mx",
             Phone = "+52 33 1234 5678",
             LoginUsername = "monadona",
-            LoginPasswordHash = passwordService.HashPassword(Environment.GetEnvironmentVariable("MONA_DONA_PASSWORD") ?? "VeganaPoderosa2024!"),
+            LoginPasswordHash = passwordService.HashPassword(Environment.GetEnvironmentVariable("MONA_DONA_PASSWORD") ?? 
+                throw new InvalidOperationException("MONA_DONA_PASSWORD environment variable is required")),
             IsActive = true,
             CreatedAt = DateTime.UtcNow
         };

@@ -4,6 +4,7 @@ using VHouse.Application.DTOs;
 using VHouse.Domain.Interfaces;
 using VHouse.Domain.ValueObjects;
 using VHouse.Domain.Enums;
+using VHouse.Domain.Entities;
 
 namespace VHouse.Application.Handlers;
 
@@ -11,6 +12,16 @@ public class ProcessBusinessConversationCommandHandler : IRequestHandler<Process
 {
     private readonly IAIService _aiService;
     private readonly IUnitOfWork _unitOfWork;
+    
+    // Static readonly arrays for better performance
+    private static readonly string[] ProductKeywords = { "leche", "queso", "yogurt", "helado", "carne", "hamburguesa", "nuggets" };
+    
+    private static readonly Dictionary<string, string[]> EntityPatterns = new()
+    {
+        ["productos"] = new[] { "leche", "queso", "yogurt", "helado", "carne vegana" },
+        ["fechas"] = new[] { "hoy", "mañana", "próxima semana", "fin de mes" },
+        ["cantidades"] = new[] { "cajas", "unidades", "kilos", "litros" }
+    };
 
     public ProcessBusinessConversationCommandHandler(IAIService aiService, IUnitOfWork unitOfWork)
     {
@@ -137,28 +148,24 @@ TIPO DE CONSULTA: {conversationType}
 
 MENSAJE DEL CLIENTE: {message}
 
-INSTRUCCIONES PARA RESPUESTA:
-1. Responde como experto comercial en productos veganos
-2. Si preguntan por productos específicos, sugiere alternativas disponibles
-3. Para pedidos complejos, extrae: productos, cantidades, fechas, términos
-4. Si detectas urgencia, márca la prioridad como ALTA
-5. Sugiere productos complementarios cuando sea apropiado
-6. Mantén tono profesional pero cálido
-7. Si no tienes información específica, deriva a equipo humano
+INSTRUCCIONES CRÍTICAS PARA RESPUESTA:
+1. SOLO recomienda productos que aparezcan en el CONTEXTO ADICIONAL con precios y stock
+2. NO inventes productos que no estén listados explícitamente
+3. Si un producto no existe en nuestro catálogo, di claramente que no lo tenemos
+4. Para pedidos complejos, extrae: productos, cantidades, fechas, términos
+5. Si detectas urgencia, márca la prioridad como ALTA
+6. Sugiere productos complementarios SOLO de los que tenemos en stock
+7. Mantén tono profesional pero cálido
+8. Si no tienes información específica, deriva a equipo humano
 
 FORMATO DE RESPUESTA:
-- Respuesta principal clara y directa
-- Si aplica: Lista de productos sugeridos
+- Respuesta principal clara y directa basada en productos reales
+- Si aplica: Lista de productos sugeridos (SOLO los que tenemos)
 - Si aplica: Acciones recomendadas para el cliente
 - Prioridad de seguimiento (BAJA/MEDIA/ALTA/URGENTE)
 
-EJEMPLOS DE PRODUCTOS VEGANOS TÍPICOS:
-- Leches vegetales (avena, almendra, soja)
-- Quesos veganos artesanales
-- Carnes vegetales (hamburguesas, nuggets)
-- Yogurts de coco y probióticos
-- Helados veganos premium
-- Snacks saludables sin ingredientes animales
+REGLA FUNDAMENTAL: 
+NO INVENTES PRODUCTOS. Solo trabaja con el catálogo real proporcionado en el contexto.
 
 Responde ahora:";
 
@@ -198,30 +205,65 @@ Responde ahora:";
         return Task.FromResult((aiContent, $"Conversación procesada: {conversationType}", actions));
     }
 
-    private Task<List<ProductSuggestion>> ExtractProductRecommendations(string aiContent, int? customerId)
+    private async Task<List<ProductSuggestion>> ExtractProductRecommendations(string aiContent, int? customerId)
     {
         var suggestions = new List<ProductSuggestion>();
         
-        // Extract product names mentioned in AI response
-        var productKeywords = new[] { "leche", "queso", "yogurt", "helado", "carne", "hamburguesa", "nuggets" };
-        
-        foreach (var keyword in productKeywords)
+        try
         {
-            if (aiContent.ToLower().Contains(keyword))
+            // Get real products from database
+            var availableProducts = await _unitOfWork.Products.GetAllAsync();
+            var activeProducts = availableProducts?.Where(p => p.IsActive && p.StockQuantity > 0).ToList() ?? new List<Product>();
+            
+            // Only recommend products that actually exist
+            foreach (var product in activeProducts.Take(3))
             {
-                // In production, you'd query actual products from database
-                suggestions.Add(new ProductSuggestion
+                // Check if product is relevant to conversation
+                if (IsProductRelevant(product.ProductName, aiContent))
                 {
-                    ProductId = Random.Shared.Next(1, 100),
-                    ProductName = $"Producto Vegano - {keyword}",
-                    ReasonForSuggestion = $"Mencionado en conversación sobre {keyword}",
-                    Price = Random.Shared.Next(50, 300),
-                    InStock = true
-                });
+                    suggestions.Add(new ProductSuggestion
+                    {
+                        ProductId = product.Id,
+                        ProductName = product.ProductName,
+                        ReasonForSuggestion = "Producto disponible en nuestro catálogo",
+                        Price = product.PriceRetail,
+                        InStock = product.StockQuantity > 0
+                    });
+                }
+            }
+            
+            // If no specific matches, suggest top 3 available products
+            if (!suggestions.Any())
+            {
+                foreach (var product in activeProducts.Take(3))
+                {
+                    suggestions.Add(new ProductSuggestion
+                    {
+                        ProductId = product.Id,
+                        ProductName = product.ProductName,
+                        ReasonForSuggestion = "Producto popular disponible",
+                        Price = product.PriceRetail,
+                        InStock = product.StockQuantity > 0
+                    });
+                }
             }
         }
+        catch (Exception)
+        {
+            // Return empty suggestions if there's an error
+        }
 
-        return Task.FromResult(suggestions.Take(3).ToList()); // Limit to top 3 suggestions
+        return suggestions;
+    }
+    
+    private static bool IsProductRelevant(string productName, string aiContent)
+    {
+        var productLower = productName.ToLower();
+        var contentLower = aiContent.ToLower();
+        
+        // Check if AI response mentions similar words to product name
+        var productWords = productLower.Split(' ');
+        return productWords.Any(word => word.Length > 3 && contentLower.Contains(word));
     }
 
     private BusinessPriority DetermineConversationPriority(BusinessConversationType conversationType, string content)
@@ -251,15 +293,8 @@ Responde ahora:";
         var entities = new List<string>();
         
         // Simple entity extraction - in production, use proper NER
-        var entityPatterns = new Dictionary<string, string[]>
-        {
-            ["productos"] = new[] { "leche", "queso", "yogurt", "helado", "carne vegana" },
-            ["fechas"] = new[] { "hoy", "mañana", "próxima semana", "fin de mes" },
-            ["cantidades"] = new[] { "cajas", "unidades", "kilos", "litros" }
-        };
-
         var lowerContent = content.ToLower();
-        foreach (var category in entityPatterns)
+        foreach (var category in EntityPatterns)
         {
             foreach (var pattern in category.Value)
             {
@@ -390,7 +425,13 @@ Responde ahora:";
 
             return new ComplexOrderResponseDto
             {
-                ExtractedItems = extractedItems,
+                ExtractedItems = extractedItems.Select(ei => new VHouse.Application.DTOs.OrderItem
+                {
+                    ProductId = ei.ProductId,
+                    ProductName = ei.Product?.ProductName ?? "Unknown Product",
+                    Quantity = ei.Quantity,
+                    UnitPrice = ei.UnitPrice
+                }).ToList(),
                 OrderSummary = orderSummary,
                 Alerts = alerts,
                 MissingInformation = missingInfo,
@@ -504,9 +545,9 @@ Procesa ahora:";
         };
     }
 
-    private List<OrderItem> ExtractOrderItems(string aiContent)
+    private List<VHouse.Domain.Entities.OrderItem> ExtractOrderItems(string aiContent)
     {
-        var items = new List<OrderItem>();
+        var items = new List<VHouse.Domain.Entities.OrderItem>();
         
         try
         {
@@ -515,13 +556,13 @@ Procesa ahora:";
             {
                 foreach (var item in itemsElement.EnumerateArray())
                 {
-                    items.Add(new OrderItem
+                    items.Add(new VHouse.Domain.Entities.OrderItem
                     {
                         ProductId = Random.Shared.Next(1, 100),
-                        ProductName = item.GetProperty("product").GetString() ?? "Producto Vegano",
+                        // ProductName removed - will be loaded via navigation property
                         Quantity = item.GetProperty("quantity").GetInt32(),
                         UnitPrice = Random.Shared.Next(50, 300),
-                        SpecialInstructions = item.TryGetProperty("notes", out var notes) ? notes.GetString() : null
+                        // SpecialInstructions removed - not part of Domain entity
                     });
                 }
             }
@@ -534,10 +575,10 @@ Procesa ahora:";
             {
                 if (aiContent.ToLower().Contains(keyword))
                 {
-                    items.Add(new OrderItem
+                    items.Add(new VHouse.Domain.Entities.OrderItem
                     {
                         ProductId = Random.Shared.Next(1, 100),
-                        ProductName = $"Producto Vegano - {keyword}",
+                        // ProductName removed - will be loaded via navigation property
                         Quantity = Random.Shared.Next(1, 10),
                         UnitPrice = Random.Shared.Next(50, 300)
                     });
@@ -548,7 +589,7 @@ Procesa ahora:";
         return items;
     }
 
-    private OrderSummary CalculateOrderSummary(List<OrderItem> items)
+    private OrderSummary CalculateOrderSummary(List<VHouse.Domain.Entities.OrderItem> items)
     {
         var subTotal = items.Sum(i => i.Quantity * i.UnitPrice);
         var tax = subTotal * 0.16m; // 16% IVA Mexico
@@ -563,14 +604,14 @@ Procesa ahora:";
         };
     }
 
-    private List<BusinessAlert> GenerateBusinessAlerts(List<OrderItem> items, BusinessContext context)
+    private List<VHouse.Application.DTOs.BusinessAlert> GenerateBusinessAlerts(List<VHouse.Domain.Entities.OrderItem> items, BusinessContext context)
     {
-        var alerts = new List<BusinessAlert>();
+        var alerts = new List<VHouse.Application.DTOs.BusinessAlert>();
         
         var totalValue = items.Sum(i => i.Quantity * i.UnitPrice);
         if (totalValue > context.TypicalOrderValue * 2)
         {
-            alerts.Add(new BusinessAlert
+            alerts.Add(new VHouse.Application.DTOs.BusinessAlert
             {
                 AlertType = "PEDIDO_GRANDE",
                 Message = $"Pedido excede valor típico por ${totalValue - context.TypicalOrderValue:F2}",

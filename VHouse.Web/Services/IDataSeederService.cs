@@ -14,6 +14,24 @@ public class DataSeederService : IDataSeederService
     private readonly IServiceScopeFactory _serviceScopeFactory;
     private readonly ILogger<DataSeederService> _logger;
 
+    private static readonly Action<ILogger, Exception?> _logApplyingMigrations =
+        LoggerMessage.Define(LogLevel.Information, new EventId(1, "ApplyingMigrations"), "📦 Applying migrations...");
+        
+    private static readonly Action<ILogger, Exception?> _logMigrationsApplied =
+        LoggerMessage.Define(LogLevel.Information, new EventId(2, "MigrationsApplied"), "✅ Migrations applied successfully.");
+        
+    private static readonly Action<ILogger, Exception?> _logApplyingSeeds =
+        LoggerMessage.Define(LogLevel.Information, new EventId(3, "ApplyingSeeds"), "📦 Applying seeds...");
+        
+    private static readonly Action<ILogger, Exception?> _logSeedsApplied =
+        LoggerMessage.Define(LogLevel.Information, new EventId(4, "SeedsApplied"), "✅ Seeds applied successfully.");
+        
+    private static readonly Action<ILogger, int, Exception?> _logProductsAdded =
+        LoggerMessage.Define<int>(LogLevel.Information, new EventId(5, "ProductsAdded"), "✅ Added {ProductCount} sample products to database");
+        
+    private static readonly Action<ILogger, Exception?> _logProductsAlreadyExist =
+        LoggerMessage.Define(LogLevel.Information, new EventId(6, "ProductsAlreadyExist"), "ℹ️ Sample products already exist in database");
+
     public DataSeederService(IServiceScopeFactory serviceScopeFactory, ILogger<DataSeederService> logger)
     {
         _serviceScopeFactory = serviceScopeFactory;
@@ -26,15 +44,15 @@ public class DataSeederService : IDataSeederService
         var services = scope.ServiceProvider;
         var context = services.GetRequiredService<VHouseDbContext>();
         
-        _logger.LogInformation("📦 Applying migrations...");
+        _logApplyingMigrations(_logger, null);
         await context.Database.MigrateAsync();
-        _logger.LogInformation("✅ Migrations applied successfully.");
+        _logMigrationsApplied(_logger, null);
 
-        _logger.LogInformation("📦 Applying seeds...");
+        _logApplyingSeeds(_logger, null);
         await SeedBasicProducts(context);
         var passwordService = services.GetRequiredService<VHouse.Domain.Interfaces.IPasswordService>();
         await VHouse.Web.Data.DbSeeder.SeedMonaLaDonaAsync(context, passwordService);
-        _logger.LogInformation("✅ Seeds applied successfully.");
+        _logSeedsApplied(_logger, null);
     }
 
     private async Task SeedBasicProducts(VHouseDbContext context)
@@ -117,11 +135,11 @@ public class DataSeederService : IDataSeederService
 
             context.Products.AddRange(sampleProducts);
             await context.SaveChangesAsync();
-            _logger.LogInformation("✅ Added {ProductCount} sample products to database", sampleProducts.Length);
+            _logProductsAdded(_logger, sampleProducts.Length, null);
         }
         else
         {
-            _logger.LogInformation("ℹ️ Sample products already exist in database");
+            _logProductsAlreadyExist(_logger, null);
         }
     }
 }

@@ -1,0 +1,89 @@
+@using MediatR
+@using VHouse.Application.Commands
+@using VHouse.Application.DTOs
+@using VHouse.Domain.Enums
+@using VHouse.Web.Models
+@using VHouse.Web.Components.Common
+@inherits UniversalChatbotBase
+
+<!-- 🤖 CHATBOT UNIVERSAL VHOUSE -->
+@if (IsVisible)
+{
+    <div class="universal-chatbot-panel">
+        <div class="chatbot-header">
+            <div class="chatbot-title">
+                <span class="chatbot-icon">@HeaderIcon</span>
+                <h3>@Title</h3>
+                <span class="chatbot-subtitle">@Subtitle</span>
+            </div>
+            <button class="chatbot-close" @onclick="CloseChatbot">×</button>
+        </div>
+        
+        <div class="chatbot-messages" id="chatMessages">
+            @if (!Messages.Any())
+            {
+                <div class="welcome-message">
+                    <div class="message-avatar">@HeaderIcon</div>
+                    <div class="message-content">
+                        <div class="message-text">@WelcomeMessage</div>
+                        @if (QuickSuggestions?.Any() == true)
+                        {
+                            <div class="quick-suggestions">
+                                @foreach (var suggestion in QuickSuggestions)
+                                {
+                                    <button class="suggestion-btn" @onclick="@(() => SendMessage(suggestion.Message))">
+                                        @suggestion.Icon @suggestion.Label
+                                    </button>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+            
+            @foreach (var message in Messages)
+            {
+                <div class="chat-message @(message.IsUser ? "user-message" : "ai-message")">
+                    <div class="message-avatar">@(message.IsUser ? "👤" : HeaderIcon)</div>
+                    <div class="message-content">
+                        <div class="message-text">@((MarkupString)message.Content)</div>
+                        <div class="message-timestamp">@message.Timestamp.ToString("HH:mm")</div>
+                    </div>
+                </div>
+            }
+            
+            @if (IsProcessing)
+            {
+                <div class="chat-message ai-message typing">
+                    <div class="message-avatar">@HeaderIcon</div>
+                    <div class="message-content">
+                        <div class="typing-indicator">
+                            <span>•</span><span>•</span><span>•</span>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        
+        <div class="chatbot-input">
+            <div class="input-container">
+                <input type="text" @bind="InputMessage" @onkeypress="HandleKeyPress" 
+                       placeholder="@PlaceholderText" 
+                       disabled="@IsProcessing" />
+                <button class="send-btn" @onclick="SendCurrentMessage" 
+                        disabled="@(IsProcessing || string.IsNullOrWhiteSpace(InputMessage))">
+                    @if (IsProcessing)
+                    {
+                        <span class="loading-spin">⏳</span>
+                    }
+                    else
+                    {
+                        <span>📤</span>
+                    }
+                </button>
+            </div>
+        </div>
+    </div>
+}
+
+@* Created by Bernard Uriza Orozco *@

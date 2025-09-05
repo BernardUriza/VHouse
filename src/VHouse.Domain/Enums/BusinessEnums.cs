@@ -6,12 +6,13 @@ public enum BusinessConversationType
     OrderInquiry = 2,
     PriceQuote = 3,
     ProductAvailability = 4,
-    DeliveryStatus = 5,
-    PaymentInquiry = 6,
-    Complaint = 7,
-    TechnicalSupport = 8,
-    BulkOrder = 9,
-    Partnership = 10
+    ProductInquiry = 5,
+    DeliveryStatus = 6,
+    PaymentInquiry = 7,
+    Complaint = 8,
+    TechnicalSupport = 9,
+    BulkOrder = 10,
+    Partnership = 11
 }
 
 public enum BusinessPriority

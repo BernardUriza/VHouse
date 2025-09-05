@@ -1,0 +1,390 @@
+/* VHouse Clients - Gestión de Clientes Veganos
+   Especificidad alta con prefijo .clients-page */
+
+/* ========================================
+   🌱 CLIENTES VEGANOS - CONTENEDOR PRINCIPAL
+   ======================================== */
+
+.clients-page .clients-container {
+    min-height: 100vh;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: var(--font-family);
+    padding: var(--space-lg);
+}
+
+/* ========================================
+   HEADER SECCIÓN
+   ======================================== */
+
+.clients-page .page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    padding-bottom: var(--space-md);
+    border-bottom: 2px solid var(--vegan-green);
+}
+
+.clients-page .header-content h1 {
+    color: var(--vegan-green);
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.clients-page .subtitle {
+    color: var(--text-secondary);
+    font-size: 1rem;
+    margin: 0;
+}
+
+/* ========================================
+   BOTONES Y ACCIONES
+   ======================================== */
+
+.clients-page .btn {
+    padding: var(--space-sm) var(--space-md);
+    border: none;
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clients-page .btn-success {
+    background: var(--vegan-green);
+    color: white;
+}
+
+.clients-page .btn-success:hover {
+    background: var(--vegan-green-hover);
+    transform: translateY(-1px);
+}
+
+/* ========================================
+   GRID DE CLIENTES
+   ======================================== */
+
+.clients-page .clients-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: var(--space-lg);
+    margin-top: var(--space-lg);
+}
+
+/* ========================================
+   TARJETAS DE CLIENTE
+   ======================================== */
+
+.clients-page .client-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--border-radius-lg);
+    padding: var(--space-lg);
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.clients-page .client-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(22, 163, 74, 0.15);
+    border-color: var(--vegan-green);
+}
+
+.clients-page .client-name {
+    color: var(--vegan-green);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin-bottom: var(--space-sm);
+}
+
+.clients-page .client-details {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+    margin-bottom: var(--space-md);
+}
+
+.clients-page .client-actions {
+    display: flex;
+    gap: var(--space-sm);
+}
+
+.clients-page .btn-outline {
+    background: transparent;
+    color: var(--vegan-green);
+    border: 1px solid var(--vegan-green);
+}
+
+.clients-page .btn-outline:hover {
+    background: var(--vegan-green);
+    color: white;
+}
+
+/* ========================================
+   LOADING SPINNER
+   ======================================== */
+
+.clients-page .loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-2xl);
+    color: var(--text-secondary);
+}
+
+.clients-page .spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid var(--border-color);
+    border-top: 4px solid var(--vegan-green);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin-bottom: var(--space-md);
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* ========================================
+   CLIENT HEADER Y AVATAR
+   ======================================== */
+
+.clients-page .client-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-md);
+}
+
+.clients-page .client-avatar {
+    font-size: 2rem;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--vegan-green-light);
+    border-radius: 50%;
+}
+
+.clients-page .client-status {
+    padding: 4px 12px;
+    border-radius: var(--border-radius-md);
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.clients-page .client-status.active {
+    background: var(--vegan-green-light);
+    color: var(--vegan-green-dark);
+}
+
+.clients-page .client-status.inactive {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+/* ========================================
+   CLIENT INFO Y DETAILS
+   ======================================== */
+
+.clients-page .client-info h3 {
+    color: var(--vegan-green);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 var(--space-xs) 0;
+}
+
+.clients-page .client-tenant {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    font-family: var(--font-mono);
+    margin: 0 0 var(--space-md) 0;
+    padding: 2px 6px;
+    background: var(--bg-tertiary);
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.clients-page .detail-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) 0;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.clients-page .detail-item:last-child {
+    border-bottom: none;
+}
+
+.clients-page .detail-label {
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+.clients-page .detail-value {
+    color: var(--text-primary);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+/* ========================================
+   CLIENT STATS
+   ======================================== */
+
+.clients-page .client-stats {
+    display: flex;
+    gap: var(--space-md);
+    margin: var(--space-md) 0;
+    padding: var(--space-md);
+    background: var(--bg-tertiary);
+    border-radius: var(--border-radius-md);
+}
+
+.clients-page .stat {
+    flex: 1;
+    text-align: center;
+}
+
+.clients-page .stat-value {
+    display: block;
+    color: var(--vegan-green);
+    font-weight: 700;
+    font-size: 1.1rem;
+}
+
+.clients-page .stat-label {
+    display: block;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    margin-top: 2px;
+}
+
+/* ========================================
+   PORTAL BUTTON Y ACTIONS
+   ======================================== */
+
+.clients-page .btn-portal {
+    width: 100%;
+    background: var(--vegan-green);
+    color: white;
+    border: none;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-bottom: var(--space-sm);
+}
+
+.clients-page .btn-portal:hover {
+    background: var(--vegan-green-hover);
+    transform: translateY(-1px);
+}
+
+.clients-page .secondary-actions {
+    display: flex;
+    gap: var(--space-xs);
+    justify-content: center;
+}
+
+.clients-page .btn-action {
+    width: 36px;
+    height: 36px;
+    border: 1px solid var(--border-color);
+    background: var(--bg-secondary);
+    border-radius: var(--border-radius-md);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.clients-page .btn-action:hover {
+    border-color: var(--vegan-green);
+    background: var(--vegan-green-light);
+    transform: translateY(-1px);
+}
+
+.clients-page .btn-action.danger:hover {
+    border-color: #dc2626;
+    background: #fee2e2;
+}
+
+/* ========================================
+   EMPTY STATE
+   ======================================== */
+
+.clients-page .empty-state {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--text-secondary);
+}
+
+.clients-page .empty-state .empty-icon {
+    font-size: 4rem;
+    display: block;
+    margin-bottom: var(--space-md);
+}
+
+.clients-page .empty-state h3 {
+    color: var(--vegan-green);
+    margin-bottom: var(--space-md);
+}
+
+.clients-page .btn-primary {
+    background: var(--vegan-green);
+    color: white;
+    border: none;
+    padding: var(--space-sm) var(--space-lg);
+    border-radius: var(--border-radius-md);
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.clients-page .btn-primary:hover {
+    background: var(--vegan-green-hover);
+}
+
+/* ========================================
+   RESPONSIVE
+   ======================================== */
+
+@media (max-width: 768px) {
+    .clients-page .page-header {
+        flex-direction: column;
+        gap: var(--space-md);
+        text-align: center;
+    }
+    
+    .clients-page .clients-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .clients-page .client-actions {
+        flex-direction: column;
+    }
+}
+
+/* ========================================
+   TEMA OSCURO
+   ======================================== */
+
+[data-theme="dark"] .clients-page .clients-container {
+    background: var(--bg-primary-dark);
+    color: var(--text-primary-dark);
+}
+
+[data-theme="dark"] .clients-page .client-card {
+    background: var(--bg-secondary-dark);
+    border-color: var(--border-color-dark);
+}

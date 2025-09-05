@@ -27,10 +27,12 @@
 @import url('./components/tables.css');
 @import url('./components/alerts.css');
 @import url('./components/modals.css');
+@import url('./components/universal-chatbot.css');
 
 /* Páginas específicas (mayor especificidad) */
 @import url('./pages/pos.css');
 @import url('./pages/orders.css');
+@import url('./pages/clients.css');
 @import url('./pages/suppliers.css');
 
 /* Themes */

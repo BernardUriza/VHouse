@@ -13,6 +13,9 @@ namespace VHouse.Application.Services
     public class IntelligentDocumentProcessor
     {
         private readonly IAIService _aiService;
+        
+        // Static readonly array for better performance
+        private static readonly string[] CommonContractTerms = { "pago", "entrega", "garantía", "responsabilidad", "vigencia", "cancelación" };
 
         public IntelligentDocumentProcessor(IAIService aiService)
         {
@@ -394,9 +397,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
             var terms = new List<string>();
 
             // Buscar términos comunes en contratos
-            var commonTerms = new[] { "pago", "entrega", "garantía", "responsabilidad", "vigencia", "cancelación" };
-            
-            foreach (var term in commonTerms)
+            foreach (var term in CommonContractTerms)
             {
                 if (contractText.ToLower().Contains(term))
                     terms.Add($"Contiene términos de {term}");

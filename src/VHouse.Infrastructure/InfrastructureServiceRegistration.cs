@@ -21,6 +21,10 @@ public static class InfrastructureServiceRegistration
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddScoped<IPasswordService, PasswordService>();
         services.AddScoped<ISupplierRepository, SupplierRepository>();
+        
+        // Business Services
+        services.AddScoped<VHouse.Application.Services.ICustomerService, CustomerService>();
+        services.AddScoped<VHouse.Application.Services.IOrderService, OrderService>();
 
         // AI Services - Claude priority with OpenAI fallback
         services.AddHttpClient<AIService>(client =>

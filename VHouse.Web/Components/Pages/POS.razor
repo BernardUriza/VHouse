@@ -3,9 +3,16 @@
 @using VHouse.Domain.Entities
 @using VHouse.Domain.Enums
 @using VHouse.Infrastructure.Data
+@using VHouse.Application.Services
 @using Microsoft.EntityFrameworkCore
 @using Microsoft.AspNetCore.Components.Web
+@using Microsoft.JSInterop
+@using VHouse.Web.Models
 @inject VHouseDbContext Context
+@inject IClientInventoryService ClientInventoryService
+@inject IAuditService AuditService
+@inject IBusinessMetricsService MetricsService
+@inject IJSRuntime JSRuntime
 
 <HeadContent>
     <title>🚀 VHouse POS - Universal Point of Sale</title>
@@ -129,6 +136,10 @@
                 <span class="indicator-value">@GetTotal().ToString("C0")</span>
                 <span class="indicator-label">Total</span>
             </div>
+            <button class="status-indicator ai-chat-trigger @(showChatbot ? "active" : "")" @onclick="ToggleChatbot">
+                <span class="indicator-icon">🤖</span>
+                <span class="indicator-label">AI Chat</span>
+            </button>
         </div>
     </header>
 
@@ -248,6 +259,22 @@
         </aside>
     </main>
     
+    <!-- 🤖 CHATBOT UNIVERSAL -->
+    <VHouse.Web.Components.Shared.UniversalChatbot 
+        IsVisible="@showChatbot"
+        Title="@chatConfig.Title"
+        Subtitle="@chatConfig.Subtitle"
+        HeaderIcon="@chatConfig.HeaderIcon"
+        WelcomeMessage="@chatConfig.WelcomeMessage"
+        PlaceholderText="@chatConfig.PlaceholderText"
+        QuickSuggestions="@chatConfig.QuickSuggestions"
+        ContextBuilder="@BuildPOSContext"
+        ConversationType="@chatConfig.ConversationType"
+        CustomerId="@chatConfig.CustomerId"
+        OnClose="@CloseChatbot"
+        OnMessageSent="@HandleMessageSent"
+        OnResponseReceived="@HandleResponseReceived" />
+    
     <!-- 🎉 SUCCESS MESSAGE OVERLAY -->
     @if (showSuccessMessage)
     {
@@ -281,18 +308,40 @@
     private int selectedClientId = 0;
     private string selectedClientName = "Walk-in Customer";
     private string selectedPriceType = "retail";
+    
+    // Universal Chatbot State
+    private bool showChatbot = false;
+    private ChatbotConfiguration chatConfig = new();
 
     protected override async Task OnInitializedAsync()
     {
         await LoadProducts();
+        
+        // Register this component for chatbot callbacks
+        await JSRuntime.InvokeVoidAsync("registerPOSComponent", DotNetObjectReference.Create(this));
     }
 
     private async Task LoadProducts()
     {
-        products = await Context.Products
-            .Where(p => p.IsActive)
-            .OrderBy(p => p.ProductName)
-            .ToListAsync();
+        await LoadProductsForClient();
+    }
+    
+    private async Task LoadProductsForClient()
+    {
+        if (selectedClientId == 0)
+        {
+            // Walk-in customer: load all active products with stock
+            products = await Context.Products
+                .Where(p => p.IsActive && p.StockQuantity > 0)
+                .OrderBy(p => p.ProductName)
+                .ToListAsync();
+        }
+        else
+        {
+            // Specific client: load only assigned products
+            products = await ClientInventoryService.GetAvailableProductsForClientAsync(selectedClientId);
+        }
+        
         StateHasChanged();
     }
 
@@ -302,11 +351,15 @@
     private void TogglePricePanel() => showPricePanel = !showPricePanel;
     private void ToggleInventoryPanel() => showInventoryPanel = !showInventoryPanel;
     
-    private void SelectClient(int clientId, string clientName)
+    private async Task SelectClient(int clientId, string clientName)
     {
         selectedClientId = clientId;
         selectedClientName = clientName;
         showClientPanel = false;
+        
+        // Reload products for the selected client
+        await LoadProductsForClient();
+        
         StateHasChanged();
     }
     
@@ -425,11 +478,16 @@
     {
         if (!selectedProducts.Any()) return;
 
+        var startTime = DateTime.UtcNow;
         isProcessingOrder = true;
         StateHasChanged();
 
         try
         {
+            // ENTERPRISE AUDIT: Log order initiation
+            await AuditService.LogBusinessEventAsync("ORDER_STARTED", "Order", null, "SYSTEM", "POS System", 
+                GetTotal(), selectedClientName);
+
             // Create a new order
             var customerId = await GetOrCreateWalkInCustomerIdAsync();
             var order = new Order
@@ -443,12 +501,15 @@
                 Notes = $"POS Order - {selectedClientName} - {selectedPriceType.ToUpper()} pricing"
             };
 
-            // Add order items
+            // Add order items and track inventory changes
             var orderItems = new List<VHouse.Domain.Entities.OrderItem>();
+            var inventoryChanges = new List<object>();
+            
             foreach (var item in selectedProducts)
             {
                 var product = products.First(p => p.Id == item.Key);
                 var unitPrice = GetProductPrice(product);
+                var oldStock = product.StockQuantity;
                 
                 var orderItem = new VHouse.Domain.Entities.OrderItem
                 {
@@ -459,9 +520,22 @@
                 
                 orderItems.Add(orderItem);
                 
-                // Update product stock
+                // Update product stock with audit trail
                 product.StockQuantity -= item.Value;
                 if (product.StockQuantity < 0) product.StockQuantity = 0;
+                
+                inventoryChanges.Add(new {
+                    ProductId = product.Id,
+                    ProductName = product.ProductName,
+                    OldStock = oldStock,
+                    NewStock = product.StockQuantity,
+                    Quantity = item.Value,
+                    UnitPrice = unitPrice
+                });
+                
+                // ENTERPRISE METRICS: Record inventory change
+                await MetricsService.RecordInventoryMetricAsync(product.ProductName, product.StockQuantity, 
+                    "STOCK_LEVEL", selectedClientName);
             }
 
             // Add order items to the order
@@ -484,6 +558,18 @@
             
             await Context.SaveChangesAsync();
             
+            // ENTERPRISE AUDIT: Log successful order completion
+            var executionTime = DateTime.UtcNow - startTime;
+            await AuditService.LogBusinessEventAsync("ORDER_COMPLETED", "Order", order.Id, "SYSTEM", "POS System", 
+                order.TotalAmount, selectedClientName);
+                
+            // ENTERPRISE METRICS: Record business metrics
+            await MetricsService.RecordSalesMetricAsync(order.TotalAmount, selectedClientName, orderItems.Sum(oi => oi.Quantity));
+            await MetricsService.RecordPerformanceAsync("ProcessOrder", executionTime, "POS_SYSTEM");
+            
+            // Check for business alerts
+            await MetricsService.CheckInventoryLevelsAsync();
+            
             // Clear the order after successful processing
             ClearOrder();
             
@@ -502,6 +588,12 @@
         }
         catch (Exception ex)
         {
+            // ENTERPRISE AUDIT: Log order failure
+            var executionTime = DateTime.UtcNow - startTime;
+            await AuditService.LogActionAsync("ORDER_FAILED", "Order", null, "SYSTEM", "POS System", 
+                selectedProducts, null, $"Order processing failed: {ex.Message}", "ERROR", "POS", 
+                GetTotal(), selectedClientName, false, ex.Message, executionTime);
+            
             // Handle error
             successMessage = $"Error procesando orden: {ex.Message}";
             showSuccessMessage = true;
@@ -545,5 +637,123 @@
         await Context.SaveChangesAsync();
         
         return newWalkInCustomer.Id;
+    }
+
+    // ============= UNIVERSAL CHATBOT METHODS =============
+    
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        UpdateChatbotConfig();
+    }
+    
+    private void UpdateChatbotConfig()
+    {
+        chatConfig = ChatbotConfigurations.ForPOS(
+            products.Cast<object>().ToList(),
+            selectedProducts,
+            selectedClientName
+        );
+        chatConfig.CustomerId = selectedClientId > 0 ? selectedClientId : null;
+    }
+    
+    private void ToggleChatbot()
+    {
+        if (!showChatbot)
+        {
+            UpdateChatbotConfig(); // Refresh config when opening
+        }
+        showChatbot = !showChatbot;
+        StateHasChanged();
+    }
+    
+    private async Task CloseChatbot()
+    {
+        showChatbot = false;
+        StateHasChanged();
+    }
+    
+    private async Task HandleMessageSent(string message)
+    {
+        // Optional: Handle message sent event
+        await Task.CompletedTask;
+    }
+    
+    private async Task HandleResponseReceived(BusinessConversationResponseDto response)
+    {
+        // Optional: Handle specific response actions, like adding products
+        await Task.CompletedTask;
+    }
+    
+    [JSInvokable]
+    public async Task AddProductFromChatbot(int productId, string productName)
+    {
+        // Use the real client inventory system
+        bool isAvailable = await ClientInventoryService.IsProductAvailableForClientAsync(selectedClientId, productId, 1);
+        
+        if (isAvailable)
+        {
+            var product = products.FirstOrDefault(p => p.Id == productId);
+            if (product != null)
+            {
+                if (selectedProducts.ContainsKey(productId))
+                {
+                    selectedProducts[productId]++;
+                }
+                else
+                {
+                    selectedProducts[productId] = 1;
+                }
+                
+                // Show visual confirmation
+                await JSRuntime.InvokeVoidAsync("showToast", $"✅ {product.ProductName} agregado al carrito para {selectedClientName}");
+                
+                StateHasChanged();
+            }
+            else
+            {
+                await JSRuntime.InvokeVoidAsync("showToast", $"❌ Producto {productName} no encontrado", "error");
+            }
+        }
+        else
+        {
+            string reason = selectedClientId == 0 ? "sin stock" : "no asignado a este cliente o sin stock";
+            await JSRuntime.InvokeVoidAsync("showToast", $"❌ {productName} no disponible ({reason})", "error");
+        }
+    }
+    
+    private string BuildPOSContext()
+    {
+        var context = $"Cliente actual: {selectedClientName}\n";
+        context += $"Tipo de precio: {selectedPriceType}\n";
+        context += $"Productos en carrito: {selectedProducts.Count}\n";
+        
+        if (selectedProducts.Any())
+        {
+            context += "Productos seleccionados:\n";
+            foreach (var item in selectedProducts.Take(5))
+            {
+                var product = products.FirstOrDefault(p => p.Id == item.Key);
+                if (product != null)
+                {
+                    context += $"- {product.ProductName} (Cantidad: {item.Value})\n";
+                }
+            }
+        }
+        
+        context += $"Total actual: {GetTotal():C}\n\n";
+        
+        // CATÁLOGO REAL DE PRODUCTOS DISPONIBLES
+        context += "PRODUCTOS REALES DISPONIBLES EN VHouse:\n";
+        foreach (var product in products.Where(p => p.IsActive && p.StockQuantity > 0))
+        {
+            var price = GetProductPrice(product);
+            context += $"- {product.ProductName} {product.Emoji} - Stock: {product.StockQuantity} - Precio: {price:C}\n";
+        }
+        
+        context += "\nIMPORTANTE: SOLO recomienda productos que estén en la lista anterior. NO inventes productos que no existen.\n";
+        context += "Si el cliente pide productos que no tenemos, sugiere alternativas similares de nuestro catálogo real.\n";
+        
+        return context;
     }
 }
