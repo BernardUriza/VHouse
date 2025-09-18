@@ -31,7 +31,9 @@
       "Bash(dotnet ef migrations:*)",
       "Bash(grep:*)",
       "Bash(move:*)",
-      "Bash(dotnet add:*)"
+      "Bash(dotnet add:*)",
+      "Bash(git rm:*)",
+      "Bash(gitleaks detect:*)"
     ],
     "deny": [],
     "ask": [],

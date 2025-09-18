@@ -1,0 +1,27 @@
+# VHouse Code Ownership
+
+# Global ownership - Bernard is the primary maintainer
+* @bernardoarancibia
+
+# Critical security and infrastructure files require extra review
+SECURITY.md @bernardoarancibia
+.github/ @bernardoarancibia
+k8s/ @bernardoarancibia
+terraform/ @bernardoarancibia
+Dockerfile @bernardoarancibia
+docker-compose.yml @bernardoarancibia
+
+# Core application architecture
+src/VHouse.Domain/ @bernardoarancibia
+src/VHouse.Application/ @bernardoarancibia
+
+# Documentation ownership
+docs/ @bernardoarancibia
+README.md @bernardoarancibia
+.claude/CLAUDE.md @bernardoarancibia
+
+# Configuration files
+*.json @bernardoarancibia
+*.yml @bernardoarancibia
+*.yaml @bernardoarancibia
+.gitignore @bernardoarancibia

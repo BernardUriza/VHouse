@@ -1,0 +1,61 @@
+version: "3.9"
+services:
+  # VHouse uses SQLite by default, but this provides option for PostgreSQL in production
+  db:
+    image: ${DB_IMAGE:-postgres:16-alpine}
+    container_name: vhouse-db
+    restart: unless-stopped
+    environment:
+      # PostgreSQL configuration
+      POSTGRES_USER: ${DB_USER:-vhouse}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-vhouse}
+      POSTGRES_DB: ${DB_NAME:-vhouse}
+    ports:
+      # Expose DB only to localhost to avoid LAN/Internet exposure
+      - "127.0.0.1:${DB_PORT:-5432}:5432"
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    networks:
+      - vhouse-admin
+
+  # Adminer - Universal database admin tool
+  adminer:
+    image: adminer:latest
+    container_name: vhouse-adminer
+    restart: unless-stopped
+    depends_on:
+      - db
+    environment:
+      # Points to the 'db' service by default
+      ADMINER_DEFAULT_SERVER: ${DB_HOST:-db}
+      # Enable plugins for better UX
+      ADMINER_PLUGINS: "tables-filter tinymce"
+    ports:
+      # ONLY localhost to prevent external access
+      - "127.0.0.1:${ADMINER_PORT:-8080}:8080"
+    networks:
+      - vhouse-admin
+
+  # Alternative: phpLiteAdmin for SQLite files (uncomment if needed)
+  # phpliteadmin:
+  #   image: acttaiwan/phpliteadmin
+  #   container_name: vhouse-sqlite-admin
+  #   restart: unless-stopped
+  #   environment:
+  #     PHPLITEADMIN_PASSWORD: ${SQLITE_ADMIN_PASSWORD:-vhouse}
+  #   ports:
+  #     - "127.0.0.1:${SQLITE_ADMIN_PORT:-8081}:80"
+  #   volumes:
+  #     # Mount SQLite database directory
+  #     - "${SQLITE_DB_PATH:-./VHouse.Web}:/db"
+  #   networks:
+  #     - vhouse-admin
+
+volumes:
+  db_data:
+    name: vhouse_db_data
+
+networks:
+  vhouse-admin:
+    name: vhouse-admin
+    driver: bridge

@@ -203,6 +203,170 @@ No eres solo un copiloto de código. Eres **aliado en una revolución compasiva*
 
 ---
 
+# 🏗️ ARQUITECTURA TÉCNICA: REVOLUCIÓN SISTEMATIZADA
+
+## 📐 CLEAN ARCHITECTURE ACTIVISTA
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    🌐 VHouse.Web (Blazor)                   │
+│              Presentación para clientes reales              │
+├─────────────────────────────────────────────────────────────┤
+│                🎯 VHouse.Application (CQRS)                 │
+│        Commands/Queries que sirven a los animales           │
+├─────────────────────────────────────────────────────────────┤
+│                 🔧 VHouse.Infrastructure                     │
+│           Persistencia y servicios externos                 │
+├─────────────────────────────────────────────────────────────┤
+│                    💎 VHouse.Domain                         │
+│              Reglas de negocio fundamentales                │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### 🎯 CAPAS CON PROPÓSITO
+
+1. **Domain**: Entidades que representan el mundo vegano
+   - `Product`: Cada producto es una oportunidad de salvar vidas
+   - `Order`: Cada pedido acelera la adopción vegana
+   - `Customer`: Cada cliente multiplica el impacto
+
+2. **Application**: Casos de uso que transforman vidas
+   - `CreateProductCommand`: Nuevos productos veganos al mercado
+   - `ProcessOrderCommand`: Eficiencia para distribuidores
+   - `GenerateAIContentCommand`: IA al servicio de la compasión
+
+3. **Infrastructure**: Conexión con el mundo real
+   - Postgres: Datos persistentes para operaciones reales
+   - AI Services: Tecnología que amplifica el activismo
+   - File Storage: Recursos que educan sobre veganismo
+
+4. **Web**: Interfaz que cambia hábitos
+   - Blazor Server: Interactividad sin complejidad
+   - Components: Reutilizables como principios éticos
+
+---
+
+# 🚀 PIPELINE DE IMPACTO: CI/CD ACTIVISTA
+
+## 🔄 FLUJO DE DESARROLLO
+
+```mermaid
+graph TD
+    A[💻 Código Local] --> B[🔍 Pre-commit Hooks]
+    B --> C[📤 Push a GitHub]
+    C --> D[🏗️ Build & Test]
+    D --> E[🛡️ Security Scan]
+    E --> F[📊 SBOM Generation]
+    F --> G[🐳 Docker Build]
+    G --> H[🚀 Deploy Staging]
+    H --> I[✅ Integration Tests]
+    I --> J[📈 Production Deploy]
+    J --> K[🎯 Real Impact Metrics]
+```
+
+## 🎯 COMANDOS PARA EL ACTIVISTA
+
+### Desarrollo Local
+```bash
+dotnet build                    # Construir la revolución
+dotnet test                     # Verificar que funciona
+dotnet run --project VHouse.Web # Ejecutar para clientes reales
+```
+
+### Docker (Distribución)
+```bash
+docker-compose up               # Stack completo local
+docker build -t vhouse .       # Imagen para producción
+```
+
+### Kubernetes (Escalabilidad Ética)
+```bash
+kubectl apply -f k8s/          # Deploy en cluster
+kubectl get pods -l app=vhouse # Verificar salud del sistema
+```
+
+---
+
+# 📊 MÉTRICAS DE LIBERACIÓN
+
+## 🎯 KPIs ACTIVISTAS
+
+1. **Impacto Animal**
+   - Productos veganos agregados/mes
+   - Pedidos procesados por Mona la Dona
+   - Tiempo ahorrado a Bernard como distribuidor
+
+2. **Adopción Tecnológica**
+   - Clientes activos usando el sistema
+   - Transacciones automatizadas vs manuales
+   - Reducción en errores de pedidos
+
+3. **Sustentabilidad Operativa**
+   - Uptime del sistema (>99.5%)
+   - Performance de respuesta (<200ms)
+   - Cero vulnerabilidades críticas
+
+---
+
+# 🔒 BASELINE DE SEGURIDAD
+
+## 🛡️ PROTOCOLO DE PROTECCIÓN
+
+### Autenticación & Autorización
+- **Multi-tenancy**: Cada cliente opera de forma aislada
+- **JWT Tokens**: Sesiones seguras para usuarios reales
+- **Role-based Access**: Permisos según responsabilidades
+
+### Protección de Datos
+- **Encryption at Rest**: Datos sensibles siempre cifrados
+- **HTTPS Everywhere**: Comunicación segura obligatoria
+- **Secrets Management**: .env nunca en código
+
+### Monitoreo Defensivo
+- **SAST**: Análisis estático en cada build
+- **SBOM**: Inventario completo de dependencias
+- **Vulnerability Scanning**: Revisión continua de amenazas
+
+---
+
+# 🎯 CRITERIOS DE ÉXITO
+
+## ✅ DEFINICIÓN DE "LISTO PARA IMPACTO"
+
+1. **Funcionalidad Core**
+   - [ ] Mona la Dona puede gestionar productos
+   - [ ] Sano Market puede procesar pedidos
+   - [ ] Bernard puede automatizar distribución
+
+2. **Calidad de Producción**
+   - [ ] Tests pasan (>90% cobertura crítica)
+   - [ ] Security scans limpios
+   - [ ] Performance <200ms promedio
+
+3. **Operaciones Confiables**
+   - [ ] Docker compose funciona local
+   - [ ] K8s deploy exitoso
+   - [ ] Monitoring y logs operativos
+
+4. **Documentación Activista**
+   - [ ] README claro para desarrollo
+   - [ ] Security policy establecida
+   - [ ] Contributing guidelines definidas
+
+---
+
+# 📚 GLOSARIO TÉCNICO
+
+| Término | Significado en VHouse |
+|---------|----------------------|
+| **CQRS** | Command Query Responsibility Segregation - Separación de escritura/lectura para operaciones complejas |
+| **Clean Architecture** | Arquitectura hexagonal que mantiene el dominio independiente de frameworks |
+| **Multitenancy** | Cada cliente (Mona la Dona, Sano Market) opera aisladamente en la misma infraestructura |
+| **SBOM** | Software Bill of Materials - Inventario de todos los componentes para seguridad |
+| **SAST** | Static Application Security Testing - Análisis de código en busca de vulnerabilidades |
+
+---
+
 _Por los animales. Por la liberación. Por un mundo sin sufrimiento._
 
 **🌱 CADA LÍNEA DE CÓDIGO ES UN ACTO DE AMOR 🌱**

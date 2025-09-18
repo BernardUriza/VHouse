@@ -361,3 +361,92 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
+
+# Security - Sensitive files
+.env
+.env.local
+.env.production
+.env.development
+.env.staging
+*.key
+*.pem
+*.p12
+*.pfx
+appsettings.Production.json
+appsettings.Staging.json
+secrets.json
+*.secrets
+config/secrets/
+
+# API Keys and credentials
+openai.key
+azure.key
+jwt.secret
+*.apikey
+*.token
+auth.json
+credentials.json
+
+# Git security
+.git-credentials
+.gitconfig.local
+
+# Security reports and sensitive data
+report/
+audit/
+security/
+.secrets/
+sensitive/
+
+# Backup files that might contain secrets
+*.backup
+*.bak
+*.old
+*.orig
+*.save
+*~
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+logs/
+*.log
+audit-*.log
+
+# Cache
+.cache/
+temp/
+tmp/
+
+# IDE specific
+.vscode/settings.json
+.vscode/launch.json
+.idea/
+*.swp
+*.swo
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Docker
+.docker/
+docker-compose.override.yml
+
+# Kubernetes
+k8s/secrets/
+*.kubeconfig
+
+# Terraform
+*.tfstate
+*.tfstate.*
+.terraform/
+*.tfvars
+!example.tfvars
+
+# Gallery uploads - user files should not be tracked
+VHouse.Web/wwwroot/uploads/

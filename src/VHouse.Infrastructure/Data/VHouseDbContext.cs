@@ -34,6 +34,10 @@ public class VHouseDbContext : DbContext
     public DbSet<SystemMetric> SystemMetrics { get; set; }
     public DbSet<BusinessAlert> BusinessAlerts { get; set; }
 
+    // Gallery entities
+    public DbSet<Album> Albums { get; set; }
+    public DbSet<Photo> Photos { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -288,5 +292,51 @@ public class VHouseDbContext : DbContext
             entity.HasIndex(a => a.ClientTenant);
             entity.HasIndex(a => a.AlertType);
         });
+
+        // Album configuration
+        modelBuilder.Entity<Album>(entity =>
+        {
+            entity.HasKey(a => a.Id);
+            entity.Property(a => a.Name).IsRequired().HasMaxLength(100);
+            entity.Property(a => a.Slug).IsRequired().HasMaxLength(100);
+            entity.HasIndex(a => a.Slug).IsUnique();
+        });
+
+        // Photo configuration
+        modelBuilder.Entity<Photo>(entity =>
+        {
+            entity.HasKey(p => p.Id);
+            entity.Property(p => p.FileName).IsRequired().HasMaxLength(500);
+            entity.Property(p => p.OriginalName).IsRequired().HasMaxLength(255);
+            entity.Property(p => p.ContentType).IsRequired().HasMaxLength(100);
+            entity.Property(p => p.Caption).HasMaxLength(500);
+            entity.Property(p => p.ThumbnailPath).HasMaxLength(500);
+
+            entity.HasOne(p => p.Album)
+                .WithMany(a => a.Photos)
+                .HasForeignKey(p => p.AlbumId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasIndex(p => p.AlbumId);
+            entity.HasIndex(p => p.UploadedUtc);
+        });
+
+        SeedGalleryData(modelBuilder);
+    }
+
+    private void SeedGalleryData(ModelBuilder modelBuilder)
+    {
+        var albums = new[]
+        {
+            new Album { Id = 1, Name = "Products", Slug = "products", Description = "Product catalog photos", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 2, Name = "Sales Receipts", Slug = "sales-receipts", Description = "Customer sales receipts", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 3, Name = "Purchase Receipts", Slug = "purchase-receipts", Description = "Supplier purchase receipts", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 4, Name = "Invoices", Slug = "invoices", Description = "Client invoices and documentation", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 5, Name = "Suppliers", Slug = "suppliers", Description = "Supplier documentation and photos", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 6, Name = "Customers", Slug = "customers", Description = "Customer documentation and photos", CreatedAt = DateTime.UtcNow },
+            new Album { Id = 7, Name = "Misc", Slug = "misc", Description = "Miscellaneous photos and documents", CreatedAt = DateTime.UtcNow }
+        };
+
+        modelBuilder.Entity<Album>().HasData(albums);
     }
 }

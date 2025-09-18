@@ -1,0 +1,503 @@
+/* Enterprise Documentation Styles - VHouse Enterprise Platform */
+/* Professional Business Documentation System */
+
+/* ========================================
+   TYPOGRAPHY & SPACING - CRITICAL FIX
+   ======================================== */
+
+.markdown-content {
+    max-width: 900px;
+    margin: 0 auto;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.8 !important; /* Critical spacing fix */
+    color: var(--text-primary);
+    letter-spacing: -0.011em;
+}
+
+/* Headings with proper spacing */
+.markdown-content h1 {
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-top: 3rem !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 1.2 !important;
+    color: var(--primary-green);
+    border-bottom: 3px solid var(--primary-green);
+    padding-bottom: 0.75rem;
+    letter-spacing: -0.03em;
+}
+
+.markdown-content h2 {
+    font-size: 2.2rem;
+    font-weight: 700;
+    margin-top: 2.5rem !important;
+    margin-bottom: 1.2rem !important;
+    line-height: 1.3 !important;
+    color: var(--primary-green);
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.markdown-content h3 {
+    font-size: 1.6rem;
+    font-weight: 600;
+    margin-top: 2rem !important;
+    margin-bottom: 1rem !important;
+    line-height: 1.4 !important;
+    color: var(--primary-green);
+}
+
+.markdown-content h4 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    margin-top: 1.5rem !important;
+    margin-bottom: 0.8rem !important;
+    line-height: 1.5 !important;
+    color: var(--text-primary);
+}
+
+/* Paragraphs with proper spacing */
+.markdown-content p {
+    margin-top: 0 !important;
+    margin-bottom: 1.5rem !important;
+    line-height: 1.8 !important;
+    text-align: justify;
+    hyphens: auto;
+}
+
+/* Lists with better spacing */
+.markdown-content ul,
+.markdown-content ol {
+    margin-top: 1rem !important;
+    margin-bottom: 1.5rem !important;
+    padding-left: 2rem;
+    line-height: 1.8 !important;
+}
+
+.markdown-content li {
+    margin-bottom: 0.5rem !important;
+    line-height: 1.8 !important;
+}
+
+.markdown-content li > ul,
+.markdown-content li > ol {
+    margin-top: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+}
+
+/* ========================================
+   MERMAID DIAGRAMS WITH ZOOM
+   ======================================== */
+
+.mermaid-wrapper {
+    position: relative;
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: linear-gradient(135deg, var(--surface-bg) 0%, var(--card-bg) 100%);
+    border-radius: 12px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+.mermaid {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 200px;
+    transition: transform 0.3s ease;
+}
+
+.mermaid-wrapper:hover .mermaid {
+    transform: scale(1.02);
+}
+
+.mermaid-zoom-btn {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    font-weight: 600;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+    z-index: 10;
+}
+
+.mermaid-zoom-btn:hover {
+    opacity: 1;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Modal for fullscreen Mermaid */
+.mermaid-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.95);
+    z-index: 10000;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(10px);
+}
+
+.mermaid-modal-content {
+    position: relative;
+    width: 95%;
+    height: 95%;
+    background: white;
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+}
+
+.mermaid-modal-body {
+    width: 100%;
+    height: calc(100% - 60px);
+    overflow: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#mermaid-modal-diagram {
+    transition: transform 0.3s ease;
+    transform-origin: center center;
+}
+
+.mermaid-modal-close,
+.mermaid-zoom-in,
+.mermaid-zoom-out,
+.mermaid-zoom-reset {
+    position: absolute;
+    width: 40px;
+    height: 40px;
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10;
+}
+
+.mermaid-modal-close {
+    top: 1rem;
+    right: 1rem;
+    background: #dc3545;
+}
+
+.mermaid-zoom-in {
+    top: 1rem;
+    right: 4rem;
+}
+
+.mermaid-zoom-out {
+    top: 1rem;
+    right: 7rem;
+}
+
+.mermaid-zoom-reset {
+    top: 1rem;
+    right: 10rem;
+}
+
+.mermaid-modal-close:hover,
+.mermaid-zoom-in:hover,
+.mermaid-zoom-out:hover,
+.mermaid-zoom-reset:hover {
+    transform: scale(1.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* ========================================
+   CODE BLOCKS & SYNTAX HIGHLIGHTING
+   ======================================== */
+
+.markdown-content pre {
+    position: relative;
+    background: linear-gradient(135deg, #1e1e2e 0%, #2d2d44 100%);
+    padding: 1.5rem;
+    border-radius: 12px;
+    overflow-x: auto;
+    margin: 1.5rem 0 !important;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.markdown-content code {
+    font-family: 'JetBrains Mono', 'Fira Code', monospace;
+    font-size: 0.9rem;
+    line-height: 1.6;
+    color: #e4e4e7;
+}
+
+.markdown-content p code,
+.markdown-content li code {
+    background: var(--surface-bg);
+    padding: 0.2rem 0.4rem;
+    border-radius: 4px;
+    color: var(--primary-green);
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+}
+
+.code-copy-btn {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    padding: 0.4rem 0.8rem;
+    background: var(--primary-green);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.markdown-content pre:hover .code-copy-btn {
+    opacity: 1;
+}
+
+/* ========================================
+   TABLES
+   ======================================== */
+
+.table-wrapper {
+    overflow-x: auto;
+    margin: 1.5rem 0;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.markdown-content table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    background: white;
+    font-size: 0.95rem;
+}
+
+.markdown-content th {
+    background: var(--primary-green);
+    color: white;
+    font-weight: 600;
+    padding: 1rem;
+    text-align: left;
+    border: none;
+}
+
+.markdown-content td {
+    padding: 0.875rem 1rem;
+    border-bottom: 1px solid var(--border-color);
+    line-height: 1.6;
+}
+
+.markdown-content tr:hover {
+    background: var(--surface-bg);
+}
+
+.markdown-content tr:last-child td {
+    border-bottom: none;
+}
+
+/* ========================================
+   BLOCKQUOTES
+   ======================================== */
+
+.markdown-content blockquote {
+    border-left: 4px solid var(--primary-green);
+    margin: 1.5rem 0;
+    padding: 1rem 1.5rem;
+    background: linear-gradient(135deg, var(--surface-bg) 0%, transparent 100%);
+    border-radius: 8px;
+    font-style: italic;
+}
+
+.markdown-content blockquote p {
+    margin-bottom: 0.5rem !important;
+    color: var(--text-secondary);
+}
+
+/* ========================================
+   TABLE OF CONTENTS
+   ======================================== */
+
+.markdown-toc {
+    background: var(--card-bg);
+    border: 2px solid var(--primary-green);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.markdown-toc h4 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    color: var(--primary-green);
+    font-size: 1.2rem;
+}
+
+.markdown-toc ul {
+    list-style: none;
+    padding-left: 0;
+    margin: 0;
+}
+
+.markdown-toc li {
+    margin-bottom: 0.5rem;
+}
+
+.markdown-toc a {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: all 0.3s ease;
+    display: inline-block;
+    padding: 0.25rem 0;
+}
+
+.markdown-toc a:hover {
+    color: var(--primary-green);
+    transform: translateX(4px);
+}
+
+.toc-h2 {
+    padding-left: 1.5rem;
+}
+
+.toc-h3 {
+    padding-left: 3rem;
+}
+
+/* ========================================
+   IMAGES
+   ======================================== */
+
+.markdown-content img {
+    max-width: 100%;
+    height: auto;
+    border-radius: 12px;
+    margin: 1.5rem 0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transition: transform 0.3s ease;
+}
+
+.markdown-content img:hover {
+    transform: scale(1.02);
+}
+
+/* ========================================
+   LINKS
+   ======================================== */
+
+.markdown-content a {
+    color: var(--primary-green);
+    text-decoration: none;
+    font-weight: 500;
+    position: relative;
+    transition: color 0.3s ease;
+}
+
+.markdown-content a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 2px;
+    bottom: -2px;
+    left: 0;
+    background: var(--primary-green);
+    transition: width 0.3s ease;
+}
+
+.markdown-content a:hover::after {
+    width: 100%;
+}
+
+/* ========================================
+   HORIZONTAL RULES
+   ======================================== */
+
+.markdown-content hr {
+    border: none;
+    height: 1px;
+    background: linear-gradient(to right, transparent, var(--border-color), transparent);
+    margin: 2rem 0;
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.animate-in {
+    animation: fadeInUp 0.6s ease forwards;
+}
+
+/* ========================================
+   SCROLLBAR STYLING
+   ======================================== */
+
+.markdown-content::-webkit-scrollbar,
+.mermaid-modal-body::-webkit-scrollbar {
+    width: 12px;
+}
+
+.markdown-content::-webkit-scrollbar-track,
+.mermaid-modal-body::-webkit-scrollbar-track {
+    background: var(--surface-bg);
+    border-radius: 6px;
+}
+
+.markdown-content::-webkit-scrollbar-thumb,
+.mermaid-modal-body::-webkit-scrollbar-thumb {
+    background: var(--primary-green);
+    border-radius: 6px;
+}
+
+.markdown-content::-webkit-scrollbar-thumb:hover,
+.mermaid-modal-body::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-green);
+}
+
+/* ========================================
+   DARK MODE SUPPORT
+   ======================================== */
+
+@media (prefers-color-scheme: dark) {
+    .mermaid-modal-content {
+        background: var(--card-bg);
+    }
+    
+    .markdown-content table {
+        background: var(--card-bg);
+    }
+    
+    .markdown-content code {
+        color: #a5d6ff;
+    }
+}

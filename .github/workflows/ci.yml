@@ -1,41 +1,58 @@
 name: ci
-
 on:
   push:
+    branches: [ "master", "main" ]
   pull_request:
-
+    branches: [ "master", "main" ]
 jobs:
-  build-test:
+  build-test-scan:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      security-events: write
+      packages: write
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.x'
 
-      - name: Cache NuGet
-        uses: actions/cache@v4
-        with:
-          path: ~/.nuget/packages
-          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            nuget-${{ runner.os }}-
-
       - name: Restore
-        run: dotnet restore VHouse.sln
+        run: dotnet restore
 
-      - name: Build (Release, Warnings as Errors)
-        run: dotnet build VHouse.sln -c Release -warnaserror
+      - name: Build (warnings as errors)
+        run: dotnet build --no-restore -warnaserror
 
-      - name: Test (if any)
+      - name: Test with coverage
         run: |
-          if ls -1 **/*Tests.csproj >/dev/null 2>&1; then
-            dotnet test -c Release --collect:"XPlat Code Coverage" --no-build
-          else
-            echo "No test projects found."
-          fi
+          dotnet test --no-build --collect:"XPlat Code Coverage" --results-directory ./TestResults
+          echo "##vso[task.setvariable variable=COVERAGE]$(ls TestResults/*/coverage.cobertura.xml 2>/dev/null || true)"
 
-      - name: Vulnerable packages (transitive)
-        run: dotnet list VHouse/VHouse.csproj package --vulnerable --include-transitive || true
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: TestResults/
+
+      - name: Build container image
+        run: |
+          docker build -t vhouse:${{ github.sha }} .
+
+      - name: Generate SBOM (syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: vhouse:${{ github.sha }}
+          artifact-name: sbom-spdx.json
+
+      - name: Scan image (trivy)
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: vhouse:${{ github.sha }}
+          format: 'table'
+          ignore-unfixed: true
+          vuln-type: 'os,library'
+          severity: 'CRITICAL,HIGH'

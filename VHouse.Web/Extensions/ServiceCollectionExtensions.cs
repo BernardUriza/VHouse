@@ -84,8 +84,10 @@ public static class ServiceCollectionExtensions
         
         // Client Inventory System - REAL business logic
         services.AddScoped<VHouse.Application.Services.IClientInventoryService, VHouse.Infrastructure.Services.ClientInventoryService>();
-        
-        
+
+        // Gallery and File Storage - Document management for Bernard's business
+        services.AddScoped<VHouse.Application.Services.IImageStorage, VHouse.Infrastructure.Services.LocalImageStorage>();
+
         // Enterprise Audit and Monitoring - PROFESSIONAL grade
         services.AddScoped<VHouse.Application.Services.IAuditService, VHouse.Infrastructure.Services.AuditService>();
         services.AddScoped<VHouse.Application.Services.IBusinessMetricsService, VHouse.Infrastructure.Services.BusinessMetricsService>();
