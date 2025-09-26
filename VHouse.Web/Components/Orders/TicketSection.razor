@@ -157,14 +157,19 @@ else
                 CustomerId = string.IsNullOrEmpty(selectedCustomerId) ? 1 : int.Parse(selectedCustomerId), // Default customer ID for walk-ins
                 TotalAmount = TotalPrice,
                 Status = VHouse.Domain.Enums.OrderStatus.Pending,
-                Notes = $"Price Type: {selectedPriceType}, Delivery: {deliveryDate?.ToString()}",
-                OrderItems = ticket.Values.Select(item => new VHouse.Domain.Entities.OrderItem
-                {
-                    ProductId = item.ProductId,
-                    UnitPrice = item.UnitPrice,
-                    Quantity = item.Quantity
-                }).ToList()
+                Notes = $"Price Type: {selectedPriceType}, Delivery: {deliveryDate?.ToString()}"
             };
+
+        // Add order items to the collection
+        foreach (var item in ticket.Values)
+        {
+            order.OrderItems.Add(new VHouse.Domain.Entities.OrderItem
+            {
+                ProductId = item.ProductId,
+                UnitPrice = item.UnitPrice,
+                Quantity = item.Quantity
+            });
+        }
         // isOrderGenerated = await OrderService.ProcessOrderAsync(order); // Commented out until OrderService is available
         isOrderGenerated = true; // Placeholder
     }

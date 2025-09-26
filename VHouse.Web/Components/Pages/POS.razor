@@ -546,7 +546,10 @@
             }
 
             // Add order items to the order
-            order.OrderItems = orderItems;
+            foreach (var orderItem in orderItems)
+            {
+                order.OrderItems.Add(orderItem);
+            }
 
             // Save to database
             Context.Orders.Add(order);

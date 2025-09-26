@@ -1,16 +1,16 @@
 namespace VHouse.Application.DTOs;
 
-public record ProductDto
+public class ProductDto
 {
-    public int Id { get; init; }
-    public string ProductName { get; init; } = string.Empty;
-    public string Emoji { get; init; } = string.Empty;
-    public decimal PriceCost { get; init; }
-    public decimal PriceRetail { get; init; }
-    public decimal PriceSuggested { get; init; }
-    public decimal PricePublic { get; init; }
-    public string Description { get; init; } = string.Empty;
-    public int StockQuantity { get; init; }
-    public bool IsVegan { get; init; }
-    public bool IsActive { get; init; }
+    public int Id { get; set; }
+    public string ProductName { get; set; } = string.Empty;
+    public string Emoji { get; set; } = string.Empty;
+    public decimal PriceCost { get; set; }
+    public decimal PriceRetail { get; set; }
+    public decimal PriceSuggested { get; set; }
+    public decimal PricePublic { get; set; }
+    public string Description { get; set; } = string.Empty;
+    public int StockQuantity { get; set; }
+    public bool IsVegan { get; set; }
+    public bool IsActive { get; set; }
 }

@@ -32,4 +32,4 @@ echo    http://localhost:5000
 echo ========================================
 echo.
 
-dotnet run --project src\VHouse.Web
+dotnet run --project VHouse.Web
