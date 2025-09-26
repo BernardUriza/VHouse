@@ -6,15 +6,15 @@ public record BusinessConversationResponseDto
 {
     public string Response { get; init; } = string.Empty;
     public string ConversationContext { get; init; } = string.Empty;
-    public List<BusinessAction> SuggestedActions { get; init; } = new();
-    public List<ProductSuggestion> ProductRecommendations { get; init; } = new();
+    public IReadOnlyCollection<BusinessAction> SuggestedActions { get; init; } = new List<BusinessAction>();
+    public IReadOnlyCollection<ProductSuggestion> ProductRecommendations { get; init; } = new List<ProductSuggestion>();
     public AIProvider UsedProvider { get; init; }
     public string UsedModel { get; init; } = string.Empty;
     public bool IsSuccessful { get; init; }
     public string? ErrorMessage { get; init; }
     public double ResponseTimeMs { get; init; }
     public BusinessPriority Priority { get; init; }
-    public List<string> ExtractedEntities { get; init; } = new();
+    public IReadOnlyCollection<string> ExtractedEntities { get; init; } = new List<string>();
 }
 
 public record BusinessEmailResponseDto
@@ -23,7 +23,7 @@ public record BusinessEmailResponseDto
     public string Body { get; init; } = string.Empty;
     public string EmailType { get; init; } = string.Empty;
     public bool IsUrgent { get; init; }
-    public List<string> RequiredAttachments { get; init; } = new();
+    public IReadOnlyCollection<string> RequiredAttachments { get; init; } = new List<string>();
     public AIProvider UsedProvider { get; init; }
     public bool IsSuccessful { get; init; }
     public string? ErrorMessage { get; init; }
@@ -31,10 +31,10 @@ public record BusinessEmailResponseDto
 
 public record ComplexOrderResponseDto
 {
-    public List<OrderItem> ExtractedItems { get; init; } = new();
+    public IReadOnlyCollection<OrderItem> ExtractedItems { get; init; } = new List<OrderItem>();
     public OrderSummary OrderSummary { get; init; } = new();
-    public List<BusinessAlert> Alerts { get; init; } = new();
-    public List<string> MissingInformation { get; init; } = new();
+    public IReadOnlyCollection<BusinessAlert> Alerts { get; init; } = new List<BusinessAlert>();
+    public IReadOnlyCollection<string> MissingInformation { get; init; } = new List<string>();
     public decimal EstimatedTotal { get; init; }
     public DateTime? RequestedDeliveryDate { get; init; }
     public PaymentTerms? PaymentTerms { get; init; }
@@ -47,7 +47,7 @@ public record BusinessAction
 {
     public string ActionType { get; init; } = string.Empty;
     public string Description { get; init; } = string.Empty;
-    public string ActionUrl { get; init; } = string.Empty;
+    public Uri? ActionUrl { get; init; }
     public BusinessPriority Priority { get; init; }
 }
 
@@ -83,17 +83,17 @@ public record BusinessAlert
     public string AlertType { get; init; } = string.Empty;
     public string Message { get; init; } = string.Empty;
     public BusinessPriority Priority { get; init; }
-    public List<string> SuggestedActions { get; init; } = new();
+    public IReadOnlyCollection<string> SuggestedActions { get; init; } = new List<string>();
 }
 
 public record BusinessContext
 {
     public string CustomerType { get; init; } = string.Empty;
-    public List<string> PreferredBrands { get; init; } = new();
-    public List<string> RecentOrderHistory { get; init; } = new();
+    public IReadOnlyCollection<string> PreferredBrands { get; init; } = new List<string>();
+    public IReadOnlyCollection<string> RecentOrderHistory { get; init; } = new List<string>();
     public decimal TypicalOrderValue { get; init; }
     public string PaymentHistory { get; init; } = string.Empty;
-    public Dictionary<string, object> CustomData { get; init; } = new();
+    public IReadOnlyDictionary<string, object> CustomData { get; init; } = new Dictionary<string, object>();
 }
 
 public record PaymentTerms

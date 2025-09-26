@@ -332,7 +332,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
             }
         }
 
-        private List<string> ExtractStringArray(JsonElement root, string propertyName)
+        private static List<string> ExtractStringArray(JsonElement root, string propertyName)
         {
             var result = new List<string>();
             
@@ -350,7 +350,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
         }
 
         // Métodos de fallback con regex para cuando la AI no esté disponible
-        private ExtractedInvoice ExtractInvoiceWithRegex(string invoiceText)
+        private static ExtractedInvoice ExtractInvoiceWithRegex(string invoiceText)
         {
             var invoice = new ExtractedInvoice { Items = new List<InvoiceItem>() };
 
@@ -377,7 +377,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
             return invoice;
         }
 
-        private ExtractedPurchaseOrder ExtractPurchaseOrderWithRegex(string poText)
+        private static ExtractedPurchaseOrder ExtractPurchaseOrderWithRegex(string poText)
         {
             var po = new ExtractedPurchaseOrder();
 
@@ -392,7 +392,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
             return po;
         }
 
-        private List<string> ExtractBasicContractTerms(string contractText)
+        private static List<string> ExtractBasicContractTerms(string contractText)
         {
             var terms = new List<string>();
 
@@ -493,7 +493,7 @@ FORMATO DE RESPUESTA JSON:
 }}";
         }
 
-        private double CalculateSalesTrend(List<DailySales> salesHistory)
+        private static double CalculateSalesTrend(List<DailySales> salesHistory)
         {
             if (salesHistory.Count < 7) return 0;
 
@@ -558,7 +558,7 @@ FORMATO DE RESPUESTA JSON:
             };
         }
 
-        private string DetermineUrgencyLevel(int currentStock, int reorderPoint)
+        private static string DetermineUrgencyLevel(int currentStock, int reorderPoint)
         {
             if (currentStock <= reorderPoint * 0.5) return "Critical";
             if (currentStock <= reorderPoint * 0.7) return "High";
@@ -572,7 +572,7 @@ FORMATO DE RESPUESTA JSON:
     {
         public string InvoiceNumber { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
-        public List<InvoiceItem> Items { get; set; } = new();
+        public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
         public decimal Total { get; set; }
         public string PaymentTerms { get; set; } = string.Empty;
     }
@@ -592,7 +592,7 @@ FORMATO DE RESPUESTA JSON:
         public DateTime RequiredDeliveryDate { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
         public string SpecialTerms { get; set; } = string.Empty;
-        public List<PurchaseOrderItem> Items { get; set; } = new();
+        public ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
     }
 
     public class PurchaseOrderItem
@@ -605,13 +605,13 @@ FORMATO DE RESPUESTA JSON:
 
     public class ContractAnalysis
     {
-        public List<string> KeyTerms { get; set; } = new();
-        public List<string> RiskFactors { get; set; } = new();
+        public ICollection<string> KeyTerms { get; set; } = new List<string>();
+        public ICollection<string> RiskFactors { get; set; } = new List<string>();
         public string PaymentTerms { get; set; } = string.Empty;
         public string DeliveryTerms { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
-        public List<string> UnusualClauses { get; set; } = new();
-        public List<string> RecommendedActions { get; set; } = new();
+        public ICollection<string> UnusualClauses { get; set; } = new List<string>();
+        public ICollection<string> RecommendedActions { get; set; } = new List<string>();
     }
 
     public class StockOptimization

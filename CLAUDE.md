@@ -142,6 +142,26 @@ start-fresh.bat
 **Características épicas** incluyen: nuevo CRUD completo, integración de IA, sistema de pedidos, reportes, etc.
 **NO ejecutar para**: fixes menores, cambios de estilo, ajustes de texto.
 
+#### 🔍 Verificación de Disponibilidad
+
+**IMPORTANTE**: Después de ejecutar `start-fresh.bat`, **SIEMPRE** ejecuta `wait-for-vhouse.sh` para verificar que la app está respondiendo antes de anunciar que está lista:
+
+```bash
+# Ejecutar en Git Bash o WSL
+./wait-for-vhouse.sh
+
+# Esto:
+# - Espera hasta 120 segundos a que VHouse responda en localhost:5000
+# - Verifica con curl que el endpoint HTTP funciona
+# - Evita el error "ERR_CONNECTION_REFUSED"
+# - Confirma que la app realmente arrancó correctamente
+```
+
+**Si el script falla**: Revisa los logs de `start-fresh.bat` para ver errores en:
+- Migraciones de base de datos
+- Compilación de la aplicación
+- Seeding de datos iniciales
+
 ---
 
 ## 🌱 ESTÁNDARES DE CÓDIGO ACTIVISTA

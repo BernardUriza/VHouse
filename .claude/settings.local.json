@@ -37,7 +37,10 @@
       "Bash(dir:*)",
       "Bash(test:*)",
       "Bash(cat:*)",
-      "Bash(findstr:*)"
+      "Bash(findstr:*)",
+      "Bash(curl:*)",
+      "Bash(xargs rm:*)",
+      "Bash(chmod:*)"
     ],
     "deny": [],
     "ask": [],

@@ -15,8 +15,8 @@ public record AIResponseDto
 
 public record ImageGenerationDto
 {
-    public byte[] ImageData { get; init; } = Array.Empty<byte>();
-    public string ImageUrl { get; init; } = string.Empty;
+    public IReadOnlyCollection<byte> ImageData { get; init; } = Array.Empty<byte>();
+    public Uri? ImageUrl { get; init; }
     public string RevisedPrompt { get; init; } = string.Empty;
     public AIProvider UsedProvider { get; init; }
     public string UsedModel { get; init; } = string.Empty;
@@ -26,7 +26,7 @@ public record ImageGenerationDto
 
 public record AIHealthStatusDto
 {
-    public Dictionary<string, bool> ServiceStatus { get; init; } = new();
+    public IReadOnlyDictionary<string, bool> ServiceStatus { get; init; } = new Dictionary<string, bool>();
     public string RecommendedProvider { get; init; } = string.Empty;
     public bool FallbackAvailable { get; init; }
 }
