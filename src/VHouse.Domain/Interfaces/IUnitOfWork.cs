@@ -8,7 +8,11 @@ public interface IUnitOfWork : IDisposable
     ICustomerRepository Customers { get; }
     IOrderRepository Orders { get; }
     IRepository<OrderItem> OrderItems { get; }
-    
+    IRepository<ClientTenant> ClientTenants { get; }
+    IRepository<PriceList> PriceLists { get; }
+    IRepository<PriceListItem> PriceListItems { get; }
+    IRepository<ClientTenantPriceList> ClientTenantPriceLists { get; }
+
     Task<int> SaveChangesAsync();
     Task BeginTransactionAsync();
     Task CommitTransactionAsync();

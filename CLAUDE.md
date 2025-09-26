@@ -120,6 +120,28 @@ Siempre empezar con:
 - ¿Esto hace a Bernard más eficiente como activista-distribuidor?
 - ¿Esto acelera la adopción vegana?
 
+### ⚡ PROTOCOLO POST-IMPLEMENTACIÓN
+
+**CRÍTICO**: Después de implementar cada **característica épica** (nueva funcionalidad completa, no cambios menores):
+
+1. **Ejecutar start-fresh.bat** - Resetea BD y arranca la app limpia
+2. **Verificar funcionalidad** - Prueba manual del feature implementado
+3. **Confirmar con Bernard** - "¿Listo para que Mona la Dona lo pruebe?"
+
+```bash
+# En Windows, ejecutar:
+start-fresh.bat
+
+# Esto hace:
+# - Mata procesos dotnet previos
+# - Borra y recrea la base de datos
+# - Aplica todas las migraciones
+# - Arranca la aplicación en http://localhost:5000
+```
+
+**Características épicas** incluyen: nuevo CRUD completo, integración de IA, sistema de pedidos, reportes, etc.
+**NO ejecutar para**: fixes menores, cambios de estilo, ajustes de texto.
+
 ---
 
 ## 🌱 ESTÁNDARES DE CÓDIGO ACTIVISTA

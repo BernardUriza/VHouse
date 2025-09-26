@@ -17,12 +17,20 @@ public class UnitOfWork : IUnitOfWork
         Customers = new CustomerRepository(_context);
         Orders = new OrderRepository(_context);
         OrderItems = new Repository<OrderItem>(_context);
+        ClientTenants = new Repository<ClientTenant>(_context);
+        PriceLists = new Repository<PriceList>(_context);
+        PriceListItems = new Repository<PriceListItem>(_context);
+        ClientTenantPriceLists = new Repository<ClientTenantPriceList>(_context);
     }
 
     public IProductRepository Products { get; private set; }
     public ICustomerRepository Customers { get; private set; }
     public IOrderRepository Orders { get; private set; }
     public IRepository<OrderItem> OrderItems { get; private set; }
+    public IRepository<ClientTenant> ClientTenants { get; private set; }
+    public IRepository<PriceList> PriceLists { get; private set; }
+    public IRepository<PriceListItem> PriceListItems { get; private set; }
+    public IRepository<ClientTenantPriceList> ClientTenantPriceLists { get; private set; }
 
     public async Task<int> SaveChangesAsync()
     {
