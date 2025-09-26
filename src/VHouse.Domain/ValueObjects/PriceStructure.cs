@@ -20,6 +20,6 @@ public record PriceStructure
         Public = publicPrice;
     }
     
-    public decimal GetMargin() => ((Retail - Cost) / Cost) * 100;
-    public decimal GetMarkup() => Retail - Cost;
+    public decimal Margin => ((Retail - Cost) / Cost) * 100;
+    public decimal Markup => Retail - Cost;
 }

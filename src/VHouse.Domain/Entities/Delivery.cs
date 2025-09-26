@@ -70,7 +70,7 @@ public class Delivery
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     // Items entregados
-    public virtual ICollection<DeliveryItem> DeliveryItems { get; set; } = new List<DeliveryItem>();
+    public virtual ICollection<DeliveryItem> DeliveryItems { get; } = new List<DeliveryItem>();
 }
 
 /// <summary>

@@ -22,5 +22,5 @@ public class Customer : BaseEntity
     public bool IsActive { get; set; } = true;
     
     // Navigation properties
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public virtual ICollection<Order> Orders { get; } = new List<Order>();
 }

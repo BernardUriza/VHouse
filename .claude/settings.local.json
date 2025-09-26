@@ -33,7 +33,10 @@
       "Bash(move:*)",
       "Bash(dotnet add:*)",
       "Bash(git rm:*)",
-      "Bash(gitleaks detect:*)"
+      "Bash(gitleaks detect:*)",
+      "Bash(dir:*)",
+      "Bash(test:*)",
+      "Bash(cat:*)"
     ],
     "deny": [],
     "ask": [],

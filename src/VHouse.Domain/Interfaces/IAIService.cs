@@ -45,12 +45,12 @@ public interface IAIService
     /// <summary>
     /// Predice la demanda futura de un producto usando análisis de datos históricos
     /// </summary>
-    Task<DemandForecast> PredictDemandAsync(int productId, int days, List<object> historicalData);
+    Task<DemandForecast> PredictDemandAsync(int productId, int days, ICollection<object> historicalData);
     
     /// <summary>
     /// Analiza patrones de inventario y sugiere optimizaciones
     /// </summary>
-    Task<InventoryOptimization> OptimizeInventoryAsync(List<object> inventoryData, List<object> salesData);
+    Task<InventoryOptimization> OptimizeInventoryAsync(ICollection<object> inventoryData, ICollection<object> salesData);
     
     /// <summary>
     /// Genera insights de negocio basados en datos de ventas y patrones
@@ -65,10 +65,10 @@ public interface IAIService
     /// <summary>
     /// Valida disponibilidad inteligente de productos considerando stock y estado
     /// </summary>
-    Task<ProductAvailabilityValidation> ValidateProductAvailabilityAsync(List<object> orderItems, object dbContext);
+    Task<ProductAvailabilityValidation> ValidateProductAvailabilityAsync(ICollection<object> orderItems, object dbContext);
     
     /// <summary>
     /// Genera sugerencias de productos alternativos cuando hay falta de stock
     /// </summary>
-    Task<AlternativeProductSuggestions> GenerateAlternativeProductsAsync(List<int> unavailableProductIds, string availableProductsJson);
+    Task<AlternativeProductSuggestions> GenerateAlternativeProductsAsync(ICollection<int> unavailableProductIds, string availableProductsJson);
 }

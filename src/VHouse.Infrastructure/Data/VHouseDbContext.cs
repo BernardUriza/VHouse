@@ -38,6 +38,11 @@ public class VHouseDbContext : DbContext
     public DbSet<Album> Albums { get; set; }
     public DbSet<Photo> Photos { get; set; }
 
+    // Price List entities
+    public DbSet<PriceList> PriceLists { get; set; }
+    public DbSet<PriceListItem> PriceListItems { get; set; }
+    public DbSet<ClientTenantPriceList> ClientTenantPriceLists { get; set; }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
@@ -319,6 +324,49 @@ public class VHouseDbContext : DbContext
 
             entity.HasIndex(p => p.AlbumId);
             entity.HasIndex(p => p.UploadedUtc);
+        });
+
+        // PriceList configuration
+        modelBuilder.Entity<PriceList>(entity =>
+        {
+            entity.HasKey(pl => pl.Id);
+            entity.Property(pl => pl.Name).IsRequired().HasMaxLength(100);
+            entity.HasIndex(pl => pl.IsDefault);
+            entity.HasIndex(pl => pl.IsActive);
+        });
+
+        // PriceListItem configuration
+        modelBuilder.Entity<PriceListItem>(entity =>
+        {
+            entity.HasKey(pli => pli.Id);
+            entity.Property(pli => pli.CustomPrice).HasColumnType("decimal(18,2)");
+            entity.Property(pli => pli.DiscountPercentage).HasColumnType("decimal(5,2)");
+
+            entity.HasOne(pli => pli.PriceList)
+                .WithMany(pl => pl.PriceListItems)
+                .HasForeignKey(pli => pli.PriceListId);
+
+            entity.HasOne(pli => pli.Product)
+                .WithMany()
+                .HasForeignKey(pli => pli.ProductId);
+
+            entity.HasIndex(pli => new { pli.PriceListId, pli.ProductId }).IsUnique();
+        });
+
+        // ClientTenantPriceList configuration
+        modelBuilder.Entity<ClientTenantPriceList>(entity =>
+        {
+            entity.HasKey(ctpl => ctpl.Id);
+
+            entity.HasOne(ctpl => ctpl.ClientTenant)
+                .WithMany()
+                .HasForeignKey(ctpl => ctpl.ClientTenantId);
+
+            entity.HasOne(ctpl => ctpl.PriceList)
+                .WithMany(pl => pl.ClientTenantPriceLists)
+                .HasForeignKey(ctpl => ctpl.PriceListId);
+
+            entity.HasIndex(ctpl => new { ctpl.ClientTenantId, ctpl.PriceListId }).IsUnique();
         });
 
         SeedGalleryData(modelBuilder);

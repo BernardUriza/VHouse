@@ -38,8 +38,8 @@ public record AIResponse
 
 public record ImageGenerationResponse
 {
-    public byte[] ImageData { get; init; } = Array.Empty<byte>();
-    public string ImageUrl { get; init; } = string.Empty;
+    public IReadOnlyList<byte> ImageData { get; init; } = Array.Empty<byte>();
+    public Uri? ImageUrl { get; init; }
     public AIProvider UsedProvider { get; init; }
     public AIModel UsedModel { get; init; }
     public bool IsSuccessful { get; init; }
@@ -60,10 +60,10 @@ public record DemandForecast
     public int ProductId { get; init; }
     public string ProductName { get; init; } = string.Empty;
     public int DaysPredicted { get; init; }
-    public List<DemandPrediction> Predictions { get; init; } = new();
+    public IReadOnlyCollection<DemandPrediction> Predictions { get; init; } = Array.Empty<DemandPrediction>();
     public double ConfidenceScore { get; init; }
     public string TrendAnalysis { get; init; } = string.Empty;
-    public List<string> Recommendations { get; init; } = new();
+    public IReadOnlyCollection<string> Recommendations { get; init; } = Array.Empty<string>();
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 }
 
@@ -74,15 +74,15 @@ public record DemandPrediction
     public double LowerBound { get; init; }
     public double UpperBound { get; init; }
     public double Confidence { get; init; }
-    public List<string> InfluencingFactors { get; init; } = new();
+    public IReadOnlyCollection<string> InfluencingFactors { get; init; } = Array.Empty<string>();
 }
 
 public record InventoryOptimization
 {
-    public List<InventoryRecommendation> Recommendations { get; init; } = new();
+    public IReadOnlyCollection<InventoryRecommendation> Recommendations { get; init; } = Array.Empty<InventoryRecommendation>();
     public double OptimizationScore { get; init; }
     public string Summary { get; init; } = string.Empty;
-    public List<string> RiskFactors { get; init; } = new();
+    public IReadOnlyCollection<string> RiskFactors { get; init; } = Array.Empty<string>();
     public Dictionary<string, object> Metrics { get; init; } = new();
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 }
@@ -100,22 +100,22 @@ public record InventoryRecommendation
 
 public record BusinessInsights
 {
-    public List<string> KeyInsights { get; init; } = new();
-    public List<string> RecommendedActions { get; init; } = new();
+    public IReadOnlyCollection<string> KeyInsights { get; init; } = Array.Empty<string>();
+    public IReadOnlyCollection<string> RecommendedActions { get; init; } = Array.Empty<string>();
     public string Summary { get; init; } = string.Empty;
     public double AnalysisScore { get; init; }
     public Dictionary<string, object> Metrics { get; init; } = new();
-    public List<string> Trends { get; init; } = new();
-    public List<string> Opportunities { get; init; } = new();
+    public IReadOnlyCollection<string> Trends { get; init; } = Array.Empty<string>();
+    public IReadOnlyCollection<string> Opportunities { get; init; } = Array.Empty<string>();
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 }
 
 public record EnhancedOrderResult
 {
-    public List<EnhancedOrderItem> OrderItems { get; init; } = new();
+    public IReadOnlyCollection<EnhancedOrderItem> OrderItems { get; init; } = Array.Empty<EnhancedOrderItem>();
     public bool IsValid { get; init; }
     public string ErrorMessage { get; init; } = string.Empty;
-    public List<string> Warnings { get; init; } = new();
+    public IReadOnlyCollection<string> Warnings { get; init; } = Array.Empty<string>();
     public DateTime ProcessedAt { get; init; } = DateTime.UtcNow;
 }
 
@@ -131,8 +131,8 @@ public record EnhancedOrderItem
 
 public record ProductAvailabilityValidation
 {
-    public List<ProductValidationResult> ValidationResults { get; init; } = new();
-    public List<string> Recommendations { get; init; } = new();
+    public IReadOnlyCollection<ProductValidationResult> ValidationResults { get; init; } = Array.Empty<ProductValidationResult>();
+    public IReadOnlyCollection<string> Recommendations { get; init; } = Array.Empty<string>();
     public bool AllProductsAvailable { get; init; }
     public string Summary { get; init; } = string.Empty;
     public DateTime ValidatedAt { get; init; } = DateTime.UtcNow;
@@ -152,10 +152,10 @@ public record ProductValidationResult
 
 public record AlternativeProductSuggestions
 {
-    public List<ProductAlternative> Suggestions { get; init; } = new();
+    public IReadOnlyCollection<ProductAlternative> Suggestions { get; init; } = Array.Empty<ProductAlternative>();
     public double ConfidenceScore { get; init; }
     public string Summary { get; init; } = string.Empty;
-    public List<string> GeneralRecommendations { get; init; } = new();
+    public IReadOnlyCollection<string> GeneralRecommendations { get; init; } = Array.Empty<string>();
     public DateTime GeneratedAt { get; init; } = DateTime.UtcNow;
 }
 

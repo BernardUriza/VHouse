@@ -38,5 +38,5 @@ public class Product : BaseEntity
     public virtual Supplier? Supplier { get; set; }
     
     // Navigation properties
-    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
 }

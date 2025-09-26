@@ -32,7 +32,7 @@ public class SystemMetric : BaseEntity
     [MaxLength(20)]
     public string Severity { get; set; } = "NORMAL"; // CRITICAL, WARNING, NORMAL, INFO
     
-    public bool RequiresAction { get; set; } = false;
+    public bool RequiresAction { get; set; }
     
     [MaxLength(500)]
     public string? ActionRequired { get; set; }
@@ -70,7 +70,7 @@ public class BusinessAlert : BaseEntity
     
     public DateTime? ResolvedAt { get; set; }
     
-    public bool IsResolved { get; set; } = false;
+    public bool IsResolved { get; set; }
     
     [MaxLength(200)]
     public string? ResolvedBy { get; set; }

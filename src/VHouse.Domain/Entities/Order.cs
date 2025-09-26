@@ -25,5 +25,5 @@ public class Order : BaseEntity
     // Navigation properties
     public virtual Customer Customer { get; set; } = null!;
     public virtual ClientTenant? ClientTenant { get; set; }
-    public virtual ICollection<OrderItem> OrderItems { get; set; } = new List<OrderItem>();
+    public virtual ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
 }

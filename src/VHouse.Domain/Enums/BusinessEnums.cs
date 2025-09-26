@@ -2,6 +2,7 @@ namespace VHouse.Domain.Enums;
 
 public enum BusinessConversationType
 {
+    None = 0,
     General = 1,
     OrderInquiry = 2,
     PriceQuote = 3,
@@ -17,6 +18,7 @@ public enum BusinessConversationType
 
 public enum BusinessPriority
 {
+    None = 0,
     Low = 1,
     Medium = 2,
     High = 3,
@@ -26,6 +28,7 @@ public enum BusinessPriority
 
 public enum CustomerSegment
 {
+    None = 0,
     SmallRetailer = 1,
     MediumRetailer = 2,
     LargeRetailer = 3,
@@ -37,6 +40,7 @@ public enum CustomerSegment
 
 public enum CommunicationType
 {
+    None = 0,
     OrderConfirmation = 1,
     DeliveryUpdate = 2,
     PaymentReminder = 3,

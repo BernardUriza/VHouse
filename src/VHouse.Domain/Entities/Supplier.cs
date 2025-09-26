@@ -37,7 +37,7 @@ public class Supplier : BaseEntity
     public bool IsActive { get; set; } = true;
     
     // Vegan certification info
-    public bool IsVeganCertified { get; set; } = false;
+    public bool IsVeganCertified { get; set; }
     
     [MaxLength(100)]
     public string? CertificationNumber { get; set; }
@@ -51,5 +51,5 @@ public class Supplier : BaseEntity
     public decimal? MinimumOrderAmount { get; set; }
     
     // Navigation properties
-    public virtual ICollection<Product> Products { get; set; } = new List<Product>();
+    public virtual ICollection<Product> Products { get; } = new List<Product>();
 }

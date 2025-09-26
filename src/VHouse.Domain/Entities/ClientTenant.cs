@@ -46,8 +46,8 @@ public class ClientTenant
     public DateTime? LastLoginAt { get; set; }
     
     // Navigation properties
-    public virtual ICollection<ClientProduct> ClientProducts { get; set; } = new List<ClientProduct>();
-    public virtual ICollection<Order> Orders { get; set; } = new List<Order>();
+    public virtual ICollection<ClientProduct> ClientProducts { get; } = new List<ClientProduct>();
+    public virtual ICollection<Order> Orders { get; } = new List<Order>();
 }
 
 // Tabla intermedia para productos asignados por cliente

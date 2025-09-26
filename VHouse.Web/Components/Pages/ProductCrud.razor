@@ -2,8 +2,9 @@
 @rendermode @(new InteractiveServerRenderMode())
 @using MediatR
 @using VHouse.Application.Commands
+@using VHouse.Application.Queries
+@using VHouse.Application.DTOs
 @inject IMediator Mediator
-@* @inject IProductService ProductService *@
 
 <link href="/css/products.css" rel="stylesheet" />
 
@@ -633,67 +634,127 @@
 </style>
 
 @code {
-    private List<Product> products = new();
+    private List<ProductDto> products = new();
     private string newProductName = string.Empty;
-    private decimal newPricePublic, newPriceRetail, newPriceCost;
-    private Product? productBeingEdited = null;
-    
+    private string newEmoji = string.Empty;
+    private decimal newPricePublic, newPriceRetail, newPriceCost, newPriceSuggested;
+    private string newDescription = string.Empty;
+    private int newStockQuantity = 0;
+    private ProductDto? productBeingEdited = null;
+    private ProductDto? originalProduct = null;
+
     // AI Integration
     private string aiGeneratedDescription = string.Empty;
     private bool isGeneratingDescription = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
-        LoadProducts();
+        await LoadProducts();
     }
 
-    private void LoadProducts()
+    private async Task LoadProducts()
     {
-        products = new List<Product>(); // MVP: Load from DB when ready
+        var query = new GetProductsQuery();
+        var result = await Mediator.Send(query);
+        products = result.Where(p => p.IsActive).ToList();
     }
 
-    private void AddProduct()
+    private async Task AddProduct()
     {
         if (string.IsNullOrWhiteSpace(newProductName) || newPricePublic <= 0 || newPriceRetail <= 0 || newPriceCost <= 0)
         {
-            return; // Opcionalmente, muestra un mensaje de error.
+            return;
         }
 
-        var newProduct = new Product
-            {
-                ProductName = newProductName,
-                PricePublic = newPricePublic,
-                PriceRetail = newPriceRetail,
-                PriceCost = newPriceCost
-            };
+        var description = !string.IsNullOrWhiteSpace(aiGeneratedDescription)
+            ? aiGeneratedDescription
+            : newDescription;
 
-        LoadProducts();
+        var command = new CreateProductCommand(
+            ProductName: newProductName,
+            Emoji: newEmoji,
+            PriceCost: newPriceCost,
+            PriceRetail: newPriceRetail,
+            PriceSuggested: newPriceSuggested > 0 ? newPriceSuggested : newPriceRetail,
+            PricePublic: newPricePublic,
+            Description: description,
+            StockQuantity: newStockQuantity,
+            IsVegan: true
+        );
+
+        await Mediator.Send(command);
+        await LoadProducts();
 
         newProductName = string.Empty;
+        newEmoji = string.Empty;
         newPricePublic = 0;
         newPriceRetail = 0;
         newPriceCost = 0;
+        newPriceSuggested = 0;
+        newDescription = string.Empty;
+        newStockQuantity = 0;
+        aiGeneratedDescription = string.Empty;
     }
 
-    private void EditProduct(Product product)
+    private void EditProduct(ProductDto product)
     {
+        originalProduct = new ProductDto
+        {
+            Id = product.Id,
+            ProductName = product.ProductName,
+            Emoji = product.Emoji,
+            PriceCost = product.PriceCost,
+            PriceRetail = product.PriceRetail,
+            PriceSuggested = product.PriceSuggested,
+            PricePublic = product.PricePublic,
+            Description = product.Description,
+            StockQuantity = product.StockQuantity,
+            IsVegan = product.IsVegan,
+            IsActive = product.IsActive
+        };
         productBeingEdited = product;
     }
 
-    private void SaveEdit(Product product)
+    private async Task SaveEdit(ProductDto product)
     {
+        var command = new UpdateProductCommand(
+            Id: product.Id,
+            ProductName: product.ProductName,
+            Emoji: product.Emoji ?? string.Empty,
+            PriceCost: product.PriceCost,
+            PriceRetail: product.PriceRetail,
+            PriceSuggested: product.PriceSuggested,
+            PricePublic: product.PricePublic,
+            Description: product.Description ?? string.Empty,
+            StockQuantity: product.StockQuantity,
+            IsActive: product.IsActive
+        );
+
+        await Mediator.Send(command);
         productBeingEdited = null;
-        LoadProducts();
+        originalProduct = null;
+        await LoadProducts();
     }
 
     private void CancelEdit()
     {
+        if (originalProduct != null && productBeingEdited != null)
+        {
+            var index = products.FindIndex(p => p.Id == productBeingEdited.Id);
+            if (index >= 0)
+            {
+                products[index] = originalProduct;
+            }
+        }
         productBeingEdited = null;
+        originalProduct = null;
     }
 
-    private void DeleteProduct(Product product)
+    private async Task DeleteProduct(ProductDto product)
     {
-        LoadProducts();
+        var command = new DeleteProductCommand(product.Id);
+        await Mediator.Send(command);
+        await LoadProducts();
     }
 
     // AI Methods

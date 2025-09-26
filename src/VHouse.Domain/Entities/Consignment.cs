@@ -48,10 +48,10 @@ public class Consignment
     public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
     
     // Items en consignación
-    public virtual ICollection<ConsignmentItem> ConsignmentItems { get; set; } = new List<ConsignmentItem>();
-    
+    public virtual ICollection<ConsignmentItem> ConsignmentItems { get; } = new List<ConsignmentItem>();
+
     // Ventas registradas
-    public virtual ICollection<ConsignmentSale> ConsignmentSales { get; set; } = new List<ConsignmentSale>();
+    public virtual ICollection<ConsignmentSale> ConsignmentSales { get; } = new List<ConsignmentSale>();
 }
 
 /// <summary>
