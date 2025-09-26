@@ -14,7 +14,7 @@ public class PriceList : BaseEntity
 
     public bool IsDefault { get; set; }
 
-    public bool IsActive { get; set; } = true
+    public bool IsActive { get; set; } = true;
 
     public virtual ICollection<PriceListItem> PriceListItems { get; } = new List<PriceListItem>();
     public virtual ICollection<ClientTenantPriceList> ClientTenantPriceLists { get; } = new List<ClientTenantPriceList>();

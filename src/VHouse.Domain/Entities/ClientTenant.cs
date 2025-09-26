@@ -2,10 +2,8 @@ using System.ComponentModel.DataAnnotations;
 
 namespace VHouse.Domain.Entities;
 
-public class ClientTenant
+public class ClientTenant : BaseEntity
 {
-    [Key]
-    public int Id { get; set; }
     
     [Required]
     [MaxLength(100)]

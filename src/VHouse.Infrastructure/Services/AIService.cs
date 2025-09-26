@@ -549,7 +549,7 @@ public class AIService : IAIService
 
     #endregion
 
-    public async Task<DemandForecast> PredictDemandAsync(int productId, int days, List<object> historicalData)
+    public async Task<DemandForecast> PredictDemandAsync(int productId, int days, ICollection<object> historicalData)
     {
         var systemMessage = """
             Eres un experto en predicción de demanda para productos veganos.
@@ -681,7 +681,7 @@ public class AIService : IAIService
         }
     }
 
-    public async Task<InventoryOptimization> OptimizeInventoryAsync(List<object> inventoryData, List<object> salesData)
+    public async Task<InventoryOptimization> OptimizeInventoryAsync(ICollection<object> inventoryData, ICollection<object> salesData)
     {
         var systemMessage = """
             Eres un experto en optimización de inventarios para productos veganos.
@@ -1090,7 +1090,7 @@ public class AIService : IAIService
         }
     }
 
-    public async Task<ProductAvailabilityValidation> ValidateProductAvailabilityAsync(List<object> orderItems, object dbContext)
+    public async Task<ProductAvailabilityValidation> ValidateProductAvailabilityAsync(ICollection<object> orderItems, object dbContext)
     {
         var validationResults = new List<ProductValidationResult>();
         var recommendations = new List<string>();
@@ -1246,7 +1246,7 @@ public class AIService : IAIService
         };
     }
 
-    public async Task<AlternativeProductSuggestions> GenerateAlternativeProductsAsync(List<int> unavailableProductIds, string availableProductsJson)
+    public async Task<AlternativeProductSuggestions> GenerateAlternativeProductsAsync(ICollection<int> unavailableProductIds, string availableProductsJson)
     {
         var systemMessage = """
             Eres un experto en productos veganos y sustituciones inteligentes.
