@@ -446,7 +446,7 @@ public class AIService : IAIService
                 
                 return new ImageGenerationResponse
                 {
-                    ImageUrl = imageData?.Url ?? "",
+                    ImageUrl = string.IsNullOrEmpty(imageData?.Url) ? null : new Uri(imageData.Url),
                     RevisedPrompt = imageData?.RevisedPrompt ?? request.Prompt,
                     UsedProvider = AIProvider.OpenAI,
                     UsedModel = request.PreferredModel,
