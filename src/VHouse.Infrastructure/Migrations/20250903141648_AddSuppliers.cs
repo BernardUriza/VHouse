@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace VHouse.Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class FixClientTenantPasswordColumn : Migration
+    public partial class AddSuppliers : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -15,23 +15,11 @@ namespace VHouse.Infrastructure.Migrations
                 name: "Score",
                 table: "Products");
 
-            migrationBuilder.DropColumn(
-                name: "LoginPassword",
-                table: "ClientTenants");
-
             migrationBuilder.AddColumn<int>(
                 name: "SupplierId",
                 table: "Products",
                 type: "INTEGER",
                 nullable: true);
-
-            migrationBuilder.AddColumn<string>(
-                name: "LoginPasswordHash",
-                table: "ClientTenants",
-                type: "TEXT",
-                maxLength: 255,
-                nullable: false,
-                defaultValue: "");
 
             migrationBuilder.CreateTable(
                 name: "Suppliers",
@@ -94,24 +82,12 @@ namespace VHouse.Infrastructure.Migrations
                 name: "SupplierId",
                 table: "Products");
 
-            migrationBuilder.DropColumn(
-                name: "LoginPasswordHash",
-                table: "ClientTenants");
-
             migrationBuilder.AddColumn<double>(
                 name: "Score",
                 table: "Products",
                 type: "REAL",
                 nullable: false,
                 defaultValue: 0.0);
-
-            migrationBuilder.AddColumn<string>(
-                name: "LoginPassword",
-                table: "ClientTenants",
-                type: "TEXT",
-                maxLength: 100,
-                nullable: false,
-                defaultValue: "");
         }
     }
 }

@@ -36,7 +36,8 @@
       "Bash(gitleaks detect:*)",
       "Bash(dir:*)",
       "Bash(test:*)",
-      "Bash(cat:*)"
+      "Bash(cat:*)",
+      "Bash(findstr:*)"
     ],
     "deny": [],
     "ask": [],
