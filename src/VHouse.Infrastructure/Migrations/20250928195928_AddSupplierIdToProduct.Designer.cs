@@ -11,8 +11,8 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Infrastructure.Migrations
 {
     [DbContext(typeof(VHouseDbContext))]
-    [Migration("20250926215638_AddPriceListSystem")]
-    partial class AddPriceListSystem
+    [Migration("20250928195928_AddSupplierIdToProduct")]
+    partial class AddSupplierIdToProduct
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,7 +56,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5400),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(8996),
                             Description = "Product catalog photos",
                             Name = "Products",
                             Slug = "products"
@@ -64,7 +64,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5404),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9000),
                             Description = "Customer sales receipts",
                             Name = "Sales Receipts",
                             Slug = "sales-receipts"
@@ -72,7 +72,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5408),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9003),
                             Description = "Supplier purchase receipts",
                             Name = "Purchase Receipts",
                             Slug = "purchase-receipts"
@@ -80,7 +80,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5411),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9005),
                             Description = "Client invoices and documentation",
                             Name = "Invoices",
                             Slug = "invoices"
@@ -88,7 +88,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5415),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9008),
                             Description = "Supplier documentation and photos",
                             Name = "Suppliers",
                             Slug = "suppliers"
@@ -96,7 +96,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5418),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9010),
                             Description = "Customer documentation and photos",
                             Name = "Customers",
                             Slug = "customers"
@@ -104,7 +104,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 26, 21, 56, 37, 988, DateTimeKind.Utc).AddTicks(5421),
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 59, 27, 463, DateTimeKind.Utc).AddTicks(9013),
                             Description = "Miscellaneous photos and documents",
                             Name = "Misc",
                             Slug = "misc"

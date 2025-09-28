@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using VHouse.Infrastructure.Data;
 
@@ -10,9 +11,11 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Infrastructure.Migrations
 {
     [DbContext(typeof(VHouseDbContext))]
-    partial class VHouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20250928202709_FreshDatabase")]
+    partial class FreshDatabase
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
@@ -53,7 +56,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2761),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3941),
                             Description = "Product catalog photos",
                             Name = "Products",
                             Slug = "products"
@@ -61,7 +64,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2764),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3944),
                             Description = "Customer sales receipts",
                             Name = "Sales Receipts",
                             Slug = "sales-receipts"
@@ -69,7 +72,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2767),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3947),
                             Description = "Supplier purchase receipts",
                             Name = "Purchase Receipts",
                             Slug = "purchase-receipts"
@@ -77,7 +80,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2769),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3949),
                             Description = "Client invoices and documentation",
                             Name = "Invoices",
                             Slug = "invoices"
@@ -85,7 +88,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2771),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3951),
                             Description = "Supplier documentation and photos",
                             Name = "Suppliers",
                             Slug = "suppliers"
@@ -93,7 +96,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2774),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3953),
                             Description = "Customer documentation and photos",
                             Name = "Customers",
                             Slug = "customers"
@@ -101,7 +104,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2776),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 27, 7, 335, DateTimeKind.Utc).AddTicks(3956),
                             Description = "Miscellaneous photos and documents",
                             Name = "Misc",
                             Slug = "misc"

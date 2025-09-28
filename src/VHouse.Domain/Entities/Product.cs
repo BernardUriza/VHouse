@@ -32,11 +32,11 @@ public class Product : BaseEntity
     public bool IsVegan { get; set; } = true;
     
     public bool IsActive { get; set; } = true;
-    
-    // Supplier relationship
+
+    // Foreign key for Supplier (not in DB yet)
     public int? SupplierId { get; set; }
-    public virtual Supplier? Supplier { get; set; }
-    
+
     // Navigation properties
+    public virtual Supplier? Supplier { get; set; }
     public virtual ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
 }

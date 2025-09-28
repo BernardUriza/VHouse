@@ -38,8 +38,7 @@ Log.StartingVHouse(logger);
 builder.ConfigureWebHost()
        .ConfigureDatabase()
        .Services.AddVHouseServices(builder.Configuration, builder.Environment)
-       .AddInfrastructureServices(builder.Configuration)
-       .AddDataSeeder();
+       .AddInfrastructureServices(builder.Configuration);
 
 var app = builder.Build();
 
@@ -64,8 +63,6 @@ app.MapRazorComponents<VHouse.Web.Components.App>()
    .AddInteractiveServerRenderMode();
 
 app.ConfigureHealthChecks();
-
-await app.SeedDataAsync(builder.Configuration);
 
 app.Run();
 

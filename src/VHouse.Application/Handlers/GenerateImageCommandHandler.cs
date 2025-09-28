@@ -39,7 +39,7 @@ Calidad: Alta resolución para uso comercial
         return new ImageGenerationDto
         {
             ImageData = response.ImageData?.ToArray() ?? Array.Empty<byte>(),
-            ImageUrl = response.ImageUrl?.ToString() ?? string.Empty,
+            ImageUrl = response.ImageUrl,
             RevisedPrompt = response.RevisedPrompt,
             UsedProvider = response.UsedProvider,
             UsedModel = response.UsedModel.ToString(),

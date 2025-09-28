@@ -11,14 +11,105 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Infrastructure.Migrations
 {
     [DbContext(typeof(VHouseDbContext))]
-    [Migration("20250905075003_AddEnterpriseAuditSystem")]
-    partial class AddEnterpriseAuditSystem
+    [Migration("20250928192630_InitialMigration")]
+    partial class InitialMigration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+
+            modelBuilder.Entity("VHouse.Domain.Entities.Album", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Slug")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Slug")
+                        .IsUnique();
+
+                    b.ToTable("Albums");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7892),
+                            Description = "Product catalog photos",
+                            Name = "Products",
+                            Slug = "products"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7895),
+                            Description = "Customer sales receipts",
+                            Name = "Sales Receipts",
+                            Slug = "sales-receipts"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7898),
+                            Description = "Supplier purchase receipts",
+                            Name = "Purchase Receipts",
+                            Slug = "purchase-receipts"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7900),
+                            Description = "Client invoices and documentation",
+                            Name = "Invoices",
+                            Slug = "invoices"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7902),
+                            Description = "Supplier documentation and photos",
+                            Name = "Suppliers",
+                            Slug = "suppliers"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7904),
+                            Description = "Customer documentation and photos",
+                            Name = "Customers",
+                            Slug = "customers"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7906),
+                            Description = "Miscellaneous photos and documents",
+                            Name = "Misc",
+                            Slug = "misc"
+                        });
+                });
 
             modelBuilder.Entity("VHouse.Domain.Entities.AuditLog", b =>
                 {
@@ -293,6 +384,9 @@ namespace VHouse.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LoginUsername")
@@ -302,6 +396,40 @@ namespace VHouse.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ClientTenants");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.ClientTenantPriceList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ClientTenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PriceListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceListId");
+
+                    b.HasIndex("ClientTenantId", "PriceListId")
+                        .IsUnique();
+
+                    b.ToTable("ClientTenantPriceLists");
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Consignment", b =>
@@ -743,6 +871,136 @@ namespace VHouse.Infrastructure.Migrations
                     b.ToTable("OrderItems");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.Photo", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("AlbumId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Caption")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("ContentType")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("OriginalName")
+                        .IsRequired()
+                        .HasMaxLength(255)
+                        .HasColumnType("TEXT");
+
+                    b.Property<long>("SizeBytes")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("ThumbnailPath")
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime>("UploadedUtc")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("AlbumId");
+
+                    b.HasIndex("UploadedUtc");
+
+                    b.ToTable("Photos");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsDefault");
+
+                    b.ToTable("PriceLists");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceListItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CustomPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MinOrderQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PriceListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("PriceListId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("PriceListItems");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -965,6 +1223,25 @@ namespace VHouse.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.ClientTenantPriceList", b =>
+                {
+                    b.HasOne("VHouse.Domain.Entities.ClientTenant", "ClientTenant")
+                        .WithMany()
+                        .HasForeignKey("ClientTenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VHouse.Domain.Entities.PriceList", "PriceList")
+                        .WithMany("ClientTenantPriceLists")
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientTenant");
+
+                    b.Navigation("PriceList");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Consignment", b =>
                 {
                     b.HasOne("VHouse.Domain.Entities.ClientTenant", "ClientTenant")
@@ -1088,6 +1365,36 @@ namespace VHouse.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.Photo", b =>
+                {
+                    b.HasOne("VHouse.Domain.Entities.Album", "Album")
+                        .WithMany("Photos")
+                        .HasForeignKey("AlbumId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Album");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceListItem", b =>
+                {
+                    b.HasOne("VHouse.Domain.Entities.PriceList", "PriceList")
+                        .WithMany("PriceListItems")
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VHouse.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PriceList");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
                 {
                     b.HasOne("VHouse.Domain.Entities.Supplier", "Supplier")
@@ -1096,6 +1403,11 @@ namespace VHouse.Infrastructure.Migrations
                         .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("Supplier");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.Album", b =>
+                {
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ClientTenant", b =>
@@ -1125,6 +1437,13 @@ namespace VHouse.Infrastructure.Migrations
             modelBuilder.Entity("VHouse.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceList", b =>
+                {
+                    b.Navigation("ClientTenantPriceLists");
+
+                    b.Navigation("PriceListItems");
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>

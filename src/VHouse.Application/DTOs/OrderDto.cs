@@ -13,7 +13,7 @@ public class CreateOrderDto
     [StringLength(1000)]
     public string Notes { get; set; } = string.Empty;
     
-    public ICollection<CreateOrderItemDto> OrderItems { get; set; } = new List<CreateOrderItemDto>();
+    public ICollection<CreateOrderItemDto> OrderItems { get; init; } = new List<CreateOrderItemDto>();
 }
 
 public class CreateOrderItemDto

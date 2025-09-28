@@ -46,7 +46,7 @@ namespace VHouse.Application.Services
                 // Fallback: extracción manual con regex
                 return ExtractInvoiceWithRegex(invoiceText);
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is JsonException or HttpRequestException or TaskCanceledException)
             {
                 return ExtractInvoiceWithRegex(invoiceText);
             }
@@ -75,7 +75,7 @@ namespace VHouse.Application.Services
 
                 return ExtractPurchaseOrderWithRegex(poText);
             }
-            catch (Exception)
+            catch (Exception ex) when (ex is JsonException or HttpRequestException or TaskCanceledException)
             {
                 return ExtractPurchaseOrderWithRegex(poText);
             }
@@ -253,7 +253,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
 
                 return invoice;
             }
-            catch
+            catch (Exception)
             {
                 return new ExtractedInvoice { InvoiceNumber = "Parse Error", Items = new List<InvoiceItem>() };
             }
@@ -277,7 +277,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
                     Items = ExtractPOItems(root)
                 };
             }
-            catch
+            catch (Exception)
             {
                 return new ExtractedPurchaseOrder { PONumber = "Parse Error" };
             }
@@ -322,7 +322,7 @@ Prioriza la identificación de términos que puedan afectar la operación comerc
                     RecommendedActions = ExtractStringArray(root, "recommendedActions")
                 };
             }
-            catch
+            catch (Exception)
             {
                 return new ContractAnalysis
                 {
@@ -523,7 +523,7 @@ FORMATO DE RESPUESTA JSON:
                     UrgencyLevel = DetermineUrgencyLevel(currentStock, reorderPoint)
                 };
             }
-            catch
+            catch (Exception)
             {
                 return new StockOptimization
                 {
@@ -572,7 +572,7 @@ FORMATO DE RESPUESTA JSON:
     {
         public string InvoiceNumber { get; set; } = string.Empty;
         public string CustomerName { get; set; } = string.Empty;
-        public ICollection<InvoiceItem> Items { get; set; } = new List<InvoiceItem>();
+        public ICollection<InvoiceItem> Items { get; init; } = new List<InvoiceItem>();
         public decimal Total { get; set; }
         public string PaymentTerms { get; set; } = string.Empty;
     }
@@ -592,7 +592,7 @@ FORMATO DE RESPUESTA JSON:
         public DateTime RequiredDeliveryDate { get; set; }
         public string DeliveryAddress { get; set; } = string.Empty;
         public string SpecialTerms { get; set; } = string.Empty;
-        public ICollection<PurchaseOrderItem> Items { get; set; } = new List<PurchaseOrderItem>();
+        public ICollection<PurchaseOrderItem> Items { get; init; } = new List<PurchaseOrderItem>();
     }
 
     public class PurchaseOrderItem
@@ -605,13 +605,13 @@ FORMATO DE RESPUESTA JSON:
 
     public class ContractAnalysis
     {
-        public ICollection<string> KeyTerms { get; set; } = new List<string>();
-        public ICollection<string> RiskFactors { get; set; } = new List<string>();
+        public ICollection<string> KeyTerms { get; init; } = new List<string>();
+        public ICollection<string> RiskFactors { get; init; } = new List<string>();
         public string PaymentTerms { get; set; } = string.Empty;
         public string DeliveryTerms { get; set; } = string.Empty;
         public string Summary { get; set; } = string.Empty;
-        public ICollection<string> UnusualClauses { get; set; } = new List<string>();
-        public ICollection<string> RecommendedActions { get; set; } = new List<string>();
+        public ICollection<string> UnusualClauses { get; init; } = new List<string>();
+        public ICollection<string> RecommendedActions { get; init; } = new List<string>();
     }
 
     public class StockOptimization

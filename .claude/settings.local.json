@@ -40,7 +40,12 @@
       "Bash(findstr:*)",
       "Bash(curl:*)",
       "Bash(xargs rm:*)",
-      "Bash(chmod:*)"
+      "Bash(chmod:*)",
+      "Bash(.start-fresh.bat)",
+      "Bash(cmd /c \"dir vhouse_clean.db* /s\")",
+      "Bash(cmd /c \"del /F /Q vhouse_clean.db* 2>nul & del /F /Q VHouse.Web\\vhouse_clean.db* 2>nul & rmdir /S /Q src\\VHouse.Infrastructure\\Migrations 2>nul\")",
+      "Bash(start-fresh.bat)",
+      "Bash(cmd /c:*)"
     ],
     "deny": [],
     "ask": [],

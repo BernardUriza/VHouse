@@ -186,7 +186,7 @@ Responde ahora:";
             {
                 ActionType = "crear_pedido",
                 Description = "Crear nuevo pedido basado en consulta",
-                ActionUrl = "/orders/create",
+                ActionUrl = new Uri("/orders/create", UriKind.Relative),
                 Priority = BusinessPriority.High
             });
         }
@@ -197,7 +197,7 @@ Responde ahora:";
             {
                 ActionType = "generar_cotizacion",
                 Description = "Generar cotización formal",
-                ActionUrl = "/quotes/create",
+                ActionUrl = new Uri("/quotes/create", UriKind.Relative),
                 Priority = BusinessPriority.Medium
             });
         }
@@ -471,7 +471,7 @@ Responde ahora:";
         return Task.FromResult(prompt);
     }
 
-    private Task<string> BuildComplexOrderPrompt(string order, dynamic customer, BusinessContext context)
+    private static Task<string> BuildComplexOrderPrompt(string order, dynamic customer, BusinessContext context)
     {
         var prompt = $@"
 PROCESADOR INTELIGENTE DE PEDIDOS B2B - VHOUSE DISTRIBUCIÓN VEGANA

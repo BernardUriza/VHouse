@@ -11,8 +11,8 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Infrastructure.Migrations
 {
     [DbContext(typeof(VHouseDbContext))]
-    [Migration("20250918231641_AddGallery")]
-    partial class AddGallery
+    [Migration("20250928204409_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -56,7 +56,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9068),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2761),
                             Description = "Product catalog photos",
                             Name = "Products",
                             Slug = "products"
@@ -64,7 +64,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9075),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2764),
                             Description = "Customer sales receipts",
                             Name = "Sales Receipts",
                             Slug = "sales-receipts"
@@ -72,7 +72,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9078),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2767),
                             Description = "Supplier purchase receipts",
                             Name = "Purchase Receipts",
                             Slug = "purchase-receipts"
@@ -80,7 +80,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9082),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2769),
                             Description = "Client invoices and documentation",
                             Name = "Invoices",
                             Slug = "invoices"
@@ -88,7 +88,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9085),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2771),
                             Description = "Supplier documentation and photos",
                             Name = "Suppliers",
                             Slug = "suppliers"
@@ -96,7 +96,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9089),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2774),
                             Description = "Customer documentation and photos",
                             Name = "Customers",
                             Slug = "customers"
@@ -104,7 +104,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 18, 23, 16, 39, 992, DateTimeKind.Utc).AddTicks(9092),
+                            CreatedAt = new DateTime(2025, 9, 28, 20, 44, 8, 903, DateTimeKind.Utc).AddTicks(2776),
                             Description = "Miscellaneous photos and documents",
                             Name = "Misc",
                             Slug = "misc"
@@ -384,6 +384,9 @@ namespace VHouse.Infrastructure.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("TEXT");
 
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
                     b.HasKey("Id");
 
                     b.HasIndex("LoginUsername")
@@ -393,6 +396,40 @@ namespace VHouse.Infrastructure.Migrations
                         .IsUnique();
 
                     b.ToTable("ClientTenants");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.ClientTenantPriceList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("AssignedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<int>("ClientTenantId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PriceListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("PriceListId");
+
+                    b.HasIndex("ClientTenantId", "PriceListId")
+                        .IsUnique();
+
+                    b.ToTable("ClientTenantPriceLists");
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Consignment", b =>
@@ -887,6 +924,83 @@ namespace VHouse.Infrastructure.Migrations
                     b.ToTable("Photos");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceList", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("TEXT");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<bool>("IsDefault")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("TEXT");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("IsDefault");
+
+                    b.ToTable("PriceLists");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceListItem", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.Property<decimal>("CustomPrice")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("DiscountPercentage")
+                        .HasColumnType("decimal(5,2)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("MinOrderQuantity")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("PriceListId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int>("ProductId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("TEXT");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ProductId");
+
+                    b.HasIndex("PriceListId", "ProductId")
+                        .IsUnique();
+
+                    b.ToTable("PriceListItems");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
                 {
                     b.Property<int>("Id")
@@ -1109,6 +1223,25 @@ namespace VHouse.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.ClientTenantPriceList", b =>
+                {
+                    b.HasOne("VHouse.Domain.Entities.ClientTenant", "ClientTenant")
+                        .WithMany()
+                        .HasForeignKey("ClientTenantId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VHouse.Domain.Entities.PriceList", "PriceList")
+                        .WithMany("ClientTenantPriceLists")
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ClientTenant");
+
+                    b.Navigation("PriceList");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Consignment", b =>
                 {
                     b.HasOne("VHouse.Domain.Entities.ClientTenant", "ClientTenant")
@@ -1243,6 +1376,25 @@ namespace VHouse.Infrastructure.Migrations
                     b.Navigation("Album");
                 });
 
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceListItem", b =>
+                {
+                    b.HasOne("VHouse.Domain.Entities.PriceList", "PriceList")
+                        .WithMany("PriceListItems")
+                        .HasForeignKey("PriceListId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("VHouse.Domain.Entities.Product", "Product")
+                        .WithMany()
+                        .HasForeignKey("ProductId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("PriceList");
+
+                    b.Navigation("Product");
+                });
+
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
                 {
                     b.HasOne("VHouse.Domain.Entities.Supplier", "Supplier")
@@ -1285,6 +1437,13 @@ namespace VHouse.Infrastructure.Migrations
             modelBuilder.Entity("VHouse.Domain.Entities.Order", b =>
                 {
                     b.Navigation("OrderItems");
+                });
+
+            modelBuilder.Entity("VHouse.Domain.Entities.PriceList", b =>
+                {
+                    b.Navigation("ClientTenantPriceLists");
+
+                    b.Navigation("PriceListItems");
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
