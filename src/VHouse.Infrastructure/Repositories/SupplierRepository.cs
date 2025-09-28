@@ -29,14 +29,18 @@ public class SupplierRepository : Repository<Supplier>, ISupplierRepository
 
     public async Task<Supplier?> GetSupplierWithProducts(int id)
     {
-        return await _dbSet
-            .Include(s => s.Products)
-            .FirstOrDefaultAsync(s => s.Id == id);
+        // TODO: Uncomment when Product.SupplierId is added
+        // return await _dbSet
+        //     .Include(s => s.Products)
+        //     .FirstOrDefaultAsync(s => s.Id == id);
+        return await _dbSet.FirstOrDefaultAsync(s => s.Id == id);
     }
 
     public async Task<bool> HasActiveProducts(int supplierId)
     {
-        return await _context.Set<Product>()
-            .AnyAsync(p => p.SupplierId == supplierId && p.IsActive);
+        // TODO: Uncomment when SupplierId is added to Product entity
+        // return await _context.Set<Product>()
+        //     .AnyAsync(p => p.SupplierId == supplierId && p.IsActive);
+        return false; // Temporary: no products linked to suppliers yet
     }
 }

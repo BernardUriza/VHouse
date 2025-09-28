@@ -57,10 +57,11 @@ public class VHouseDbContext : DbContext
             entity.Property(p => p.PriceSuggested).HasColumnType("decimal(18,2)");
             entity.Property(p => p.PricePublic).HasColumnType("decimal(18,2)");
             
-            entity.HasOne(p => p.Supplier)
-                .WithMany(s => s.Products)
-                .HasForeignKey(p => p.SupplierId)
-                .OnDelete(DeleteBehavior.SetNull);
+            // TODO: Uncomment when SupplierId is added to Product entity
+            // entity.HasOne(p => p.Supplier)
+            //     .WithMany(s => s.Products)
+            //     .HasForeignKey(p => p.SupplierId)
+            //     .OnDelete(DeleteBehavior.SetNull);
         });
 
         // Supplier configuration

@@ -33,10 +33,11 @@ public class Product : BaseEntity
     
     public bool IsActive { get; set; } = true;
 
-    // Foreign key for Supplier (not in DB yet)
-    public int? SupplierId { get; set; }
+    public double Score { get; set; } = 0.0;
 
     // Navigation properties
-    public virtual Supplier? Supplier { get; set; }
+    // TODO: Agregar SupplierId cuando se cree la migración correspondiente
+    // public int? SupplierId { get; set; }
+    // public virtual Supplier? Supplier { get; set; }
     public virtual ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
 }

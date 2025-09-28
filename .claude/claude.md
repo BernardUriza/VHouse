@@ -10,8 +10,38 @@ VHouse is a B2B distribution platform for vegan businesses built with Clean Arch
 
 ## Essential Commands
 
-### Development Workflow
+### Quick Start with start-fresh.bat (Recommended)
 ```bash
+# Windows - Ejecutar desde la raíz del proyecto
+
+# MODO RÁPIDO (recomendado para desarrollo diario)
+start-fresh.bat
+
+# MODO COMPLETO (cuando tengas problemas de BD/migración)
+start-fresh.bat --hard
+
+# Ver ayuda completa
+start-fresh.bat --help
+```
+
+**MODO RÁPIDO** (default):
+- Solo detiene procesos previos
+- Compilación incremental rápida
+- Reutiliza BD existente
+- Ideal para desarrollo diario
+
+**MODO COMPLETO** (--hard):
+- Limpia completamente BD, bins, y caché NuGet
+- Restaura paquetes completos
+- Aplica migraciones de Entity Framework
+- Usa cuando tengas problemas de BD/migración
+
+**IMPORTANTE**: Ejecutar desde el directorio raíz (donde está VHouse.sln). El script validará automáticamente que está en el directorio correcto.
+
+### Development Workflow Manual
+```bash
+# Si prefieres control manual:
+
 # Restore dependencies
 dotnet restore
 
@@ -263,6 +293,28 @@ dotnet test --filter Category=Security
 - Configured in `.env` via `ASPNETCORE_URLS`
 
 ## Troubleshooting
+
+### start-fresh.bat Issues
+```bash
+# Si start-fresh.bat falla:
+
+# 1. Verificar ubicación - debe ejecutarse desde la raíz
+dir VHouse.sln  # Debe encontrar este archivo
+
+# 2. Si fallan las migraciones, ejecutar manualmente:
+dotnet ef migrations add InitialCreate --project src/VHouse.Infrastructure
+dotnet ef database update --project src/VHouse.Infrastructure
+
+# 3. Si los puertos están ocupados:
+netstat -ano | findstr :5000  # Ver qué proceso usa el puerto
+taskkill /F /PID [PID_NUMBER] # Terminar ese proceso
+
+# 4. Para limpiar completamente y empezar de nuevo:
+taskkill /F /IM dotnet.exe
+del /F /Q vhouse_clean.db* VHouse.Web\vhouse_clean.db*
+rmdir /S /Q src\VHouse.Infrastructure\Migrations
+dotnet clean
+```
 
 ### Migration Issues
 ```bash

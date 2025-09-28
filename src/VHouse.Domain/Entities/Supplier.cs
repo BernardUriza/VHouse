@@ -51,5 +51,6 @@ public class Supplier : BaseEntity
     public decimal? MinimumOrderAmount { get; set; }
     
     // Navigation properties
-    public virtual ICollection<Product> Products { get; } = new List<Product>();
+    // TODO: Uncomment when Product.SupplierId is added
+    // public virtual ICollection<Product> Products { get; } = new List<Product>();
 }

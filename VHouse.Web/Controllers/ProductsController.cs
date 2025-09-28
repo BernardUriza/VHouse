@@ -20,6 +20,21 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<IEnumerable<Product>>> GetProducts()
     {
         var products = await _context.Products
+            .Select(p => new
+            {
+                p.Id,
+                p.ProductName,
+                p.Emoji,
+                p.PriceCost,
+                p.PriceRetail,
+                p.PriceSuggested,
+                p.PricePublic,
+                p.Description,
+                p.StockQuantity,
+                p.IsVegan,
+                p.IsActive,
+                p.Score
+            })
             .ToListAsync();
 
         return Ok(products);
@@ -29,7 +44,23 @@ public class ProductsController : ControllerBase
     public async Task<ActionResult<Product>> GetProduct(int id)
     {
         var product = await _context.Products
-            .FirstOrDefaultAsync(p => p.Id == id);
+            .Where(p => p.Id == id)
+            .Select(p => new
+            {
+                p.Id,
+                p.ProductName,
+                p.Emoji,
+                p.PriceCost,
+                p.PriceRetail,
+                p.PriceSuggested,
+                p.PricePublic,
+                p.Description,
+                p.StockQuantity,
+                p.IsVegan,
+                p.IsActive,
+                p.Score
+            })
+            .FirstOrDefaultAsync();
 
         if (product == null)
         {
