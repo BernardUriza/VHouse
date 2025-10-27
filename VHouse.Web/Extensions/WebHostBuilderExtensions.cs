@@ -37,16 +37,17 @@ public static class WebHostBuilderExtensions
 
     private static void ConfigureKestrelPorts(KestrelServerOptions options, IWebHostEnvironment environment)
     {
-        // HTTP port 5000 - HTTP/1.1 only for better Blazor Server compatibility
-        options.ListenAnyIP(5000, listenOptions =>
+        // VHouse creative port range: 9100-9101
+        // HTTP port 9100 - HTTP/1.1 only for better Blazor Server compatibility
+        options.ListenAnyIP(9100, listenOptions =>
         {
             listenOptions.Protocols = HttpProtocols.Http1;
         });
-        
-        // HTTPS port 5001 (production only)
+
+        // HTTPS port 9101 (production only)
         if (!environment.IsDevelopment())
         {
-            options.ListenAnyIP(5001, listenOptions =>
+            options.ListenAnyIP(9101, listenOptions =>
             {
                 listenOptions.Protocols = HttpProtocols.Http1;
                 listenOptions.UseHttps();
