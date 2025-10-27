@@ -53,7 +53,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6020),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8500),
                             Description = "Product catalog photos",
                             Name = "Products",
                             Slug = "products"
@@ -61,7 +61,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Customer sales receipts",
                             Name = "Sales Receipts",
                             Slug = "sales-receipts"
@@ -69,7 +69,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Supplier purchase receipts",
                             Name = "Purchase Receipts",
                             Slug = "purchase-receipts"
@@ -77,7 +77,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Client invoices and documentation",
                             Name = "Invoices",
                             Slug = "invoices"
@@ -85,7 +85,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Supplier documentation and photos",
                             Name = "Suppliers",
                             Slug = "suppliers"
@@ -93,7 +93,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Customer documentation and photos",
                             Name = "Customers",
                             Slug = "customers"
@@ -101,7 +101,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 10, 27, 18, 48, 14, 767, DateTimeKind.Utc).AddTicks(6190),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Miscellaneous photos and documents",
                             Name = "Misc",
                             Slug = "misc"

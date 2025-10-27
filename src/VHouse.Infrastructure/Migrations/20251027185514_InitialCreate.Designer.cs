@@ -11,14 +11,14 @@ using VHouse.Infrastructure.Data;
 namespace VHouse.Infrastructure.Migrations
 {
     [DbContext(typeof(VHouseDbContext))]
-    [Migration("20250928192630_InitialMigration")]
-    partial class InitialMigration
+    [Migration("20251027185514_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
-            modelBuilder.HasAnnotation("ProductVersion", "8.0.0");
+            modelBuilder.HasAnnotation("ProductVersion", "9.0.0");
 
             modelBuilder.Entity("VHouse.Domain.Entities.Album", b =>
                 {
@@ -56,7 +56,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7892),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8500),
                             Description = "Product catalog photos",
                             Name = "Products",
                             Slug = "products"
@@ -64,7 +64,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7895),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Customer sales receipts",
                             Name = "Sales Receipts",
                             Slug = "sales-receipts"
@@ -72,7 +72,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7898),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Supplier purchase receipts",
                             Name = "Purchase Receipts",
                             Slug = "purchase-receipts"
@@ -80,7 +80,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7900),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Client invoices and documentation",
                             Name = "Invoices",
                             Slug = "invoices"
@@ -88,7 +88,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7902),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Supplier documentation and photos",
                             Name = "Suppliers",
                             Slug = "suppliers"
@@ -96,7 +96,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7904),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Customer documentation and photos",
                             Name = "Customers",
                             Slug = "customers"
@@ -104,7 +104,7 @@ namespace VHouse.Infrastructure.Migrations
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2025, 9, 28, 19, 26, 29, 768, DateTimeKind.Utc).AddTicks(7906),
+                            CreatedAt = new DateTime(2025, 10, 27, 18, 55, 13, 773, DateTimeKind.Utc).AddTicks(8660),
                             Description = "Miscellaneous photos and documents",
                             Name = "Misc",
                             Slug = "misc"
@@ -1043,18 +1043,16 @@ namespace VHouse.Infrastructure.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("TEXT");
 
-                    b.Property<int>("StockQuantity")
-                        .HasColumnType("INTEGER");
+                    b.Property<double>("Score")
+                        .HasColumnType("REAL");
 
-                    b.Property<int?>("SupplierId")
+                    b.Property<int>("StockQuantity")
                         .HasColumnType("INTEGER");
 
                     b.Property<DateTime?>("UpdatedAt")
                         .HasColumnType("TEXT");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("SupplierId");
 
                     b.ToTable("Products");
                 });
@@ -1395,16 +1393,6 @@ namespace VHouse.Infrastructure.Migrations
                     b.Navigation("Product");
                 });
 
-            modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
-                {
-                    b.HasOne("VHouse.Domain.Entities.Supplier", "Supplier")
-                        .WithMany("Products")
-                        .HasForeignKey("SupplierId")
-                        .OnDelete(DeleteBehavior.SetNull);
-
-                    b.Navigation("Supplier");
-                });
-
             modelBuilder.Entity("VHouse.Domain.Entities.Album", b =>
                 {
                     b.Navigation("Photos");
@@ -1449,11 +1437,6 @@ namespace VHouse.Infrastructure.Migrations
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
                 {
                     b.Navigation("OrderItems");
-                });
-
-            modelBuilder.Entity("VHouse.Domain.Entities.Supplier", b =>
-                {
-                    b.Navigation("Products");
                 });
 #pragma warning restore 612, 618
         }
