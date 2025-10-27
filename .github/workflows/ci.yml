@@ -33,7 +33,7 @@ jobs:
           echo "##vso[task.setvariable variable=COVERAGE]$(ls TestResults/*/coverage.cobertura.xml 2>/dev/null || true)"
 
       - name: Upload test results
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: test-results
           path: TestResults/
