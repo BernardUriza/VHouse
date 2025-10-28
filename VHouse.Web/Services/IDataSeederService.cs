@@ -49,7 +49,7 @@ public class DataSeederService : IDataSeederService
         _logMigrationsApplied(_logger, null);
 
         _logApplyingSeeds(_logger, null);
-        await SeedBasicProducts(context);
+        await VHouse.Web.Data.DbSeeder.SeedCoreProductsAsync(context);
         var passwordService = services.GetRequiredService<VHouse.Domain.Interfaces.IPasswordService>();
         await VHouse.Web.Data.DbSeeder.SeedMonaLaDonaAsync(context, passwordService);
         _logSeedsApplied(_logger, null);

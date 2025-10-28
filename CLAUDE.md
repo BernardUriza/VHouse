@@ -120,6 +120,42 @@ Siempre empezar con:
 - ¿Esto hace a Bernard más eficiente como activista-distribuidor?
 - ¿Esto acelera la adopción vegana?
 
+### 🚨 PROTOCOLO PRE-IMPLEMENTACIÓN: VALIDACIÓN DE RUTAS
+
+**CRÍTICO**: **ANTES** de modificar cualquier componente Blazor (.razor), **SIEMPRE** verifica cuál archivo se está usando realmente en la navegación:
+
+```bash
+# 1. Encuentra TODOS los archivos con la ruta que vas a modificar
+grep -r "@page \"/ruta\"" VHouse.Web/Components/Pages/ --include="*.razor"
+
+# 2. Si hay múltiples archivos con rutas similares:
+#    - /products vs /product
+#    - /orders vs /order
+#    DETENTE y pregunta a Bernard cuál es el correcto
+
+# 3. Verifica el NavMenu.razor para confirmar qué ruta usa la navegación
+grep "href=\"/ruta\"" VHouse.Web/Components/Layout/NavMenu.razor
+```
+
+**NUNCA**:
+- Modifiques un archivo sin verificar su `@page` directive
+- Asumas que un archivo está conectado solo por su nombre
+- Crees componentes duplicados (Products.razor Y ProductCrud.razor)
+- Trabajes en un archivo que no está enlazado a la navegación principal
+
+**SIEMPRE**:
+- Verifica el routing ANTES de empezar cualquier modificación
+- Si encuentras archivos duplicados, pregunta cuál borrar
+- Confirma que los cambios se verán en el navegador ANTES de implementar
+- Usa `grep` para encontrar todas las rutas relacionadas
+
+**Ejemplo del error que NO se debe repetir**:
+```
+❌ Modificaste ProductCrud.razor con @page "/product"
+✅ Pero el navegador mostraba Products.razor con @page "/products"
+Resultado: Cambios invisibles, tiempo perdido, Bernard frustrado
+```
+
 ### ⚡ PROTOCOLO POST-IMPLEMENTACIÓN
 
 **CRÍTICO**: Después de implementar cada **característica épica** (nueva funcionalidad completa, no cambios menores):
@@ -182,6 +218,13 @@ start-fresh.bat
    - Bernard debe poder mantenerlo solo
    - Debe generar ingresos para dedicarse 100%
    - Debe escalar sin perder la misión
+
+4. **ROUTING Y NAVEGACIÓN VERIFICADOS**
+   - **SIEMPRE** verificar `@page` directives antes de modificar
+   - **NUNCA** asumir que un archivo está conectado por su nombre
+   - **SIEMPRE** usar `grep` para encontrar archivos con rutas similares
+   - **NUNCA** crear componentes duplicados sin eliminar los obsoletos
+   - **Lección aprendida**: Un componente sin routing correcto = código invisible
 
 ---
 
@@ -406,6 +449,123 @@ kubectl get pods -l app=vhouse # Verificar salud del sistema
 | **Multitenancy** | Cada cliente (Mona la Dona, Sano Market) opera aisladamente en la misma infraestructura |
 | **SBOM** | Software Bill of Materials - Inventario de todos los componentes para seguridad |
 | **SAST** | Static Application Security Testing - Análisis de código en busca de vulnerabilidades |
+
+---
+
+# 🎯 TRELLO: GESTIÓN DE TAREAS DEL PROYECTO
+
+## Board Principal de VHouse
+**Board ID**: `68fdbf63e02eb0d9473b0ffd`
+**Nombre**: 🔥 VHOUSE - Infraestructura de Liberación Animal 🔥
+**URL**: https://trello.com/b/kxA9SJb1
+
+## 🏗️ Estructura Agile Estandarizada
+
+El board sigue **metodología Agile/Scrum real** con 12 listas estándar:
+
+### Listas Activas (en orden de flujo)
+
+| Lista | ID | Propósito |
+|-------|----|-----------|
+| 💡 Ideas/Discussion | 690046e2de72eb3b5322c7c2 | Captura inicial de ideas (5 cards) |
+| 📥 Inbox | 690046e27448f3030df8a7ea | Nuevas solicitudes sin clasificar |
+| 📋 Backlog | 690046e31a58a08a36fa4cf0 | **Features priorizadas** (50 cards) |
+| 📋 To Prioritize | 690046e30cd8e01d366f0909 | Pendientes de análisis |
+| 🔍 Refinement | 690046e3dccdf5ef73d6d8ee | En refinamiento técnico |
+| ✅ Ready | 690046e4e402e60d865b45d5 | Listas para el siguiente sprint |
+| 📐 Design/Specs | 690046e4b5df1ba49e20d262 | En diseño/especificación |
+| 📝 To Do (Sprint) | 690046e41388b33a9ae5fbb7 | **Sprint activo** |
+| ⚙️ In Progress | 690046e51e35fa56c3d27337 | En desarrollo |
+| 🧪 Testing | 690046e5ae5343100bab8c28 | En pruebas |
+| ✅ Done | 690046e540e14c4b1d3a9bde | Completadas |
+| 📚 Philosophy & Architecture | 690046e66cd2c1102e80a631 | Docs y arquitectura (1 card) |
+
+## 🏷️ Sistema de Labels por Sprint
+
+Las cards están etiquetadas con **labels de color** para identificar su sprint original:
+
+| Label | Color | Cards |
+|-------|-------|-------|
+| Sprint 1 - Consignación | 🔴 Red | 5 cards |
+| Sprint 2 - Clientes | 🟠 Orange | 5 cards |
+| Sprint 3 - Entregas | 🟡 Yellow | 5 cards |
+| Sprint 4 - Facturas | 🟢 Green | 5 cards |
+| Sprint 5 - Galería | 🔵 Blue | 5 cards |
+| Sprint 6 - Refactor | 🟣 Purple | 5 cards |
+| Sprint 7 - Reportes | 🩷 Pink | 5 cards |
+| Sprint 8 - Excepciones | 🔷 Sky | 5 cards |
+
+**IMPORTANTE**: Ya no usamos listas separadas por sprint. Filtra por labels en el Backlog.
+
+## Comandos Trello Esenciales
+
+```bash
+# Ver ayuda completa con comandos Agile
+trello help
+
+# Ver overview del board
+trello board-overview 68fdbf63e02eb0d9473b0ffd
+
+# Validar conformidad Agile/Scrum
+trello scrum-check 68fdbf63e02eb0d9473b0ffd
+
+# Buscar cards por sprint (usando label)
+trello cards-by-label 68fdbf63e02eb0d9473b0ffd red "Sprint 1 - Consignación"
+
+# Buscar cards en el Backlog
+trello cards 690046e31a58a08a36fa4cf0
+
+# Mover card al sprint activo
+trello move-card <card_id> 690046e41388b33a9ae5fbb7
+
+# Crear nueva card en el Backlog
+trello add-card 690046e31a58a08a36fa4cf0 "Título" "Descripción"
+
+# Buscar cards por texto
+trello search-cards 68fdbf63e02eb0d9473b0ffd "palabra clave"
+```
+
+## Workflow Agile Recomendado
+
+1. **Captura de idea**: Agregar a "💡 Ideas/Discussion"
+2. **Análisis inicial**: Mover a "📋 To Prioritize"
+3. **Refinamiento**: Mover a "🔍 Refinement" para análisis técnico
+4. **Priorización**: Mover a "📋 Backlog" con label de sprint
+5. **Sprint planning**: Seleccionar cards del Backlog → "✅ Ready" → "📝 To Do (Sprint)"
+6. **Desarrollo**: "⚙️ In Progress" → "🧪 Testing" → "✅ Done"
+
+## Comandos Avanzados de Sprint
+
+```bash
+# Iniciar un sprint (mueve cards de Ready a To Do)
+trello sprint-start 68fdbf63e02eb0d9473b0ffd
+
+# Ver estado del sprint actual
+trello sprint-status 68fdbf63e02eb0d9473b0ffd
+
+# Cerrar sprint (mueve Done a archivo, regresa pendientes a Backlog)
+trello sprint-close 68fdbf63e02eb0d9473b0ffd
+
+# Ver velocidad de sprints
+trello sprint-velocity 68fdbf63e02eb0d9473b0ffd
+```
+
+## Ejemplos Prácticos
+
+```bash
+# Buscar todas las cards de consignación
+trello cards-by-label 68fdbf63e02eb0d9473b0ffd red "Sprint 1 - Consignación"
+
+# Crear nueva feature en Backlog con label
+CARD_ID=$(trello add-card 690046e31a58a08a36fa4cf0 "Nueva feature" "Descripción" | grep -o '[a-z0-9]\{24\}')
+trello add-label $CARD_ID "blue" "Sprint 5 - Galería"
+
+# Ver todas las cards listas para el siguiente sprint
+trello cards 690046e4e402e60d865b45d5
+
+# Buscar cards relacionadas con productos
+trello search-cards 68fdbf63e02eb0d9473b0ffd "producto"
+```
 
 ---
 

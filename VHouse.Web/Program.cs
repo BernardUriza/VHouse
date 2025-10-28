@@ -64,6 +64,8 @@ app.MapRazorComponents<VHouse.Web.Components.App>()
 
 app.ConfigureHealthChecks();
 
+await app.SeedDataAsync(builder.Configuration);
+
 app.Run();
 
 public partial class Program { }

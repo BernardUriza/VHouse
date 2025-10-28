@@ -1,0 +1,246 @@
+@page "/consignments/{id:int}"
+@rendermode @(new InteractiveServerRenderMode())
+@using MediatR
+@using VHouse.Application.Commands
+@using VHouse.Application.Queries
+@using VHouse.Application.DTOs
+@inject IMediator Mediator
+@inject IJSRuntime JS
+@inject NavigationManager Navigation
+
+<PageTitle>Detalle Consignación - VHouse</PageTitle>
+
+<div class="consignment-detail-page">
+    @if (consignment == null)
+    {
+        <div class="loading-container">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p>Cargando...</p>
+        </div>
+    }
+    else
+    {
+        <div class="detail-header">
+            <div>
+                <h2>@consignment.StatusEmoji @consignment.ConsignmentNumber</h2>
+                <p class="subtitle">Cliente: @consignment.ClientName</p>
+            </div>
+            <button class="btn btn-secondary" @onclick="GoBack">← Volver</button>
+        </div>
+
+        <div class="row g-3 mb-4">
+            <div class="col-md-3">
+                <div class="info-card">
+                    <h6>Valor Total</h6>
+                    <h3>@consignment.TotalValueAtRetail.ToString("C")</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-card">
+                    <h6>Total Vendido</h6>
+                    <h3 class="text-success">@consignment.TotalSold.ToString("C")</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-card">
+                    <h6>Para Bernard</h6>
+                    <h3 class="text-primary">@consignment.AmountDueToBernard.ToString("C")</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="info-card">
+                    <h6>Estado</h6>
+                    <span class="badge bg-@GetStatusColor(consignment.Status) fs-6">
+                        @consignment.StatusSpanish
+                    </span>
+                </div>
+            </div>
+        </div>
+
+        <h4>📦 Productos en Consignación</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Producto</th>
+                    <th>Consignado</th>
+                    <th>Vendido</th>
+                    <th>Disponible</th>
+                    <th>Precio</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in consignment.Items)
+                {
+                    <tr>
+                        <td>@item.ProductEmoji @item.ProductName</td>
+                        <td>@item.QuantityConsigned</td>
+                        <td>@item.QuantitySold</td>
+                        <td><strong>@item.QuantityAvailable</strong></td>
+                        <td>@item.RetailPrice.ToString("C")</td>
+                        <td>
+                            @if (item.QuantityAvailable > 0)
+                            {
+                                <button class="btn btn-sm btn-success" @onclick="() => OpenSaleModal(item)">
+                                    💵 Registrar Venta
+                                </button>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        @if (consignment.Sales.Any())
+        {
+            <h4 class="mt-4">💰 Historial de Ventas</h4>
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Total</th>
+                        <th>Para Bernard</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var sale in consignment.Sales.OrderByDescending(s => s.SaleDate))
+                    {
+                        <tr>
+                            <td>@sale.SaleDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@sale.ProductName</td>
+                            <td>@sale.QuantitySold</td>
+                            <td>@sale.TotalSaleAmount.ToString("C")</td>
+                            <td class="text-primary"><strong>@sale.BernardAmount.ToString("C")</strong></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    }
+</div>
+
+<!-- Modal de Registro de Venta -->
+<div class="modal fade @(showSaleModal ? "show d-block" : "")" tabindex="-1" style="@(showSaleModal ? "background-color: rgba(0,0,0,0.5);" : "")">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">💵 Registrar Venta</h5>
+                <button type="button" class="btn-close" @onclick="CloseSaleModal"></button>
+            </div>
+            <div class="modal-body">
+                @if (selectedItem != null)
+                {
+                    <p><strong>Producto:</strong> @selectedItem.ProductEmoji @selectedItem.ProductName</p>
+                    <p><strong>Disponible:</strong> @selectedItem.QuantityAvailable unidades</p>
+
+                    <div class="mb-3">
+                        <label class="form-label">Cantidad Vendida</label>
+                        <input type="number" class="form-control" @bind="saleQuantity" min="1" max="@selectedItem.QuantityAvailable" />
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Precio Unitario</label>
+                        <input type="number" step="0.01" class="form-control" @bind="saleUnitPrice" />
+                    </div>
+
+                    <div class="alert alert-info">
+                        <strong>Total Venta:</strong> @((saleQuantity * saleUnitPrice).ToString("C"))<br/>
+                        <strong>Para Bernard (@(consignment?.BernardPercentage)%):</strong> @((saleQuantity * saleUnitPrice * (consignment?.BernardPercentage ?? 70) / 100).ToString("C"))
+                    </div>
+                }
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" @onclick="CloseSaleModal">Cancelar</button>
+                <button type="button" class="btn btn-success" @onclick="RegisterSale" disabled="@isSaving">
+                    @(isSaving ? "Guardando..." : "Registrar Venta")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .consignment-detail-page { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+    .detail-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+    .info-card { background: white; padding: 1.5rem; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+    .info-card h6 { margin: 0 0 0.5rem; color: #666; font-size: 0.9rem; }
+    .info-card h3 { margin: 0; }
+    .table { background: white; }
+    .modal.show { display: block; }
+</style>
+
+@code {
+    [Parameter] public int Id { get; set; }
+    private ConsignmentDto? consignment;
+    private ConsignmentItemDto? selectedItem;
+    private bool showSaleModal = false;
+    private bool isSaving = false;
+    private int saleQuantity = 1;
+    private decimal saleUnitPrice = 0;
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadConsignment();
+    }
+
+    private async Task LoadConsignment()
+    {
+        var query = new GetConsignmentByIdQuery(Id);
+        consignment = await Mediator.Send(query);
+    }
+
+    private void OpenSaleModal(ConsignmentItemDto item)
+    {
+        selectedItem = item;
+        saleQuantity = 1;
+        saleUnitPrice = item.RetailPrice;
+        showSaleModal = true;
+    }
+
+    private void CloseSaleModal()
+    {
+        showSaleModal = false;
+        selectedItem = null;
+    }
+
+    private async Task RegisterSale()
+    {
+        if (selectedItem == null || consignment == null) return;
+
+        isSaving = true;
+        try
+        {
+            var command = new RegisterConsignmentSaleCommand(
+                consignment.Id,
+                selectedItem.Id,
+                saleQuantity,
+                saleUnitPrice
+            );
+            await Mediator.Send(command);
+            await LoadConsignment();
+            CloseSaleModal();
+            await JS.InvokeVoidAsync("alert", "Venta registrada exitosamente");
+        }
+        catch (Exception ex)
+        {
+            await JS.InvokeVoidAsync("alert", $"Error: {ex.Message}");
+        }
+        finally
+        {
+            isSaving = false;
+        }
+    }
+
+    private void GoBack() => Navigation.NavigateTo("/consignments");
+
+    private string GetStatusColor(string status) => status switch
+    {
+        "Active" => "primary",
+        "PartiallySettled" => "warning",
+        "Settled" => "success",
+        "Expired" => "danger",
+        _ => "secondary"
+    };
+}

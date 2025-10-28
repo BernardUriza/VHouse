@@ -43,6 +43,14 @@ public class VHouseDbContext : DbContext
     public DbSet<PriceListItem> PriceListItems { get; set; }
     public DbSet<ClientTenantPriceList> ClientTenantPriceLists { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        base.OnConfiguring(optionsBuilder);
+        // Suppress pending model changes warning temporarily during development
+        optionsBuilder.ConfigureWarnings(warnings =>
+            warnings.Ignore(Microsoft.EntityFrameworkCore.Diagnostics.RelationalEventId.PendingModelChangesWarning));
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

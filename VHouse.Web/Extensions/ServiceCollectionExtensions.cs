@@ -81,7 +81,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUnitOfWork, VHouse.Infrastructure.Repositories.UnitOfWork>();
         services.AddScoped(typeof(IRepository<>), typeof(VHouse.Infrastructure.Repositories.Repository<>));
         services.AddScoped<IPasswordService, VHouse.Infrastructure.Services.PasswordService>();
-        
+
+        // Data Seeder Service
+        services.AddScoped<VHouse.Web.Services.IDataSeederService, VHouse.Web.Services.DataSeederService>();
+
         // Client Inventory System - REAL business logic
         services.AddScoped<VHouse.Application.Services.IClientInventoryService, VHouse.Infrastructure.Services.ClientInventoryService>();
 

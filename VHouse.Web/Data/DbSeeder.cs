@@ -7,6 +7,51 @@ namespace VHouse.Web.Data;
 
 public static class DbSeeder
 {
+    public static async Task SeedCoreProductsAsync(VHouseDbContext context)
+    {
+        // Verificar si ya existen productos base
+        var existingProductsCount = await context.Products.CountAsync();
+
+        if (existingProductsCount > 0)
+        {
+            Console.WriteLine($"🌱 Ya existen {existingProductsCount} productos en la base de datos.");
+            return;
+        }
+
+        Console.WriteLine("📦 Poblando productos veganos base...");
+
+        // 20 productos veganos reales de la operación de VHouse
+        var coreProducts = new List<Product>
+        {
+            new Product { ProductName = "Gelatina Vegana", Emoji = "🍮", PriceCost = 30.00m, PriceRetail = 35.00m, PriceSuggested = 35.00m, PricePublic = 35.00m, StockQuantity = 50, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Tocino 200g", Emoji = "🥓", PriceCost = 42.00m, PriceRetail = 42.00m, PriceSuggested = 42.00m, PricePublic = 42.00m, StockQuantity = 30, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Pepperoni 250g", Emoji = "🍕", PriceCost = 42.00m, PriceRetail = 48.00m, PriceSuggested = 48.00m, PricePublic = 48.00m, StockQuantity = 25, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Jamón 270g", Emoji = "🍖", PriceCost = 50.00m, PriceRetail = 50.00m, PriceSuggested = 50.00m, PricePublic = 50.00m, StockQuantity = 20, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Salchicha Viena 470g", Emoji = "🌭", PriceCost = 65.00m, PriceRetail = 72.00m, PriceSuggested = 72.00m, PricePublic = 72.00m, StockQuantity = 15, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Salchicha Parrillera 500g", Emoji = "🔥", PriceCost = 65.00m, PriceRetail = 71.00m, PriceSuggested = 71.00m, PricePublic = 71.00m, StockQuantity = 15, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Chorizo Verde 400g (S/F)", Emoji = "🌿", PriceCost = 80.00m, PriceRetail = 86.00m, PriceSuggested = 86.00m, PricePublic = 86.00m, StockQuantity = 10, IsVegan = true, IsActive = true, Description = "Sin frigir" },
+            new Product { ProductName = "Chorizo Rojo 500g (S/F)", Emoji = "🌶️", PriceCost = 55.00m, PriceRetail = 96.00m, PriceSuggested = 96.00m, PricePublic = 96.00m, StockQuantity = 10, IsVegan = true, IsActive = true, Description = "Sin frigir" },
+            new Product { ProductName = "Queso Oaxaca 500g", Emoji = "🧀", PriceCost = 88.00m, PriceRetail = 117.00m, PriceSuggested = 117.00m, PricePublic = 117.00m, StockQuantity = 20, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Queso Mozzarella 500g", Emoji = "🧀", PriceCost = 88.00m, PriceRetail = 117.00m, PriceSuggested = 117.00m, PricePublic = 117.00m, StockQuantity = 20, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Queso Oaxaca 1kg", Emoji = "🧀", PriceCost = 163.00m, PriceRetail = 203.00m, PriceSuggested = 203.00m, PricePublic = 203.00m, StockQuantity = 10, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Proteína en Polvo", Emoji = "💪", PriceCost = 220.00m, PriceRetail = 260.00m, PriceSuggested = 260.00m, PricePublic = 260.00m, StockQuantity = 12, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Queso Mozzarella 1kg", Emoji = "🧀", PriceCost = 163.00m, PriceRetail = 203.00m, PriceSuggested = 203.00m, PricePublic = 203.00m, StockQuantity = 10, IsVegan = true, IsActive = true },
+            new Product { ProductName = "1/4 Setas", Emoji = "🍄", PriceCost = 50.00m, PriceRetail = 65.00m, PriceSuggested = 65.00m, PricePublic = 65.00m, StockQuantity = 30, IsVegan = true, IsActive = true },
+            new Product { ProductName = "1/2 Setas", Emoji = "🍄", PriceCost = 100.00m, PriceRetail = 123.00m, PriceSuggested = 123.00m, PricePublic = 123.00m, StockQuantity = 20, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Kombucha Beja", Emoji = "🧃", PriceCost = 55.00m, PriceRetail = 55.00m, PriceSuggested = 55.00m, PricePublic = 55.00m, StockQuantity = 40, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Queso Crema", Emoji = "🥛", PriceCost = 50.00m, PriceRetail = 91.00m, PriceSuggested = 91.00m, PricePublic = 91.00m, StockQuantity = 25, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Parmesano", Emoji = "🧀", PriceCost = 50.00m, PriceRetail = 175.00m, PriceSuggested = 175.00m, PricePublic = 175.00m, StockQuantity = 15, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Mayonesa o Panela", Emoji = "🥛", PriceCost = 50.00m, PriceRetail = 70.00m, PriceSuggested = 70.00m, PricePublic = 70.00m, StockQuantity = 35, IsVegan = true, IsActive = true },
+            new Product { ProductName = "Cajeta 400ml", Emoji = "🍯", PriceCost = 50.00m, PriceRetail = 105.00m, PriceSuggested = 105.00m, PricePublic = 105.00m, StockQuantity = 18, IsVegan = true, IsActive = true }
+        };
+
+        context.Products.AddRange(coreProducts);
+        await context.SaveChangesAsync();
+
+        Console.WriteLine($"✅ {coreProducts.Count} productos veganos base agregados exitosamente.");
+        Console.WriteLine("🌱 Base de datos lista para operaciones de distribución vegana!");
+    }
+
     public static async Task SeedMonaLaDonaAsync(VHouseDbContext context, IPasswordService passwordService)
     {
         // Verificar si Mona la Dona ya existe

@@ -21,6 +21,7 @@ public class UnitOfWork : IUnitOfWork
         PriceLists = new Repository<PriceList>(_context);
         PriceListItems = new Repository<PriceListItem>(_context);
         ClientTenantPriceLists = new Repository<ClientTenantPriceList>(_context);
+        Consignments = new ConsignmentRepository(_context);
     }
 
     public IProductRepository Products { get; private set; }
@@ -31,6 +32,7 @@ public class UnitOfWork : IUnitOfWork
     public IRepository<PriceList> PriceLists { get; private set; }
     public IRepository<PriceListItem> PriceListItems { get; private set; }
     public IRepository<ClientTenantPriceList> ClientTenantPriceLists { get; private set; }
+    public IConsignmentRepository Consignments { get; private set; }
 
     public async Task<int> SaveChangesAsync()
     {

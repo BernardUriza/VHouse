@@ -47,7 +47,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("Slug")
                         .IsUnique();
 
-                    b.ToTable("Albums");
+                    b.ToTable("Albums", (string)null);
 
                     b.HasData(
                         new
@@ -206,7 +206,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("AuditLogs");
+                    b.ToTable("AuditLogs", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.BusinessAlert", b =>
@@ -284,7 +284,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("Severity");
 
-                    b.ToTable("BusinessAlerts");
+                    b.ToTable("BusinessAlerts", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ClientProduct", b =>
@@ -318,7 +318,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("ClientTenantId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("ClientProducts");
+                    b.ToTable("ClientProducts", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ClientTenant", b =>
@@ -392,7 +392,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("TenantCode")
                         .IsUnique();
 
-                    b.ToTable("ClientTenants");
+                    b.ToTable("ClientTenants", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ClientTenantPriceList", b =>
@@ -426,7 +426,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("ClientTenantId", "PriceListId")
                         .IsUnique();
 
-                    b.ToTable("ClientTenantPriceLists");
+                    b.ToTable("ClientTenantPriceLists", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Consignment", b =>
@@ -502,7 +502,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Consignments");
+                    b.ToTable("Consignments", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ConsignmentItem", b =>
@@ -545,7 +545,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("ConsignmentItems");
+                    b.ToTable("ConsignmentItems", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ConsignmentSale", b =>
@@ -597,7 +597,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("SaleDate");
 
-                    b.ToTable("ConsignmentSales");
+                    b.ToTable("ConsignmentSales", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Customer", b =>
@@ -643,7 +643,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("Email")
                         .IsUnique();
 
-                    b.ToTable("Customers");
+                    b.ToTable("Customers", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Delivery", b =>
@@ -748,7 +748,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("Status");
 
-                    b.ToTable("Deliveries");
+                    b.ToTable("Deliveries", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.DeliveryItem", b =>
@@ -788,7 +788,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("DeliveryItems");
+                    b.ToTable("DeliveryItems", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Order", b =>
@@ -832,7 +832,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("CustomerId");
 
-                    b.ToTable("Orders");
+                    b.ToTable("Orders", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.OrderItem", b =>
@@ -865,7 +865,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("ProductId");
 
-                    b.ToTable("OrderItems");
+                    b.ToTable("OrderItems", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Photo", b =>
@@ -918,7 +918,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("UploadedUtc");
 
-                    b.ToTable("Photos");
+                    b.ToTable("Photos", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.PriceList", b =>
@@ -955,7 +955,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("IsDefault");
 
-                    b.ToTable("PriceLists");
+                    b.ToTable("PriceLists", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.PriceListItem", b =>
@@ -995,7 +995,7 @@ namespace VHouse.Infrastructure.Migrations
                     b.HasIndex("PriceListId", "ProductId")
                         .IsUnique();
 
-                    b.ToTable("PriceListItems");
+                    b.ToTable("PriceListItems", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Product", b =>
@@ -1051,7 +1051,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.Supplier", b =>
@@ -1125,7 +1125,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Suppliers");
+                    b.ToTable("Suppliers", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.SystemMetric", b =>
@@ -1196,7 +1196,7 @@ namespace VHouse.Infrastructure.Migrations
 
                     b.HasIndex("Timestamp");
 
-                    b.ToTable("SystemMetrics");
+                    b.ToTable("SystemMetrics", (string)null);
                 });
 
             modelBuilder.Entity("VHouse.Domain.Entities.ClientProduct", b =>

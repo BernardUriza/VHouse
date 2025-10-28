@@ -38,6 +38,23 @@ start-fresh.bat --help
 
 **IMPORTANTE**: Ejecutar desde el directorio raíz (donde está VHouse.sln). El script validará automáticamente que está en el directorio correcto.
 
+### Verificación de Disponibilidad
+
+Después de ejecutar `start-fresh.bat`, usa `wait-for-vhouse.sh` para verificar que la app está respondiendo:
+
+```bash
+# Ejecutar en Git Bash o WSL
+./wait-for-vhouse.sh
+
+# Esto:
+# - Espera hasta 120 segundos a que VHouse responda en localhost:5000
+# - Verifica con curl que el endpoint HTTP funciona
+# - Evita el error "ERR_CONNECTION_REFUSED"
+# - Confirma que la app realmente arrancó correctamente
+```
+
+Si el script falla, revisa los logs de `start-fresh.bat` para ver errores en migraciones, compilación o seeding de datos.
+
 ### Development Workflow Manual
 ```bash
 # Si prefieres control manual:
@@ -104,61 +121,110 @@ docker-compose down
 ### Clean Architecture Layers
 
 ```
-VHouse.Web (Blazor Server)
-├── Components/
-│   ├── Pages/         - Routable pages
-│   ├── Layout/        - Layout components
-│   └── Shared/        - Reusable components
-├── Extensions/        - Configuration extensions
-└── Program.cs         - Application entry point
-
-VHouse.Application (CQRS + MediatR)
-├── Commands/          - Write operations (CreateProductCommand, etc.)
-├── Queries/           - Read operations
-├── Handlers/          - Command/Query handlers
-├── DTOs/              - Data Transfer Objects
-└── Common/            - Shared application logic
-
-VHouse.Infrastructure (EF Core + Services)
-├── Data/
-│   └── VHouseDbContext.cs  - EF Core DbContext
-├── Repositories/      - Data access implementations
-└── Services/          - External service integrations (AI, etc.)
-
-VHouse.Domain (Entities + Business Rules)
-├── Entities/          - Core business entities
-└── Exceptions/        - Domain exceptions
+VHouse/                        (Repository root)
+├── VHouse.Web/                - Blazor Server application (at root level)
+│   ├── Components/
+│   │   ├── Pages/            - Routable pages (@page directive)
+│   │   ├── Layout/           - MainLayout, NavMenu
+│   │   ├── Shared/           - Reusable UI components
+│   │   └── Orders/           - Feature-specific components
+│   ├── Extensions/           - Service registration extensions
+│   ├── Middleware/           - Security headers, etc.
+│   ├── Services/             - Web-layer services
+│   └── Program.cs            - Application entry point, .env loading
+│
+├── src/VHouse.Application/   - CQRS + MediatR
+│   ├── Commands/             - Write operations (CreateProductCommand, etc.)
+│   ├── Queries/              - Read operations
+│   ├── Handlers/             - Command/Query handlers
+│   ├── DTOs/                 - Data Transfer Objects
+│   ├── Services/             - Application services (IAIService, etc.)
+│   └── Common/               - Shared application logic
+│
+├── src/VHouse.Infrastructure/ - EF Core + External Services
+│   ├── Data/
+│   │   └── VHouseDbContext.cs - EF Core DbContext with all entities
+│   ├── Migrations/           - EF Core migrations
+│   ├── Repositories/         - Data access implementations
+│   └── Services/             - AI services, file storage, etc.
+│
+├── src/VHouse.Domain/        - Core Domain
+│   ├── Entities/             - Product, Order, Customer, ClientTenant, etc.
+│   ├── Enums/                - Domain enumerations
+│   ├── Interfaces/           - Domain interfaces
+│   ├── ValueObjects/         - Domain value objects
+│   └── Exceptions/           - Domain exceptions
+│
+└── tests/VHouse.Tests/       - Test suite
+    └── Gallery/              - Feature-specific tests
 ```
 
-### CQRS Pattern
+**Note**: VHouse.Web is at repository root level (not in src/), while other layers are in src/.
+
+### CQRS Pattern with MediatR
 
 Commands and queries are handled through MediatR:
-- **Commands**: Write operations that modify state (in `VHouse.Application/Commands/`)
-- **Queries**: Read operations that return data (in `VHouse.Application/Queries/`)
-- **Handlers**: Process commands/queries (in `VHouse.Application/Handlers/`)
+- **Commands**: Write operations that modify state (in `src/VHouse.Application/Commands/`)
+- **Queries**: Read operations that return data (in `src/VHouse.Application/Queries/`)
+- **Handlers**: Process commands/queries (in `src/VHouse.Application/Handlers/`)
 
 Example command flow:
-1. Component sends command via MediatR
-2. Appropriate handler processes it
-3. Handler uses repositories to persist changes
-4. Result returned to component
+```
+Blazor Component → IMediator.Send(command) → CommandHandler → Repository → DbContext → Database
+                                                    ↓
+                                                 Response
+```
+
+Typical implementation pattern:
+1. **Component** injects `IMediator` and sends command/query
+2. **Handler** implements `IRequestHandler<TRequest, TResponse>`
+3. **Handler** uses injected repositories/services for business logic
+4. **Result** flows back to component for UI update
+
+Example from codebase:
+```csharp
+// Component sends command
+var result = await Mediator.Send(new CreateProductCommand { Name = "Product", Price = 10.0m });
+
+// Handler processes it (in VHouse.Application/Handlers/)
+public class CreateProductCommandHandler : IRequestHandler<CreateProductCommand, ProductDto>
+{
+    private readonly IProductRepository _repository;
+
+    public async Task<ProductDto> Handle(CreateProductCommand request, CancellationToken ct)
+    {
+        // Business logic here
+        var product = new Product { Name = request.Name, Price = request.Price };
+        await _repository.AddAsync(product);
+        return new ProductDto { Id = product.Id, Name = product.Name };
+    }
+}
+```
 
 ### Database Context
 
 `VHouseDbContext` (in `src/VHouse.Infrastructure/Data/VHouseDbContext.cs`) contains:
 - **Core entities**: Product, Order, OrderItem, Customer, Supplier
-- **Multi-tenancy**: ClientTenant, ClientProduct
+- **Multi-tenancy**: ClientTenant, ClientProduct, ClientTenantPriceList
+- **Pricing**: PriceList, PriceListItem
 - **Delivery tracking**: Delivery, DeliveryItem
 - **Consignment**: Consignment, ConsignmentItem, ConsignmentSale
 - **Monitoring**: AuditLog, SystemMetric, BusinessAlert
 - **Gallery**: Album, Photo
 
+**Gallery seeding**: The DbContext seeds 7 default albums on database creation:
+- Products, Sales Receipts, Purchase Receipts, Invoices, Suppliers, Customers, Misc
+
 ### Multi-Tenancy
 
-The system supports multiple clients through `ClientTenant` entity. Each client operates in isolation:
-- Tenant-specific product catalogs
-- Isolated order processing
-- Separate analytics per client
+The system supports multiple clients (Mona la Dona, Sano Market, La Papelería) through `ClientTenant` entity. Each client operates in isolation:
+- **Tenant identification**: Via `TenantCode` (slug) and `LoginUsername`
+- **Product catalogs**: `ClientProduct` links tenants to specific products with custom pricing
+- **Price lists**: `ClientTenantPriceList` allows per-tenant pricing strategies
+- **Isolated operations**: Orders, deliveries, and consignments scoped to tenant
+- **Separate analytics**: Business metrics filtered by `ClientTenant`
+
+Client URLs follow pattern: `http://localhost:5000/client/{TENANT_CODE}` (e.g., `/client/MONA_DONA`)
 
 ## Configuration
 
@@ -168,9 +234,9 @@ The system supports multiple clients through `ClientTenant` entity. Each client 
 2. Configure required values:
    - Database connection strings
    - AI API keys (Claude preferred, OpenAI fallback)
-   - Application URLs
+   - Application URLs (`ASPNETCORE_URLS`)
 
-The application loads `.env` automatically in `Program.cs`.
+The application loads `.env` automatically in `VHouse.Web/Program.cs` (lines 9-27) before configuration and services are registered. The .env file is located one directory up from VHouse.Web (`../.env`).
 
 ### AI Configuration
 
@@ -215,28 +281,51 @@ Enterprise-level tracking for compliance and debugging.
 
 ### Adding a New Feature
 
-1. **Domain Entity** (`VHouse.Domain/Entities/`)
-   - Create entity with business rules
-   - Add to `VHouseDbContext` DbSet
+Follow Clean Architecture principles by implementing from the inside out:
 
-2. **Application Layer** (`VHouse.Application/`)
-   - Create command/query
-   - Create DTO for data transfer
-   - Implement handler with business logic
+1. **Domain Entity** (`src/VHouse.Domain/Entities/`)
+   - Create entity class with business rules and validation
+   - Add navigation properties for relationships
+   - Add to `VHouseDbContext` as `DbSet<YourEntity>`
 
-3. **Infrastructure** (`VHouse.Infrastructure/`)
-   - Add repository if needed
-   - Configure EF Core relationships in DbContext
+2. **Infrastructure Configuration** (`src/VHouse.Infrastructure/Data/VHouseDbContext.cs`)
+   - Configure entity in `OnModelCreating()`:
+     - Primary keys, indexes, unique constraints
+     - Decimal precision for money fields: `HasColumnType("decimal(18,2)")`
+     - String max lengths with `HasMaxLength()`
+     - Relationships with `HasOne()/WithMany()` and foreign keys
+     - Delete behavior (`OnDelete(DeleteBehavior.Cascade/SetNull)`)
 
-4. **Web Layer** (`VHouse.Web/`)
-   - Create Blazor component in appropriate folder
-   - Inject MediatR to send commands/queries
+3. **Application Layer** (`src/VHouse.Application/`)
+   - Create **Command** or **Query** in respective folders
+   - Create **DTO** in `DTOs/` for data transfer
+   - Implement **Handler** in `Handlers/` folder
+     - Inject required repositories/services in constructor
+     - Implement `IRequestHandler<TRequest, TResponse>`
+     - Add business logic in `Handle()` method
 
-5. **Migration**
+4. **Web Layer** (`VHouse.Web/Components/`)
+   - Create Blazor component in appropriate folder (Pages/, Shared/, or feature folder)
+   - Inject `IMediator` with `@inject IMediator Mediator`
+   - Call commands/queries: `await Mediator.Send(new YourCommand())`
+   - Handle results and update UI
+
+5. **Migration** (from VHouse.Web directory or specify startup project)
    ```bash
-   dotnet ef migrations add AddFeatureName --project src/VHouse.Infrastructure
-   dotnet ef database update --project src/VHouse.Infrastructure
+   # From VHouse.Web directory
+   dotnet ef migrations add AddFeatureName --project ../src/VHouse.Infrastructure
+
+   # Or specify startup project from root
+   dotnet ef migrations add AddFeatureName --project src/VHouse.Infrastructure --startup-project VHouse.Web
+
+   # Apply migration
+   dotnet ef database update --project src/VHouse.Infrastructure --startup-project VHouse.Web
    ```
+
+6. **Testing** (`tests/VHouse.Tests/`)
+   - Add unit tests for handlers and domain logic
+   - Add integration tests for repository operations
+   - Use `[Trait("Category", "Unit|Integration|Security")]` attributes
 
 ### Component Organization
 
@@ -247,10 +336,18 @@ Enterprise-level tracking for compliance and debugging.
 
 ### Dependency Injection
 
-Services registered in:
-- `Program.cs` for Web layer
-- `ApplicationServiceRegistration.cs` for Application layer
-- Infrastructure services registered via extension methods
+Services are registered in multiple locations following Clean Architecture:
+- **Web layer**: `VHouse.Web/Program.cs` and extension methods in `VHouse.Web/Extensions/`
+- **Application layer**: Via `AddVHouseServices()` extension method
+- **Infrastructure layer**: Via `AddInfrastructureServices()` extension method (registered in Program.cs line 41)
+
+Registration happens in `Program.cs` with method chaining:
+```csharp
+builder.ConfigureWebHost()
+       .ConfigureDatabase()
+       .Services.AddVHouseServices(builder.Configuration, builder.Environment)
+       .AddInfrastructureServices(builder.Configuration);
+```
 
 ## Testing Strategy
 
@@ -301,9 +398,11 @@ dotnet test --filter Category=Security
 # 1. Verificar ubicación - debe ejecutarse desde la raíz
 dir VHouse.sln  # Debe encontrar este archivo
 
-# 2. Si fallan las migraciones, ejecutar manualmente:
-dotnet ef migrations add InitialCreate --project src/VHouse.Infrastructure
-dotnet ef database update --project src/VHouse.Infrastructure
+# 2. Si fallan las migraciones, ejecutar manualmente desde VHouse.Web:
+cd VHouse.Web
+dotnet ef migrations add InitialCreate --project ../src/VHouse.Infrastructure
+dotnet ef database update --project ../src/VHouse.Infrastructure
+cd ..
 
 # 3. Si los puertos están ocupados:
 netstat -ano | findstr :5000  # Ver qué proceso usa el puerto
@@ -314,6 +413,12 @@ taskkill /F /IM dotnet.exe
 del /F /Q vhouse_clean.db* VHouse.Web\vhouse_clean.db*
 rmdir /S /Q src\VHouse.Infrastructure\Migrations
 dotnet clean
+start-fresh.bat --hard
+
+# 5. Si wait-for-vhouse.sh falla (en Git Bash/WSL):
+# - Revisa logs de start-fresh.bat para errores de compilación
+# - Verifica que el puerto 5000 no esté bloqueado por firewall
+# - Asegúrate de que la BD se creó correctamente
 ```
 
 ### Migration Issues
@@ -322,12 +427,23 @@ dotnet clean
 # 1. Infrastructure project builds successfully
 dotnet build src/VHouse.Infrastructure
 
-# 2. Connection string is valid
+# 2. Connection string is valid (in appsettings.json or .env)
 # 3. Database file/server is accessible
 
+# 4. EF Tools are installed globally
+dotnet tool install --global dotnet-ef
+
 # Reset database (destructive - local dev only)
-rm vhouse_clean.db  # or drop PostgreSQL database
-dotnet ef database update --project src/VHouse.Infrastructure
+# SQLite:
+del /F /Q vhouse_clean.db vhouse_clean.db-shm vhouse_clean.db-wal
+del /F /Q VHouse.Web\vhouse_clean.db*
+
+# Recreate from migrations
+cd VHouse.Web
+dotnet ef database update --project ../src/VHouse.Infrastructure
+cd ..
+
+# Or use start-fresh.bat --hard for complete reset
 ```
 
 ### AI Service Failures
@@ -349,9 +465,102 @@ dotnet build
 
 GitHub Actions workflows (`.github/workflows/`):
 - **ci.yml**: Build, test, coverage, Docker build, SBOM generation
-- **codeql.yml**: Security scanning
+- **codeql.yml**: Security scanning (CodeQL analysis)
 
 Build requirements:
-- Must build with `-warnaserror` (warnings treated as errors)
-- Tests must pass
-- Code coverage tracked
+
+- Must build with `-warnaserror` in CI (warnings treated as errors)
+- All tests must pass
+- Code coverage tracked (>80% target for critical paths)
+- Security scans must be clean (no critical/high vulnerabilities)
+
+## Common Workflows
+
+### Daily Development
+
+```bash
+# Quick iteration (use daily)
+start-fresh.bat             # Windows - fast mode
+dotnet watch run --project VHouse.Web  # Alternative with hot reload
+
+# After pulling changes
+dotnet restore
+dotnet build
+```
+
+### After Schema Changes
+
+```bash
+# When you or someone else added/modified entities
+start-fresh.bat --hard      # Complete reset with migrations
+
+# Or manually:
+cd VHouse.Web
+dotnet ef migrations add DescriptiveName --project ../src/VHouse.Infrastructure
+dotnet ef database update --project ../src/VHouse.Infrastructure
+cd ..
+```
+
+### Before Committing
+
+```bash
+# Run tests
+dotnet test
+
+# Check for build warnings
+dotnet build
+
+# Run security checks (if tools installed)
+dotnet format --verify-no-changes
+```
+
+### Creating a Pull Request
+
+```bash
+# 1. Ensure tests pass
+dotnet test
+
+# 2. Ensure build succeeds
+dotnet build
+
+# 3. Check for any uncommitted files
+git status
+
+# 4. Commit with conventional format
+git add .
+git commit -m "feat: add price list management for multi-tenant pricing"
+# Formats: feat:, fix:, refactor:, docs:, test:, chore:
+```
+
+## Project-Specific Conventions
+
+### Naming Patterns
+
+- **Entities**: Singular nouns (Product, Order, Customer)
+- **DbSets**: Plural (Products, Orders, Customers)
+- **Commands**: VerbNounCommand (CreateProductCommand, UpdateOrderCommand)
+- **Queries**: GetNounQuery, ListNounsQuery (GetProductQuery, ListProductsQuery)
+- **Handlers**: CommandName + Handler (CreateProductCommandHandler)
+- **DTOs**: NounDto (ProductDto, OrderDto)
+
+### Money Fields
+
+Always use `decimal(18,2)` precision:
+
+```csharp
+entity.Property(p => p.Price).HasColumnType("decimal(18,2)");
+```
+
+### Tenant Isolation
+
+When working with multi-tenant features:
+
+- Always filter queries by ClientTenant
+- Validate tenant access in handlers
+- Include `ClientTenant` field in audit logs
+
+### Seeded Data
+
+The database seeds gallery albums automatically. Don't manually create these in code:
+
+- Products, Sales Receipts, Purchase Receipts, Invoices, Suppliers, Customers, Misc
